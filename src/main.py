@@ -1,5 +1,6 @@
 import ccxt
 import time
+from datetime import datetime
 import sys
 from pprint import pprint
 # define watched symbols
@@ -7,10 +8,9 @@ from pprint import pprint
 
 class Spatial:
     def __init__(self):
-        self.watch = ['BTC/USD', 'ETH/BTC', 'ETH/USD',
-                      'LTC/USD', 'LTC/ETH',
-                      'LTC/BTC', 'XRP/ETH', 'XRP/USD',
-                      'ETC/BTC', 'BCH/USD', 'ETC/USD']
+        self.watch = ['BTC/USD', 'ETH/USD']  # ,
+        #'LTC/USD', 'XRP/USD',
+        # 'BCH/USD', 'ETC/USD']
 
         # load bittrex key
         bittrex_key = open('keys/bittrex_public').read().strip()
@@ -32,8 +32,36 @@ class Spatial:
             'secret': kraken_secret,
         })
 
-    def getSpread(self):
+    def getSpread(self, symbol, responses):
         # get tickers for the watched symbols
+
+        print('For {}:'.format(symbol))
+
+        spread = 0
+        low = responses['kraken'][symbol]['ask']
+        high = responses['kraken'][symbol]['ask']
+        for exchange in responses:
+            ask = responses[exchange][symbol]['ask']
+            print('\t{}: {}'.format(exchange,
+                                    ask))
+            if ask > high:
+                high = ask
+            elif ask < low:
+                low = ask
+        spread = high-low
+        print(
+            'Spread (w/fees): {:.5f} {}'.format(spread*(1-(0.0025*2)), symbol[4:]), end=' ')
+
+        if low == responses['kraken'][symbol]['ask']:
+            buy = 'kraken'
+            sell = 'bittrex'
+        else:
+            buy = 'bittrex'
+            sell = 'kraken'
+        print('(buy on {}, sell on {})'.format(buy, sell))
+        return spread, buy, sell
+
+    def getAllSpreads(self):
         before = time.time()
         all_responses = {
             'kraken': self.kraken.fetch_tickers(self.watch),
@@ -43,22 +71,12 @@ class Spatial:
             ', '.join(all_responses.keys()), time.time()-before))
 
         for symbol in self.watch:
-            print('For {}:'.format(symbol))
-            low = all_responses['kraken'][symbol]['ask']
-            high = all_responses['kraken'][symbol]['ask']
-            spread = 0
-            for exchange in all_responses:
-                ask = all_responses[exchange][symbol]['ask']
-                print('\t{}: {}'.format(exchange,
-                                        ask))
-                if ask > high:
-                    high = ask
-                elif ask < low:
-                    low = ask
-            spread = high-low
-            print('Spread (w/fees): {:.5f}'.format(spread*(1-(0.0025*2))))
+            self.getSpread(symbol, all_responses)
 
 
 if __name__ == '__main__':
     tester = Spatial()
-    tester.getSpread()
+    for i in range(1, 11):
+        print('-'*56+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+        tester.getAllSpreads()
+        time.sleep(1)
