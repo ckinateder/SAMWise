@@ -22,15 +22,25 @@ class Spatial:
             'secret': bittrex_secret,
         })
 
-        # load kraken key
-        kraken_key = open('keys/kraken_public').read().strip()
-        kraken_secret = open('keys/kraken_private').read().strip()
+        # load binanceus key
+        binanceus_key = open('keys/binanceus_public').read().strip()
+        binanceus_secret = open('keys/binanceus_private').read().strip()
 
-        # create kraken exchange
-        self.kraken = ccxt.kraken({
-            'apiKey': kraken_key,
-            'secret': kraken_secret,
+        # create binanceus exchange
+        self.binanceus = ccxt.binanceus({
+            'apiKey': binanceus_key,
+            'secret': binanceus_secret,
         })
+
+    def getWatched(self):
+        before = time.time()
+        all_responses = {
+            'binanceus': self.binanceus.fetch_tickers(self.watch),
+            'bittrex': self.bittrex.fetch_tickers(self.watch)
+        }
+        print('Recived from {} in {:.3f} s'.format(
+            ', '.join(all_responses.keys()), time.time()-before))
+        return all_responses
 
     def getSpread(self, symbol, responses):
         # get tickers for the watched symbols
@@ -38,8 +48,8 @@ class Spatial:
         print('For {}:'.format(symbol))
 
         spread = 0
-        low = responses['kraken'][symbol]['ask']
-        high = responses['kraken'][symbol]['ask']
+        low = responses['binanceus'][symbol]['ask']
+        high = responses['binanceus'][symbol]['ask']
         for exchange in responses:
             ask = responses[exchange][symbol]['ask']
             print('\t{}: {}'.format(exchange,
@@ -52,30 +62,33 @@ class Spatial:
         print(
             'Spread (w/fees): {:.5f} {}'.format(spread*(1-(0.0025*2)), symbol[4:]), end=' ')
 
-        if low == responses['kraken'][symbol]['ask']:
-            buy = 'kraken'
+        if low == responses['binanceus'][symbol]['ask']:
+            buy = 'binanceus'
             sell = 'bittrex'
         else:
             buy = 'bittrex'
-            sell = 'kraken'
+            sell = 'binanceus'
         print('(buy on {}, sell on {})'.format(buy, sell))
         return spread, buy, sell
 
     def getAllSpreads(self):
-        before = time.time()
-        all_responses = {
-            'kraken': self.kraken.fetch_tickers(self.watch),
-            'bittrex': self.bittrex.fetch_tickers(self.watch)
-        }
-        print('Recived from {} in {:.3f} s'.format(
-            ', '.join(all_responses.keys()), time.time()-before))
+        all_responses = self.getWatched()
 
         for symbol in self.watch:
             self.getSpread(symbol, all_responses)
 
+    def performArbitrage(self, symbol):
+        binanceus_balances = self.binanceus.fetch_balance()
+        bittrex_balances = self.bittrex.fetch_balance()
+        pprint(bittrex_balances)
+        pprint(binanceus_balances)
+        all_responses = self.getWatched()
+        spread, buy_ex, sell_ex = self.getSpread(symbol, all_responses)
+
 
 if __name__ == '__main__':
     tester = Spatial()
+    tester.performArbitrage(tester.watch[0])
     for i in range(1, 11):
         print('-'*56+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
         tester.getAllSpreads()
