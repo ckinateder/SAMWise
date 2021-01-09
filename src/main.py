@@ -2,15 +2,20 @@ import ccxt
 import time
 from datetime import datetime
 import sys
+import logging
 from pprint import pprint
 import multiprocessing
 # define watched symbols
+detail = 'logs/' + \
+    datetime.now().strftime("%m-%d-%Y_%H-%M-%S")+'.log'
+logging.basicConfig(format='%(asctime)s: %(message)s',
+                    filename=detail, level=logging.INFO)
 
 
-class Spatial:
-    def __init__(self):
-        self.watch = ['BTC/USD', 'ETH/USD']  # ,
-        #'LTC/USD', 'XRP/USD',
+class Bouncer:
+    def __init__(self, symbol):
+        self.symbol = symbol  # ,
+        # 'LTC/USD', 'XRP/USD',
         # 'BCH/USD', 'ETC/USD']
 
         # load bittrex key
@@ -45,25 +50,28 @@ class Spatial:
     def getWatched(self):
         before = time.time()
         all_responses = {
-            self.binanceus: self.binanceus.fetch_tickers(self.watch),
-            self.bittrex: self.bittrex.fetch_tickers(self.watch),
-            # 'kraken': self.kraken.fetch_tickers(self.watch)
+            self.binanceus: self.binanceus.fetch_ticker(self.symbol),
+            self.bittrex: self.bittrex.fetch_ticker(self.symbol),
+            self.kraken: self.kraken.fetch_ticker(self.symbol)
         }
         # print('Recived from {} in {:.3f} s'.format(
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
 
-    def getSpread(self, symbol, responses):
+    def getSpread(self, responses=None):
         # get tickers for the watched symbols and return exchanges and spread
+        if responses == None:
+            responses = self.getWatched()
 
         print('/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
-        print('For {}:'.format(symbol))
+        print('For {}:'.format(self.symbol))
 
         spread = 0
-        low = responses[self.binanceus][symbol]['ask']
-        high = responses[self.binanceus][symbol]['ask']
+
+        low = responses[self.binanceus]['ask']
+        high = responses[self.binanceus]['ask']
         for exchange in responses:
-            ask = responses[exchange][symbol]['ask']
+            ask = responses[exchange]['ask']
             print('\t{}: {}'.format(exchange,
                                     ask))
             if ask > high:
@@ -72,39 +80,38 @@ class Spatial:
                 low = ask
         spread = high-low
         print(
-            'Spread (w/~fees): {:.5f} {}'.format(spread*(1-(0.0025*2)), symbol[4:]), end=' ')
+            'Spread (w/~fees): {:.5f} {}'.format(spread*(1-(0.0025*2)), self.symbol[4:]), end=' ')
 
         # find buy
-        if low == responses[self.binanceus][symbol]['ask']:
+        if low == responses[self.binanceus]['ask']:
             buy = self.binanceus
-        elif low == responses[self.bittrex][symbol]['ask']:
+        elif low == responses[self.bittrex]['ask']:
             buy = self.bittrex
-        # elif low == responses['kraken'][symbol]['ask']:
-        #    buy = self.kraken
+        elif low == responses[self.kraken]['ask']:
+            buy = self.kraken
         # find sell
-        if high == responses[self.binanceus][symbol]['ask']:
+        if high == responses[self.binanceus]['ask']:
             sell = self.binanceus
-        elif high == responses[self.bittrex][symbol]['ask']:
+        elif high == responses[self.bittrex]['ask']:
             sell = self.bittrex
-        # elif high == responses['kraken'][symbol]['ask']:
-        #    sell = self.kraken
+        elif high == responses[self.kraken]['ask']:
+            sell = self.kraken
 
         print('(buy on {}, sell on {})'.format(buy.name, sell.name))
         return spread, buy, sell, low, high
 
-    def getAllSpreads(self):
-        all_responses = self.getWatched()
-
-        for symbol in self.watch:
-            self.getSpread(symbol, all_responses)
-
-    def handleTransaction(self, symbol, quote_amount, buy_ex, sell_ex, low, high):
+    def handleTransaction(self, quote_amount, buy_ex, sell_ex, low, high):
         # creating processes
+        print('Creating buy order on {} for {} {} at {}'.format(
+            buy_ex, low/quote_amount, self.symbol, low))
         buying = multiprocessing.Process(
-            target=buy_ex.create_limit_buy_order, args=(symbol, quote_amount/low, low))
+            target=buy_ex.create_limit_buy_order, args=(self.symbol, low/quote_amount, low))
+        print('Creating sell order on {} for {} {} at {}'.format(
+            sell_ex, high/quote_amount, self.symbol, high))
         selling = multiprocessing.Process(
-            target=sell_ex.create_limit_sell_order, args=(symbol, quote_amount, high))
+            target=sell_ex.create_limit_sell_order, args=(self.symbol, high/quote_amount, high))
 
+        logging.info('Trades initiated')
         # starting process 1
         buying.start()
         # starting process 2
@@ -114,27 +121,52 @@ class Spatial:
         buying.join()
         # wait until process 2 is finished
         selling.join()
-        return 'Done'
+        logging.info('Trades completed')
 
-    def performArbitrage(self, symbol, quote_amount):
         binanceus_balances = self.binanceus.fetch_balance()
         bittrex_balances = self.bittrex.fetch_balance()
-        #kraken_balances = self.kraken.fetch_balance()
+        # kraken_balances = self.kraken.fetch_balance()
+        logging.info('Balances fetched')
 
-        print('Bittrex balances - [{}: {}, {}: {}]'.format(symbol[:3], bittrex_balances['free']
-                                                           [symbol[:3]], symbol[4:], bittrex_balances['free'][symbol[4:]]))
-        print('Binance balances - [{}: {}, {}: {}]'.format(symbol[:3], binanceus_balances['free']
-                                                           [symbol[:3]], symbol[4:], binanceus_balances['free'][symbol[4:]]))
+        logging.info('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances['free']
+                                                                  [self.symbol[:3]], self.symbol[4:], bittrex_balances['free'][self.symbol[4:]]))
+        logging.info('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances['free']
+                                                                  [self.symbol[:3]], self.symbol[4:], binanceus_balances['free'][self.symbol[4:]]))
+
+        return 'Done'
+
+    def performOneArbitrage(self, quote_amount):
+        binanceus_balances = self.binanceus.fetch_balance()
+        bittrex_balances = self.bittrex.fetch_balance()
+        # kraken_balances = self.kraken.fetch_balance()
+
+        logging.info('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances['free']
+                                                                  [self.symbol[:3]], self.symbol[4:], bittrex_balances['free'][self.symbol[4:]]))
+        logging.info('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances['free']
+                                                                  [self.symbol[:3]], self.symbol[4:], binanceus_balances['free'][self.symbol[4:]]))
+
+        print('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances['free']
+                                                           [self.symbol[:3]], self.symbol[4:], bittrex_balances['free'][self.symbol[4:]]))
+        print('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances['free']
+                                                           [self.symbol[:3]], self.symbol[4:], binanceus_balances['free'][self.symbol[4:]]))
         # print('Kraken balances - [{}: {}, {}: {}]'.format(symbol[:3], kraken_balances['free']
         #                                                  [symbol[:3]], symbol[4:], kraken_balances['free'][symbol[4:]]))
         markets = self.getWatched()
-        spread, buy_ex, sell_ex, low, high = self.getSpread(symbol, markets)
-        #self.handleTransaction(symbol, quote_amount, buy_ex, sell_ex, low, high)
+        spread, buy_ex, sell_ex, low, high = self.getSpread(markets)
+        '''
+        if buy_ex.fetch_balance()['free'][symbol[4:]] > quote_amount and sell_ex.fetch_balance()['free'][symbol[:3]] > high/quote_amount:
+            self.handleTransaction(symbol, quote_amount,
+                                   buy_ex, sell_ex, low, high)
+        '''
 
 
 if __name__ == '__main__':
-    tester = Spatial()
-    tester.performArbitrage(tester.watch[1], 10)
-    for i in range(1, 11):
-        tester.getAllSpreads()
+    watch = ['BTC/USD', 'ETH/USD']
+    btcer = Bouncer(watch[0])
+    ether = Bouncer(watch[1])
+    # tester.performOneArbitrage(10)
+    while True:
+        btcer.getSpread()
+        ether.getSpread()
+        print()
         time.sleep(1)
