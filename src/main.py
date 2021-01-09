@@ -47,12 +47,26 @@ class Bouncer:
             'secret': kraken_secret,
         })
 
+        # load coinbase_pro key
+        coinbase_pro_key = open('keys/coinbase_pro_public').read().strip()
+        coinbase_pro_secret = open('keys/coinbase_pro_private').read().strip()
+        coinbase_pro_passphrase = open(
+            'keys/coinbase_pro_passphrase').read().strip()
+
+        # create coinbase_pro exchange
+        self.coinbase_pro = ccxt.coinbasepro({
+            'apiKey': coinbase_pro_key,
+            'secret': coinbase_pro_secret,
+            'password': coinbase_pro_passphrase,
+        })
+
     def getWatched(self):
         before = time.time()
         all_responses = {
             self.binanceus: self.binanceus.fetch_ticker(self.symbol),
             self.bittrex: self.bittrex.fetch_ticker(self.symbol),
-            self.kraken: self.kraken.fetch_ticker(self.symbol)
+            self.kraken: self.kraken.fetch_ticker(self.symbol),
+            self.coinbase_pro: self.coinbase_pro.fetch_ticker(self.symbol)
         }
         # print('Recived from {} in {:.3f} s'.format(
         #    ', '.join(all_responses.keys()), time.time()-before))
@@ -89,6 +103,8 @@ class Bouncer:
             buy = self.bittrex
         elif low == responses[self.kraken]['ask']:
             buy = self.kraken
+        elif low == responses[self.coinbase_pro]['ask']:
+            buy = self.coinbase_pro
         # find sell
         if high == responses[self.binanceus]['ask']:
             sell = self.binanceus
@@ -96,11 +112,15 @@ class Bouncer:
             sell = self.bittrex
         elif high == responses[self.kraken]['ask']:
             sell = self.kraken
+        elif high == responses[self.coinbase_pro]['ask']:
+            sell = self.coinbase_pro
 
         print('(buy on {}, sell on {})'.format(buy.name, sell.name))
+        logging.info('(buy on {}, sell on {})'.format(buy.name, sell.name))
         return spread, buy, sell, low, high
 
     def handleTransaction(self, quote_amount, buy_ex, sell_ex, low, high):
+        section = 'total'
         # creating processes
         print('Creating buy order on {} for {} {} at {}'.format(
             buy_ex, low/quote_amount, self.symbol, low))
@@ -125,37 +145,53 @@ class Bouncer:
 
         binanceus_balances = self.binanceus.fetch_balance()
         bittrex_balances = self.bittrex.fetch_balance()
-        # kraken_balances = self.kraken.fetch_balance()
+        kraken_balances = self.kraken.fetch_balance()
+        coinbase_pro_balances = self.coinbase_pro.fetch_balance()
+
         logging.info('Balances fetched')
 
-        logging.info('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances['free']
-                                                                  [self.symbol[:3]], self.symbol[4:], bittrex_balances['free'][self.symbol[4:]]))
-        logging.info('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances['free']
-                                                                  [self.symbol[:3]], self.symbol[4:], binanceus_balances['free'][self.symbol[4:]]))
+        logging.info('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances[section]
+                                                                  [self.symbol[:3]], self.symbol[4:], bittrex_balances[section][self.symbol[4:]]))
+        logging.info('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances[section]
+                                                                  [self.symbol[:3]], self.symbol[4:], binanceus_balances[section][self.symbol[4:]]))
+        logging.info('Kraken balances - [{}: {}, {}: {}]'.format(self.symbol[:3], kraken_balances[section]
+                                                                 [self.symbol[:3]], self.symbol[4:], kraken_balances[section][self.symbol[4:]]))
+        logging.info('coinbase_pro balances - [{}: {}, {}: {}]'.format(self.symbol[:3], coinbase_pro_balances[section]
+                                                                       [self.symbol[:3]], self.symbol[4:], coinbase_pro_balances[section][self.symbol[4:]]))
 
         return 'Done'
 
     def performOneArbitrage(self, quote_amount):
         binanceus_balances = self.binanceus.fetch_balance()
         bittrex_balances = self.bittrex.fetch_balance()
-        # kraken_balances = self.kraken.fetch_balance()
+        kraken_balances = self.kraken.fetch_balance()
+        coinbase_pro_balances = self.coinbase_pro.fetch_balance()
 
-        logging.info('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances['free']
-                                                                  [self.symbol[:3]], self.symbol[4:], bittrex_balances['free'][self.symbol[4:]]))
-        logging.info('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances['free']
-                                                                  [self.symbol[:3]], self.symbol[4:], binanceus_balances['free'][self.symbol[4:]]))
+        section = 'total'
 
-        print('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances['free']
-                                                           [self.symbol[:3]], self.symbol[4:], bittrex_balances['free'][self.symbol[4:]]))
-        print('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances['free']
-                                                           [self.symbol[:3]], self.symbol[4:], binanceus_balances['free'][self.symbol[4:]]))
-        # print('Kraken balances - [{}: {}, {}: {}]'.format(symbol[:3], kraken_balances['free']
-        #                                                  [symbol[:3]], symbol[4:], kraken_balances['free'][symbol[4:]]))
+        logging.info('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances[section]
+                                                                  [self.symbol[:3]], self.symbol[4:], bittrex_balances[section][self.symbol[4:]]))
+        logging.info('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances[section]
+                                                                  [self.symbol[:3]], self.symbol[4:], binanceus_balances[section][self.symbol[4:]]))
+        logging.info('Kraken balances - [{}: {}, {}: {}]'.format(self.symbol[:3], kraken_balances[section]
+                                                                 [self.symbol[:3]], self.symbol[4:], kraken_balances[section][self.symbol[4:]]))
+        logging.info('coinbase_pro balances - [{}: {}, {}: {}]'.format(self.symbol[:3], coinbase_pro_balances[section]
+                                                                       [self.symbol[:3]], self.symbol[4:], coinbase_pro_balances[section][self.symbol[4:]]))
+
+        print('Bittrex balances - [{}: {}, {}: {}]'.format(self.symbol[:3], bittrex_balances[section]
+                                                           [self.symbol[:3]], self.symbol[4:], bittrex_balances[section][self.symbol[4:]]))
+        print('Binance balances - [{}: {}, {}: {}]'.format(self.symbol[:3], binanceus_balances[section]
+                                                           [self.symbol[:3]], self.symbol[4:], binanceus_balances[section][self.symbol[4:]]))
+        print('Kraken balances - [{}: {}, {}: {}]'.format(self.symbol[:3], kraken_balances[section]
+                                                          [self.symbol[:3]], self.symbol[4:], kraken_balances[section][self.symbol[4:]]))
+        print('coinbase_pro balances - [{}: {}, {}: {}]'.format(self.symbol[:3], coinbase_pro_balances[section]
+                                                                [self.symbol[:3]], self.symbol[4:], coinbase_pro_balances[section][self.symbol[4:]]))
         markets = self.getWatched()
         spread, buy_ex, sell_ex, low, high = self.getSpread(markets)
+
         '''
-        if buy_ex.fetch_balance()['free'][symbol[4:]] > quote_amount and sell_ex.fetch_balance()['free'][symbol[:3]] > high/quote_amount:
-            self.handleTransaction(symbol, quote_amount,
+        if buy_ex.fetch_balance()[section][self.symbol[4:]] > quote_amount and sell_ex.fetch_balance()[section][self.symbol[:3]] > high/quote_amount:
+            self.handleTransaction(quote_amount,
                                    buy_ex, sell_ex, low, high)
         '''
 
@@ -164,7 +200,8 @@ if __name__ == '__main__':
     watch = ['BTC/USD', 'ETH/USD']
     btcer = Bouncer(watch[0])
     ether = Bouncer(watch[1])
-    # tester.performOneArbitrage(10)
+    btcer.performOneArbitrage(10)
+    ether.performOneArbitrage(10)
     while True:
         btcer.getSpread()
         ether.getSpread()
