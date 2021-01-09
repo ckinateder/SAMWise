@@ -122,7 +122,9 @@ class Bouncer:
             if high == responses[exchange]['ask']:
                 sell = exchange
 
-        spread = (high-low)/self.quote_amount
+        #spread = self.quote_amount/(high-low)
+
+        spread = (self.quote_amount/high)*(high-low)
 
         fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_amount/low, low, takerOrMaker='taker', params={})['cost'] +
                 sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_amount/high, high, takerOrMaker='taker', params={})['cost'])
@@ -206,11 +208,8 @@ class Bouncer:
 
 if __name__ == '__main__':
     watch = ['BTC/USD', 'ETH/USD']
-    btcer = Bouncer(watch[0], 10)
-    ether = Bouncer(watch[1], 10)
+    btcer = Bouncer(watch[0], 1000)
     btcer.performOneArbitrage()
-    ether.performOneArbitrage()
     while True:
         btcer.getSpread()
-        ether.getSpread()
         time.sleep(1)
