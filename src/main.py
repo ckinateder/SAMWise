@@ -67,6 +67,10 @@ class Bouncer:
             'password': coinbase_pro_passphrase,
         })
 
+        # add to exchange list
+        self.exchanges = [self.bittrex, self.binanceus,
+                          self.kraken, self.coinbase_pro]
+
         self.start_total_base_amount, self.start_total_quote_amount = self.getBalances()
         logging.info('Starting base amount [{} {}, {} {}]'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_amount, self.quote_coin))
@@ -76,12 +80,9 @@ class Bouncer:
         Get responses for each exchange for self.symbol.
         '''
         before = time.time()
-        all_responses = {
-            self.binanceus: self.binanceus.fetch_ticker(self.symbol),
-            self.bittrex: self.bittrex.fetch_ticker(self.symbol),
-            self.kraken: self.kraken.fetch_ticker(self.symbol),
-            self.coinbase_pro: self.coinbase_pro.fetch_ticker(self.symbol)
-        }
+        all_responses = dict()
+        for exchange in self.exchanges:
+            all_responses[exchange] = exchange.fetch_ticker(self.symbol)
         # logging.info('Recived from {} in {:.3f} s'.format(
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
@@ -109,23 +110,13 @@ class Bouncer:
                 low = ask
 
         # find buy
-        if low == responses[self.binanceus]['ask']:
-            buy = self.binanceus
-        elif low == responses[self.bittrex]['ask']:
-            buy = self.bittrex
-        elif low == responses[self.kraken]['ask']:
-            buy = self.kraken
-        elif low == responses[self.coinbase_pro]['ask']:
-            buy = self.coinbase_pro
+        for exchange in self.exchanges:
+            if low == responses[exchange]['ask']:
+                buy = exchange
         # find sell
-        if high == responses[self.binanceus]['ask']:
-            sell = self.binanceus
-        elif high == responses[self.bittrex]['ask']:
-            sell = self.bittrex
-        elif high == responses[self.kraken]['ask']:
-            sell = self.kraken
-        elif high == responses[self.coinbase_pro]['ask']:
-            sell = self.coinbase_pro
+        for exchange in self.exchanges:
+            if high == responses[exchange]['ask']:
+                sell = exchange
 
         spread = high-low
         logging.info(
@@ -135,43 +126,28 @@ class Bouncer:
 
     def getBalances(self):
         '''
-        Log balances to file and return string.
+        Log balances to file and total base and quote amounts.
         '''
-        binanceus_balances = self.binanceus.fetch_balance()
-        bittrex_balances = self.bittrex.fetch_balance()
-        kraken_balances = self.kraken.fetch_balance()
-        coinbase_pro_balances = self.coinbase_pro.fetch_balance()
+        balances = dict()
+        for exchange in self.exchanges:
+            balances[exchange] = exchange.fetch_balance()
 
-        logging.debug(
-            '{} balance response - {}'.format(self.binanceus, pformat(binanceus_balances)))
-        logging.debug(
-            '{} balance response - {}'.format(self.bittrex, pformat(bittrex_balances)))
-        logging.debug(
-            '{} balance response - {}'.format(self.kraken, pformat(kraken_balances)))
-        logging.debug('{} balance response - {}'.format(self.coinbase_pro,
-                                                        pformat(coinbase_pro_balances)))
+        for exchange in self.exchanges:
+            logging.debug(
+                '{} balance response - {}'.format(exchange, pformat(balances[exchange])))
 
         section = 'total'
+        for exchange in self.exchanges:
+            logging.info('{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, section, self.base_coin, balances[exchange][section]
+                                                                      [self.base_coin], self.quote_coin, balances[exchange][section][self.quote_coin]))
+        total_base_amount = 0
+        for exchange in self.exchanges:
+            total_base_amount = balances[exchange][section][self.base_coin]
 
-        bittrex_string = ('Bittrex balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, bittrex_balances[section]
-                                                                            [self.base_coin], self.quote_coin, bittrex_balances[section][self.quote_coin]))
-        binance_string = ('Binance US balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, binanceus_balances[section]
-                                                                               [self.base_coin], self.quote_coin, binanceus_balances[section][self.quote_coin]))
-        kraken_string = ('Kraken balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, kraken_balances[section]
-                                                                          [self.base_coin], self.quote_coin, kraken_balances[section][self.quote_coin]))
-        coinbase_pro_string = ('Coinbase Pro balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, coinbase_pro_balances[section]
-                                                                                      [self.base_coin], self.quote_coin, coinbase_pro_balances[section][self.quote_coin]))
-        logging.info(bittrex_string)
-        logging.info(binance_string)
-        logging.info(kraken_string)
-        logging.info(coinbase_pro_string)
+        total_quote_amount = 0
+        for exchange in self.exchanges:
+            total_quote_amount = balances[exchange][section][self.quote_coin]
 
-        total_base_amount = binanceus_balances[section][self.base_coin]+bittrex_balances[section][self.base_coin] + \
-            kraken_balances[section][self.base_coin] + \
-            coinbase_pro_balances[section][self.base_coin]
-        total_quote_amount = binanceus_balances[section][self.quote_coin]+bittrex_balances[section][self.quote_coin] + \
-            kraken_balances[section][self.quote_coin] + \
-            coinbase_pro_balances[section][self.quote_coin]
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
         return total_base_amount, total_quote_amount
 
@@ -179,7 +155,6 @@ class Bouncer:
         '''
         Places the arbitrage transactions simultaneously.
         '''
-        section = 'total'
         # creating processes
         logging.info('Creating buy order on {} for {} {} at {}'.format(
             buy_ex, low/quote_amount, self.symbol, low))
