@@ -71,6 +71,9 @@ class Bouncer:
         self.exchanges = [self.bittrex, self.binanceus,
                           self.kraken, self.coinbase_pro]
 
+        logging.info('Created Bouncer for {}'.format(
+            self.symbol))
+
         self.start_total_base_amount, self.start_total_quote_amount = self.getBalances()
         logging.info('Starting base amount [{} {}, {} {}]'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_amount, self.quote_coin))
@@ -120,7 +123,7 @@ class Bouncer:
 
         spread = high-low
         logging.info(
-            'Spread (w/~fees): {:.5f} {} (buy on {}, sell on {})'.format(spread*(1-(0.0025*2)), self.quote_coin, buy.name, sell.name))
+            '\tSpread (w/~fees): {:.5f} {} (buy on {}, sell on {})'.format(spread*(1-(0.0025*2)), self.quote_coin, buy.name, sell.name))
 
         return spread, buy, sell, low, high
 
@@ -138,15 +141,15 @@ class Bouncer:
 
         section = 'total'
         for exchange in self.exchanges:
-            logging.info('{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, section, self.base_coin, balances[exchange][section]
-                                                                      [self.base_coin], self.quote_coin, balances[exchange][section][self.quote_coin]))
+            logging.debug('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, section, self.base_coin, balances[exchange][section]
+                                                                         [self.base_coin], self.quote_coin, balances[exchange][section][self.quote_coin]))
         total_base_amount = 0
         for exchange in self.exchanges:
-            total_base_amount = balances[exchange][section][self.base_coin]
+            total_base_amount += balances[exchange][section][self.base_coin]
 
         total_quote_amount = 0
         for exchange in self.exchanges:
-            total_quote_amount = balances[exchange][section][self.quote_coin]
+            total_quote_amount += balances[exchange][section][self.quote_coin]
 
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
         return total_base_amount, total_quote_amount
