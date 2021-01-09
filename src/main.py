@@ -15,13 +15,14 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
 class Bouncer:
-    def __init__(self, symbol):
+    def __init__(self, symbol, quote_amount):
         '''
         Create exchanges.
         '''
         self.symbol = symbol  # ,
         self.base_coin = symbol[:3]
         self.quote_coin = symbol[4:]
+        self.quote_amount = quote_amount
         # 'LTC/USD', 'XRP/USD',
         # 'BCH/USD', 'ETC/USD']
 
@@ -71,8 +72,8 @@ class Bouncer:
         self.exchanges = [self.bittrex, self.binanceus,
                           self.kraken, self.coinbase_pro]
 
-        logging.info('Created Bouncer for {}'.format(
-            self.symbol))
+        logging.info('Created Bouncer for {} investing {} {}'.format(
+            self.symbol, self.quote_amount, self.quote_coin))
 
         self.start_total_base_amount, self.start_total_quote_amount = self.getBalances()
         logging.info('Starting base amount [{} {}, {} {}]'.format(
@@ -121,9 +122,12 @@ class Bouncer:
             if high == responses[exchange]['ask']:
                 sell = exchange
 
-        spread = high-low
+        spread = (high-low)/self.quote_amount
+
+        fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_amount/low, low, takerOrMaker='taker', params={})['cost'] +
+                sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_amount/high, high, takerOrMaker='taker', params={})['cost'])
         logging.info(
-            '\tSpread (w/~fees): {:.5f} {} (buy on {}, sell on {})'.format(spread*(1-(0.0025*2)), self.quote_coin, buy.name, sell.name))
+            '\tSpread: {:.5f} {} (after fees: {:.5f} {}) (buy on {}, sell on {})'.format(spread, self.quote_coin, spread-fees, self.quote_coin, buy.name, sell.name))
 
         return spread, buy, sell, low, high
 
@@ -154,19 +158,19 @@ class Bouncer:
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
         return total_base_amount, total_quote_amount
 
-    def handleTransaction(self, quote_amount, buy_ex, sell_ex, low, high):
+    def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
         Places the arbitrage transactions simultaneously.
         '''
         # creating processes
         logging.info('Creating buy order on {} for {} {} at {}'.format(
-            buy_ex, low/quote_amount, self.symbol, low))
+            buy_ex, low/self.quote_amount, self.symbol, low))
         buying = multiprocessing.Process(
-            target=buy_ex.create_limit_buy_order, args=(self.symbol, low/quote_amount, low))
+            target=buy_ex.create_limit_buy_order, args=(self.symbol, low/self.quote_amount, low))
         logging.info('Creating sell order on {} for {} {} at {}'.format(
-            sell_ex, high/quote_amount, self.symbol, high))
+            sell_ex, high/self.quote_amount, self.symbol, high))
         selling = multiprocessing.Process(
-            target=sell_ex.create_limit_sell_order, args=(self.symbol, high/quote_amount, high))
+            target=sell_ex.create_limit_sell_order, args=(self.symbol, high/self.quote_amount, high))
 
         logging.info('Trades initiated')
         # starting process 1
@@ -185,7 +189,7 @@ class Bouncer:
 
         return 'Done'
 
-    def performOneArbitrage(self, quote_amount):
+    def performOneArbitrage(self):
         '''
         Calculate spread and buy on low and sell on high.
         '''
@@ -195,17 +199,17 @@ class Bouncer:
 
         '''
         if buy_ex.fetch_balance()[section][self.quote_coin] > quote_amount and sell_ex.fetch_balance()[section][self.base_coin] > high/quote_amount:
-            self.handleTransaction(quote_amount,
+            self.handleTransaction(
                                    buy_ex, sell_ex, low, high)
         '''
 
 
 if __name__ == '__main__':
     watch = ['BTC/USD', 'ETH/USD']
-    btcer = Bouncer(watch[0])
-    ether = Bouncer(watch[1])
-    btcer.performOneArbitrage(10)
-    ether.performOneArbitrage(10)
+    btcer = Bouncer(watch[0], 10)
+    ether = Bouncer(watch[1], 10)
+    btcer.performOneArbitrage()
+    ether.performOneArbitrage()
     while True:
         btcer.getSpread()
         ether.getSpread()
