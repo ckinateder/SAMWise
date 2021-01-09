@@ -20,6 +20,8 @@ class Bouncer:
         Create exchanges.
         '''
         self.symbol = symbol  # ,
+        self.base_coin = symbol[:3]
+        self.quote_coin = symbol[4:]
         # 'LTC/USD', 'XRP/USD',
         # 'BCH/USD', 'ETC/USD']
 
@@ -64,6 +66,10 @@ class Bouncer:
             'secret': coinbase_pro_secret,
             'password': coinbase_pro_passphrase,
         })
+
+        self.start_total_base_amount, self.start_total_quote_amount = self.getBalances()
+        logging.info('Starting base amount [{} {}, {} {}]'.format(
+            self.start_total_base_amount, self.base_coin, self.start_total_quote_amount, self.quote_coin))
 
     def getWatched(self):
         '''
@@ -123,11 +129,11 @@ class Bouncer:
 
         spread = high-low
         logging.info(
-            'Spread (w/~fees): {:.5f} {} (buy on {}, sell on {})'.format(spread*(1-(0.0025*2)), self.symbol[4:], buy.name, sell.name))
+            'Spread (w/~fees): {:.5f} {} (buy on {}, sell on {})'.format(spread*(1-(0.0025*2)), self.quote_coin, buy.name, sell.name))
 
         return spread, buy, sell, low, high
 
-    def logBalances(self):
+    def getBalances(self):
         '''
         Log balances to file and return string.
         '''
@@ -147,19 +153,27 @@ class Bouncer:
 
         section = 'total'
 
-        bittrex_string = ('Bittrex balances ({}) - [{}: {}, {}: {}]'.format(section, self.symbol[:3], bittrex_balances[section]
-                                                                            [self.symbol[:3]], self.symbol[4:], bittrex_balances[section][self.symbol[4:]]))
-        binance_string = ('Binance US balances ({}) - [{}: {}, {}: {}]'.format(section, self.symbol[:3], binanceus_balances[section]
-                                                                               [self.symbol[:3]], self.symbol[4:], binanceus_balances[section][self.symbol[4:]]))
-        kraken_string = ('Kraken balances ({}) - [{}: {}, {}: {}]'.format(section, self.symbol[:3], kraken_balances[section]
-                                                                          [self.symbol[:3]], self.symbol[4:], kraken_balances[section][self.symbol[4:]]))
-        coinbase_pro_string = ('Coinbase Pro balances ({}) - [{}: {}, {}: {}]'.format(section, self.symbol[:3], coinbase_pro_balances[section]
-                                                                                      [self.symbol[:3]], self.symbol[4:], coinbase_pro_balances[section][self.symbol[4:]]))
+        bittrex_string = ('Bittrex balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, bittrex_balances[section]
+                                                                            [self.base_coin], self.quote_coin, bittrex_balances[section][self.quote_coin]))
+        binance_string = ('Binance US balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, binanceus_balances[section]
+                                                                               [self.base_coin], self.quote_coin, binanceus_balances[section][self.quote_coin]))
+        kraken_string = ('Kraken balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, kraken_balances[section]
+                                                                          [self.base_coin], self.quote_coin, kraken_balances[section][self.quote_coin]))
+        coinbase_pro_string = ('Coinbase Pro balances ({}) - [{}: {}, {}: {}]'.format(section, self.base_coin, coinbase_pro_balances[section]
+                                                                                      [self.base_coin], self.quote_coin, coinbase_pro_balances[section][self.quote_coin]))
         logging.info(bittrex_string)
         logging.info(binance_string)
         logging.info(kraken_string)
         logging.info(coinbase_pro_string)
-        return bittrex_string, binance_string, kraken_string, coinbase_pro_string
+
+        total_base_amount = binanceus_balances[section][self.base_coin]+bittrex_balances[section][self.base_coin] + \
+            kraken_balances[section][self.base_coin] + \
+            coinbase_pro_balances[section][self.base_coin]
+        total_quote_amount = binanceus_balances[section][self.quote_coin]+bittrex_balances[section][self.quote_coin] + \
+            kraken_balances[section][self.quote_coin] + \
+            coinbase_pro_balances[section][self.quote_coin]
+        # bittrex_string, binance_string, kraken_string, coinbase_pro_string
+        return total_base_amount, total_quote_amount
 
     def handleTransaction(self, quote_amount, buy_ex, sell_ex, low, high):
         '''
@@ -189,7 +203,7 @@ class Bouncer:
         logging.info('Trades completed')
 
         logging.info('Balances fetched')
-        self.logBalances()
+        self.getBalances()
 
         return 'Done'
 
@@ -197,12 +211,12 @@ class Bouncer:
         '''
         Calculate spread and buy on low and sell on high.
         '''
-        self.logBalances()
+        self.getBalances()
         markets = self.getWatched()
         spread, buy_ex, sell_ex, low, high = self.getSpread(markets)
 
         '''
-        if buy_ex.fetch_balance()[section][self.symbol[4:]] > quote_amount and sell_ex.fetch_balance()[section][self.symbol[:3]] > high/quote_amount:
+        if buy_ex.fetch_balance()[section][self.quote_coin] > quote_amount and sell_ex.fetch_balance()[section][self.base_coin] > high/quote_amount:
             self.handleTransaction(quote_amount,
                                    buy_ex, sell_ex, low, high)
         '''
