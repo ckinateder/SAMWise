@@ -236,14 +236,17 @@ class Bouncer:
         markets = self.getWatched()
         spread, buy_ex, sell_ex, low, high, profitable = self.getSpread(
             markets)
-        '''
+
+        quote_balance = buy_ex.fetch_balance()[self.section][self.quote_coin]
+        base_balance = sell_ex.fetch_balance()[self.section][self.base_coin]
+
         if profitable:
-            if buy_ex.fetch_balance()[self.section][self.quote_coin] > self.quote_order_size and sell_ex.fetch_balance()[self.section][self.base_coin] > high/self.quote_order_size:
+            if quote_balance > self.quote_order_size and base_balance > high/self.quote_order_size:
                 self.handleTransaction(
                     buy_ex, sell_ex, low, high)
             else:
-                logging.warning('Balances not sufficient to trade')
-        '''
+                logging.warning('Balances not sufficient to trade - [{} {} on {}, {} {} on {}]'.format(
+                    quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name))
 
 
 if __name__ == '__main__':
