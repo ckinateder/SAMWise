@@ -132,3 +132,5 @@ dmypy.json
 container/
 keys/
 !keys/.gitkeep
+logs/
+!logs/.gitkeep

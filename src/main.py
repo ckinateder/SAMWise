@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import sys
+import csv
 import logging
 import multiprocessing
 import ccxt
@@ -15,16 +16,19 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_amount):
+    def __init__(self, symbol, quote_order_size):
         '''
         Create exchanges.
         '''
         self.symbol = symbol  # ,
         self.base_coin = symbol[:3]
         self.quote_coin = symbol[4:]
-        self.quote_amount = quote_amount
-        # 'LTC/USD', 'XRP/USD',
-        # 'BCH/USD', 'ETC/USD']
+        self.quote_order_size = quote_order_size
+        self.pro_filename = 'logs/'+datetime.now().strftime(
+            "%m-%d-%Y_%H-%M")+'_pro.csv'
+
+        # mark which balance section to look at
+        self.section = 'total'
 
         # load bittrex key
         bittrex_key = open('keys/bittrex_public').read().strip()
@@ -73,11 +77,24 @@ class Bouncer:
                           self.kraken, self.coinbase_pro]
 
         logging.info('Created Bouncer for {} investing {} {}'.format(
-            self.symbol, self.quote_amount, self.quote_coin))
+            self.symbol, self.quote_order_size, self.quote_coin))
 
-        self.start_total_base_amount, self.start_total_quote_amount = self.getBalances()
-        logging.info('Starting base amount [{} {}, {} {}]'.format(
-            self.start_total_base_amount, self.base_coin, self.start_total_quote_amount, self.quote_coin))
+        # init balances
+        self.balances = dict()
+
+        self.start_total_base_amount, self.start_total_quote_order_size = self.getBalances()
+
+        logging.info('Starting base amount [{} {}, {:.4f} {}]'.format(
+            self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
+
+        # set up file for logging
+        headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
+                   'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange']
+
+        with open(self.pro_filename, mode='w+') as profile:
+            pro_writer = csv.writer(
+                profile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            pro_writer.writerow(headers)
 
     def getWatched(self):
         '''
@@ -122,43 +139,63 @@ class Bouncer:
             if high == responses[exchange]['ask']:
                 sell = exchange
 
-        #spread = self.quote_amount/(high-low)
+        # spread = self.quote_order_size/(high-low)
 
-        spread = (self.quote_amount/high)*(high-low)
+        spread = (self.quote_order_size/high)*(high-low)
 
-        fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_amount/low, low, takerOrMaker='taker', params={})['cost'] +
-                sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_amount/high, high, takerOrMaker='taker', params={})['cost'])
+        fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
+                sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
+
+        if spread - fees <= 0:
+            msg = 'NOT PROFITABLE'
+            profitable = False
+        else:
+            msg = 'PROFITABLE'
+            profitable = True
         logging.info(
-            '\tSpread: {:.5f} {} (after fees: {:.5f} {}) (buy on {}, sell on {})'.format(spread, self.quote_coin, spread-fees, self.quote_coin, buy.name, sell.name))
+            '\t[{}] Adjusted Spread: {:.5f} {} (after fees: {:.5f} {})\n\t(buy on {}, sell on {})'.format(msg, spread, self.quote_coin, spread-fees, self.quote_coin, buy.name, sell.name))
 
-        return spread, buy, sell, low, high
+        with open(self.pro_filename, mode='a+') as profile:
+            pro_writer = csv.writer(
+                profile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            pro_writer.writerow([datetime.now().strftime(
+                "%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size, high, low, spread, spread-fees, fees, profitable, sell.name, buy.name])
+
+        return spread, buy, sell, low, high, profitable
 
     def getBalances(self):
         '''
         Log balances to file and total base and quote amounts.
         '''
-        balances = dict()
         for exchange in self.exchanges:
-            balances[exchange] = exchange.fetch_balance()
+            self.balances[exchange] = exchange.fetch_balance()
 
         for exchange in self.exchanges:
             logging.debug(
-                '{} balance response - {}'.format(exchange, pformat(balances[exchange])))
+                '{} balance response - {}'.format(exchange, pformat(self.balances[exchange])))
 
-        section = 'total'
-        for exchange in self.exchanges:
-            logging.debug('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, section, self.base_coin, balances[exchange][section]
-                                                                         [self.base_coin], self.quote_coin, balances[exchange][section][self.quote_coin]))
+        self.section = 'total'
+
         total_base_amount = 0
         for exchange in self.exchanges:
-            total_base_amount += balances[exchange][section][self.base_coin]
+            if self.base_coin in self.balances[exchange][self.section]:
+                total_base_amount += self.balances[exchange][self.section][self.base_coin]
+            else:
+                self.balances[exchange][self.section][self.base_coin] = 0
 
-        total_quote_amount = 0
+        total_quote_order_size = 0
         for exchange in self.exchanges:
-            total_quote_amount += balances[exchange][section][self.quote_coin]
+            if self.quote_coin in self.balances[exchange][self.section]:
+                total_quote_order_size += self.balances[exchange][self.section][self.quote_coin]
+            else:
+                self.balances[exchange][self.section][self.quote_coin] = 0
+
+        for exchange in self.exchanges:
+            logging.debug('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
+                                                                         [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
 
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
-        return total_base_amount, total_quote_amount
+        return total_base_amount, total_quote_order_size
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
@@ -166,13 +203,13 @@ class Bouncer:
         '''
         # creating processes
         logging.info('Creating buy order on {} for {} {} at {}'.format(
-            buy_ex, low/self.quote_amount, self.symbol, low))
+            buy_ex, low/self.quote_order_size, self.symbol, low))
         buying = multiprocessing.Process(
-            target=buy_ex.create_limit_buy_order, args=(self.symbol, low/self.quote_amount, low))
+            target=buy_ex.create_limit_buy_order, args=(self.symbol, low/self.quote_order_size, low))
         logging.info('Creating sell order on {} for {} {} at {}'.format(
-            sell_ex, high/self.quote_amount, self.symbol, high))
+            sell_ex, high/self.quote_order_size, self.symbol, high))
         selling = multiprocessing.Process(
-            target=sell_ex.create_limit_sell_order, args=(self.symbol, high/self.quote_amount, high))
+            target=sell_ex.create_limit_sell_order, args=(self.symbol, high/self.quote_order_size, high))
 
         logging.info('Trades initiated')
         # starting process 1
@@ -197,19 +234,34 @@ class Bouncer:
         '''
         self.getBalances()
         markets = self.getWatched()
-        spread, buy_ex, sell_ex, low, high = self.getSpread(markets)
-
+        spread, buy_ex, sell_ex, low, high, profitable = self.getSpread(
+            markets)
         '''
-        if buy_ex.fetch_balance()[section][self.quote_coin] > quote_amount and sell_ex.fetch_balance()[section][self.base_coin] > high/quote_amount:
-            self.handleTransaction(
-                                   buy_ex, sell_ex, low, high)
+        if profitable:
+            if buy_ex.fetch_balance()[self.section][self.quote_coin] > self.quote_order_size and sell_ex.fetch_balance()[self.section][self.base_coin] > high/self.quote_order_size:
+                self.handleTransaction(
+                    buy_ex, sell_ex, low, high)
+            else:
+                logging.warning('Balances not sufficient to trade')
         '''
 
 
 if __name__ == '__main__':
-    watch = ['BTC/USD', 'ETH/USD']
-    btcer = Bouncer(watch[0], 1000)
-    btcer.performOneArbitrage()
+    watch = ['BTC/USD', 'ETH/USD', 'XRP/USD', 'BCH/USD', 'LTC/USD', 'LINK/USD']
+
+    size = 50
+
+    btcer = Bouncer(watch[0], size)
+    ether = Bouncer(watch[1], size)
+    xrp = Bouncer(watch[2], size)
+    ada = Bouncer(watch[3], size)
+    ltc = Bouncer(watch[4], size)
+    #link = Bouncer(watch[5], size)
+    # btcer.performOneArbitrage()
     while True:
         btcer.getSpread()
-        time.sleep(1)
+        ether.getSpread()
+        xrp.getSpread()
+        ada.getSpread()
+        ltc.getSpread()
+        time.sleep(0.25)
