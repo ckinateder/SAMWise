@@ -6,6 +6,10 @@ import logging
 import multiprocessing
 import ccxt
 from pprint import pformat, pprint
+
+__author__ = 'Calvin Kinateder'
+__email__ = 'calvinkinateder@gmail.com'
+
 # define watched symbols
 detail = 'logs/' + \
     datetime.now().strftime("%m-%d-%Y_%H-%M")+'.log'
@@ -191,11 +195,17 @@ class Bouncer:
                 self.balances[exchange][self.section][self.quote_coin] = 0
 
         for exchange in self.exchanges:
-            logging.debug('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
-                                                                         [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
+            logging.info('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
+                                                                        [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
 
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
         return total_base_amount, total_quote_order_size
+
+    def inititalizeBalances(self):
+        '''
+        Optional function used to initialize the balances buying the crypto needed in each exchange. 
+        '''
+        return False
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
@@ -257,10 +267,10 @@ if __name__ == '__main__':
         for i in range(1, len(sys.argv), 2):
             currencies.append(Bouncer(sys.argv[i], float(sys.argv[i+1])))
     else:
-        size = 30
+        size = 15
         currencies = [Bouncer('BCH/USD', size)]
 
     while True:
         for i in currencies:
             i.getSpread()
-        time.sleep(1/len(sys.argv))
+        time.sleep(2/len(sys.argv))
