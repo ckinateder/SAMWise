@@ -130,7 +130,8 @@ dmypy.json
 
 *.DS_Store
 container/
-keys/
+keys/*
 !keys/.gitkeep
-logs/
+logs/*
 !logs/.gitkeep
+!logs/detail/.gitkeep

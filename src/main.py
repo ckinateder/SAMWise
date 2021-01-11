@@ -85,7 +85,7 @@ class Bouncer:
         # init balances
         self.balances = dict()
 
-        self.start_total_base_amount, self.start_total_quote_order_size = self.getBalances()
+        self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances()
 
         logging.info('Starting base amount [{} {}, {:.4f} {}]'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
@@ -164,9 +164,9 @@ class Bouncer:
             pro_writer.writerow([datetime.now().strftime(
                 "%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size, high, low, spread, spread-fees, fees, profitable, sell.name, buy.name])
 
-        return spread, buy, sell, low, high, profitable
+        return spread, buy, sell, low, high, profitable, fees
 
-    def getBalances(self):
+    def updateBalances(self):
         '''
         Log balances to file and total base and quote amounts.
         '''
@@ -210,8 +210,28 @@ class Bouncer:
                     self.symbol, self.quote_order_size/2)
             else:
                 logging.warning(
-                    'Insufficient balance on {}'.format(exchange.name))
+                    'Insufficient balance on {} to set up balance'.format(exchange.name))
         return False
+
+    def cleanup(self):
+        logging.info('Cleaning up ...')
+        responses = self.getWatched()
+        self.updateBalances()
+
+        for exchange in responses:
+            ask = responses[exchange]['ask']
+            # sell remaining
+            remaining = self.balances[exchange][self.section][self.base_coin]
+            if remaining > 0:
+                logging.info('Selling off {} {}'.format(
+                    remaining, self.base_coin))
+                exchange.create_limit_sell_order(self.symbol, remaining, ask)
+            else:
+                logging.info(
+                    'No need to sell, no balance in {}'.format(self.base_coin))
+
+        self.updateBalances()
+        logging.info('Done!')
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
@@ -240,7 +260,7 @@ class Bouncer:
         logging.info('Trades completed')
 
         logging.info('Balances fetched')
-        self.getBalances()
+        self.updateBalances()
 
         return 'Done'
 
@@ -248,9 +268,9 @@ class Bouncer:
         '''
         Calculate spread and buy on low and sell on high.
         '''
-        self.getBalances()
+        self.updateBalances()
         markets = self.getWatched()
-        spread, buy_ex, sell_ex, low, high, profitable = self.getSpread(
+        spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
             markets)
 
         quote_balance = buy_ex.fetch_balance()[self.section][self.quote_coin]
@@ -277,6 +297,11 @@ if __name__ == '__main__':
         currencies = [Bouncer('BCH/USD', size)]
 
     while True:
-        for i in currencies:
-            i.getSpread()
-        time.sleep(2/len(sys.argv))
+        try:
+            for i in currencies:
+                i.getSpread()
+            time.sleep(2/len(sys.argv))
+        except KeyboardInterrupt:
+            logging.warning('Quitting')
+            for i in currencies:
+                i.cleanup()
