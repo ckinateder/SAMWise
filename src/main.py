@@ -8,7 +8,7 @@ import ccxt
 from pprint import pformat, pprint
 # define watched symbols
 detail = 'logs/' + \
-    datetime.now().strftime("%m-%d-%Y_%H-%M-%S")+'.log'
+    datetime.now().strftime("%m-%d-%Y_%H-%M")+'.log'
 logging.basicConfig(format='%(asctime)s: %(message)s',
                     filename=detail, level=logging.INFO)
 
@@ -252,19 +252,15 @@ class Bouncer:
 if __name__ == '__main__':
     watch = ['BTC/USD', 'ETH/USD', 'XRP/USD', 'BCH/USD', 'LTC/USD', 'LINK/USD']
 
-    size = 50
+    currencies = list()
+    if len(sys.argv) > 1:
+        for i in range(1, len(sys.argv), 2):
+            currencies.append(Bouncer(sys.argv[i], float(sys.argv[i+1])))
+    else:
+        size = 30
+        currencies = [Bouncer('BCH/USD', size)]
 
-    btcer = Bouncer(watch[0], size)
-    ether = Bouncer(watch[1], size)
-    xrp = Bouncer(watch[2], size)
-    ada = Bouncer(watch[3], size)
-    ltc = Bouncer(watch[4], size)
-    #link = Bouncer(watch[5], size)
-    # btcer.performOneArbitrage()
     while True:
-        btcer.getSpread()
-        ether.getSpread()
-        xrp.getSpread()
-        ada.getSpread()
-        ltc.getSpread()
-        time.sleep(0.25)
+        for i in currencies:
+            i.getSpread()
+        time.sleep(1/len(sys.argv))
