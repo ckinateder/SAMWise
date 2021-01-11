@@ -11,7 +11,7 @@ __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
 
 # define watched symbols
-detail = 'logs/' + \
+detail = 'logs/detail/' + \
     datetime.now().strftime("%m-%d-%Y_%H-%M")+'.log'
 logging.basicConfig(format='%(asctime)s: %(message)s',
                     filename=detail, level=logging.INFO)
@@ -25,11 +25,10 @@ class Bouncer:
         Create exchanges.
         '''
         self.symbol = symbol  # ,
-        self.base_coin = symbol[:3]
-        self.quote_coin = symbol[4:]
+        self.base_coin = symbol.split('/')[0]
+        self.quote_coin = symbol.split('/')[1]
         self.quote_order_size = quote_order_size
-        self.pro_filename = 'logs/'+datetime.now().strftime(
-            "%m-%d-%Y_%H-%M")+'_pro.csv'
+        self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
 
         # mark which balance section to look at
         self.section = 'total'
@@ -205,6 +204,13 @@ class Bouncer:
         '''
         Optional function used to initialize the balances buying the crypto needed in each exchange. 
         '''
+        for exchange in self.exchanges:
+            if exchange.fetch_balance()[self.section] >= self.quote_order_size/2:
+                exchange.create_market_buy_order(
+                    self.symbol, self.quote_order_size/2)
+            else:
+                logging.warning(
+                    'Insufficient balance on {}'.format(exchange.name))
         return False
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
