@@ -1,9 +1,9 @@
 import time
 from datetime import datetime
 import sys
-import csv
 import logging
 import multiprocessing
+import pandas as pd
 import ccxt
 from pprint import pformat, pprint
 
@@ -30,6 +30,8 @@ class Bouncer:
         self.quote_coin = symbol.split('/')[1]
         self.quote_order_size = quote_order_size
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
+        self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + \
+            self.base_coin+'-'+self.quote_coin + '_trades.csv'
 
         # mark which balance section to look at
         self.section = 'total'
@@ -85,6 +87,7 @@ class Bouncer:
 
         # init balances
         self.balances = dict()
+        self.net = 0
 
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances()
 
@@ -92,13 +95,14 @@ class Bouncer:
             self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
 
         # set up file for logging
-        headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
-                   'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange']
+        self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
+                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange']
+        self.pro_frame = pd.DataFrame(columns=self.pro_headers)
 
-        with open(self.pro_filename, mode='w+') as profile:
-            pro_writer = csv.writer(
-                profile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            pro_writer.writerow(headers)
+        # set up trades file
+        self.trades_headers = ['Date', 'Symbol', 'Side', 'High', 'Low', 'Adjusted Spread',
+                               'Adj. Spread after fees', 'Fees', 'Sell exchange', 'Buy exchange', 'Net Gain (%)']
+        self.trades = pd.DataFrame(columns=self.trades_headers)
 
     def getWatched(self):
         '''
@@ -119,7 +123,7 @@ class Bouncer:
 
         logging.info(
             '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
-        logging.info('For {}:'.format(self.symbol))
+        logging.info('[For {}]:'.format(self.symbol))
 
         spread = 0
 
@@ -127,8 +131,8 @@ class Bouncer:
         high = responses[self.binanceus]['ask']
         for exchange in responses:
             ask = responses[exchange]['ask']
-            logging.info('\t{}: {}'.format(exchange,
-                                           ask))
+            logging.info('{}: {}'.format(exchange,
+                                         ask))
             if ask > high:
                 high = ask
             elif ask < low:
@@ -157,17 +161,16 @@ class Bouncer:
             msg = 'PROFITABLE'
             profitable = True
         logging.info(
-            '\t[{}] Adjusted Spread: {:.5f} {} (after fees: {:.5f} {})\n\t(buy on {}, sell on {})'.format(msg, spread, self.quote_coin, spread-fees, self.quote_coin, buy.name, sell.name))
+            '[{}] Adjusted Spread: {:.5f} {} (after fees: {:.5f} {})\n(buy on {}, sell on {})'.format(msg, spread, self.quote_coin, spread-fees, self.quote_coin, buy.name, sell.name))
 
-        with open(self.pro_filename, mode='a+') as profile:
-            pro_writer = csv.writer(
-                profile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            pro_writer.writerow([datetime.now().strftime(
-                "%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size, high, low, spread, spread-fees, fees, profitable, sell.name, buy.name])
+        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
+                   high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
+        self.pro_frame.loc[len(self.pro_frame)] = new_row
+        self.pro_frame.to_csv(path_or_buf=self.pro_filename)
 
         return spread, buy, sell, low, high, profitable, fees
 
-    def updateBalances(self):
+    def updateBalances(self, loud=True):
         '''
         Log balances to file and total base and quote amounts.
         '''
@@ -193,13 +196,22 @@ class Bouncer:
                 total_quote_order_size += self.balances[exchange][self.section][self.quote_coin]
             else:
                 self.balances[exchange][self.section][self.quote_coin] = 0
-
-        for exchange in self.exchanges:
-            logging.info('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
-                                                                        [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
+        if loud:
+            for exchange in self.exchanges:
+                logging.info('{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
+                                                                          [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
 
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
         return total_base_amount, total_quote_order_size
+
+    def updateNet(self):
+        '''
+        Returns self.net as a percent and updates.
+        '''
+        base, quote = self.updateBalances(loud=False)
+        self.net = ((base/self.start_total_base_amount)*100) + \
+            ((quote/self.start_total_quote_order_size)*100)
+        return self.net
 
     def inititalizeBalances(self):
         '''
@@ -237,6 +249,7 @@ class Bouncer:
                 logging.info(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
 
+        logging.info('\nFinal balances:')
         self.updateBalances()
         logging.info('Done!')
 
@@ -264,6 +277,29 @@ class Bouncer:
         buying.join()
         # wait until process 2 is finished
         selling.join()
+
+        # perform calculations for logging
+
+        self.updateNet()
+
+        spread = (self.quote_order_size/high)*(high-low)
+
+        fees = (buy_ex.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
+                sell_ex.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
+
+        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, 'buy',
+                   high, low, spread, spread-fees, fees, sell_ex.name, buy_ex.name, self.net]
+
+        self.trades.loc[len(self.trades)] = new_row
+
+        # recalculate
+        self.updateNet()
+
+        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, 'sell',
+                   high, low, spread, spread-fees, fees, sell_ex.name, buy_ex.name, self.net]
+
+        self.trades.loc[len(self.trades)] = new_row
+        self.trades.to_csv(path_or_buf=self.trades_filename)
         logging.info('Trades completed')
 
         logging.info('Balances fetched')
@@ -271,7 +307,7 @@ class Bouncer:
 
         return 'Done'
 
-    def performOneArbitrage(self):
+    def arbitrate(self):
         '''
         Calculate spread and buy on low and sell on high.
         '''
@@ -284,7 +320,7 @@ class Bouncer:
         base_balance = sell_ex.fetch_balance()[self.section][self.base_coin]
 
         if profitable:
-            if quote_balance > self.quote_order_size and base_balance > high/self.quote_order_size:
+            if quote_balance >= self.quote_order_size and base_balance >= high/self.quote_order_size:
                 self.handleTransaction(
                     buy_ex, sell_ex, low, high)
             else:
@@ -309,7 +345,7 @@ if __name__ == '__main__':
                 i.getSpread()
             time.sleep(2/len(sys.argv))
         except KeyboardInterrupt:
-            logging.warning('Quitting')
+            logging.warning('Quitting\n')
             for i in currencies:
                 i.cleanup()
             sys.exit(0)
