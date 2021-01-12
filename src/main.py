@@ -24,6 +24,7 @@ class Bouncer:
         '''
         Create exchanges.
         '''
+        self.start_time = time.time()
         self.symbol = symbol  # ,
         self.base_coin = symbol.split('/')[0]
         self.quote_coin = symbol.split('/')[1]
@@ -214,21 +215,27 @@ class Bouncer:
         return False
 
     def cleanup(self):
-        logging.info('Cleaning up ...')
+        logging.info('Cleaning up for {}...'.format(self.symbol))
         responses = self.getWatched()
         self.updateBalances()
 
         for exchange in responses:
             ask = responses[exchange]['ask']
             # sell remaining
-            remaining = self.balances[exchange][self.section][self.base_coin]
+            remaining = float(
+                self.balances[exchange][self.section][self.base_coin])
             if remaining > 0:
-                logging.info('Selling off {} {}'.format(
-                    remaining, self.base_coin))
-                exchange.create_limit_sell_order(self.symbol, remaining, ask)
+                try:
+                    logging.info('Selling off {} {} on {}'.format(
+                        remaining, self.base_coin, exchange.name))
+                    exchange.create_limit_sell_order(
+                        self.symbol, remaining, ask)
+                except Exception as e:
+                    logging.warning(
+                        'Error in selling off {} {} on {}: {}'.format(remaining, self.base_coin, exchange.name, e))
             else:
                 logging.info(
-                    'No need to sell, no balance in {}'.format(self.base_coin))
+                    'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
 
         self.updateBalances()
         logging.info('Done!')
@@ -305,3 +312,4 @@ if __name__ == '__main__':
             logging.warning('Quitting')
             for i in currencies:
                 i.cleanup()
+            sys.exit(0)
