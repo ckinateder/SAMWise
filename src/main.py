@@ -5,6 +5,7 @@ import logging
 import multiprocessing
 import pandas as pd
 import ccxt
+from termcolor import colored
 from pprint import pformat, pprint
 
 __author__ = 'Calvin Kinateder'
@@ -32,6 +33,7 @@ class Bouncer:
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
         self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + \
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
+        self.threshold = 0.001  # for trades
 
         # mark which balance section to look at
         self.section = 'total'
@@ -81,9 +83,12 @@ class Bouncer:
         # add to exchange list
         self.exchanges = [self.bittrex, self.binanceus,
                           self.kraken, self.coinbase_pro]
-
-        logging.info('Created Bouncer for {} investing {} {}'.format(
-            self.symbol, self.quote_order_size, self.quote_coin))
+        exchanges_str = ''
+        for i in range(0, len(self.exchanges)-1):
+            exchanges_str += self.exchanges[i].name+', '
+        exchanges_str += 'and '+self.exchanges[-1].name
+        logging.info('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
+            self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
 
         # init balances
         self.balances = dict()
@@ -91,7 +96,7 @@ class Bouncer:
 
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances()
 
-        logging.info('Starting base amount [{} {}, {:.4f} {}]'.format(
+        logging.info('Starting base amount [{} {}, {:.4f} {}]\n'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
 
         # set up file for logging
@@ -103,6 +108,33 @@ class Bouncer:
         self.trades_headers = ['Date', 'Symbol', 'Side', 'High', 'Low', 'Adjusted Spread',
                                'Adj. Spread after fees', 'Fees', 'Sell exchange', 'Buy exchange', 'Net Gain (%)']
         self.trades = pd.DataFrame(columns=self.trades_headers)
+
+    def colorGood(self, strr):
+        return colored(strr, 'green')
+
+    def colorBad(self, strr):
+        return colored(strr, 'red')
+
+    def colorHigh(self, strr):
+        return colored(strr, 'cyan')
+
+    def colorLow(self, strr):
+        return colored(strr, 'magenta')
+
+    def colorProfit(self, number):
+        '''
+        Color code a number.
+        '''
+        number = round(number, 5)
+        try:
+            form = (number)
+            if number > 0:
+                form = self.colorGood(number)
+            elif number < 0:
+                form = self.colorBad(number)
+        except:
+            logging.warning('Couldn\'t colorize')
+        return form
 
     def getWatched(self):
         '''
@@ -147,21 +179,20 @@ class Bouncer:
             if high == responses[exchange]['ask']:
                 sell = exchange
 
-        # spread = self.quote_order_size/(high-low)
-
         spread = (self.quote_order_size/high)*(high-low)
 
         fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
                 sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
 
-        if spread - fees <= 0:
-            msg = 'NOT PROFITABLE'
-            profitable = False
-        else:
-            msg = 'PROFITABLE'
+        if spread - fees > self.threshold:
+            msg = ' '*53+'found profitable pair ****\n' + \
+                self.colorGood('[PROFITABLE]')
             profitable = True
+        else:
+            msg = self.colorBad('[NOT PROFITABLE]')
+            profitable = False
         logging.info(
-            '[{}] Adjusted Spread: {:.5f} {} (after fees: {:.5f} {})\n(buy on {}, sell on {})'.format(msg, spread, self.quote_coin, spread-fees, self.quote_coin, buy.name, sell.name))
+            '{} Adjusted Spread: {:.5f} {} (after fees: {} {})\n(buy on {}, sell on {})'.format(msg, spread, self.quote_coin, self.colorProfit(spread-fees), self.quote_coin, buy.name, sell.name))
 
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
@@ -209,8 +240,11 @@ class Bouncer:
         Returns self.net as a percent and updates.
         '''
         base, quote = self.updateBalances(loud=False)
-        self.net = ((base/self.start_total_base_amount)*100) + \
-            ((quote/self.start_total_quote_order_size)*100)
+        if self.start_total_base_amount == 0 or self.start_total_quote_order_size == 0:
+            self.net = 0
+        else:
+            self.net = (((base/self.start_total_base_amount)-1) +
+                        ((quote/self.start_total_quote_order_size)-1))*100
         return self.net
 
     def inititalizeBalances(self):
@@ -249,8 +283,12 @@ class Bouncer:
                 logging.info(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
 
-        logging.info('\nFinal balances:')
-        self.updateBalances()
+        logging.info('Final balances:')
+        base, quote = self.updateBalances()
+        logging.info('Sums: [{} {}, {:.3f} {}]'.format(
+            base, self.base_coin, quote, self.quote_coin))
+        self.updateNet()
+        logging.info('Net: {}%'.format(self.colorProfit(self.net)))
         logging.info('Done!')
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
@@ -311,15 +349,15 @@ class Bouncer:
         '''
         Calculate spread and buy on low and sell on high.
         '''
-        self.updateBalances()
         markets = self.getWatched()
         spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
             markets)
 
-        quote_balance = buy_ex.fetch_balance()[self.section][self.quote_coin]
-        base_balance = sell_ex.fetch_balance()[self.section][self.base_coin]
-
         if profitable:
+            self.updateBalances()
+            quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
+            base_balance = self.balances[sell_ex][self.section][self.base_coin]
+
             if quote_balance >= self.quote_order_size and base_balance >= high/self.quote_order_size:
                 self.handleTransaction(
                     buy_ex, sell_ex, low, high)
@@ -342,7 +380,8 @@ if __name__ == '__main__':
     while True:
         try:
             for i in currencies:
-                i.getSpread()
+                # i.getSpread()
+                i.arbitrate()
             time.sleep(2/len(sys.argv))
         except KeyboardInterrupt:
             logging.warning('Quitting\n')
