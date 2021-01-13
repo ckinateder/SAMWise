@@ -429,7 +429,7 @@ class Bouncer:
                     self.p(self.colorBad(
                         'Open orders - taking no action.'))
             else:
-                self.p(self.colorBad('Balances not sufficient to trade - [{} {} on {}, {} {} on {}]\n(needed [{} {} on {}, {} {} on {}])'.format(
+                self.p(self.colorBad('Balances not sufficient to trade - [{:.4f} {} on {:.4f}, {} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
                     quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                     self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
 
