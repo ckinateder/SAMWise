@@ -1,12 +1,13 @@
-import time
-from datetime import datetime
-import sys
 import logging
 import multiprocessing
-import pandas as pd
+import sys
+import time
+from datetime import datetime
+
 import ccxt
-from termcolor import colored
+import pandas as pd
 from pprint import pformat, pprint
+from termcolor import colored
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -17,7 +18,7 @@ detail = 'logs/detail/' + \
 logging.basicConfig(format='%(asctime)s: %(message)s',
                     filename=detail, level=logging.INFO)
 
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+# logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
 class Bouncer:
@@ -25,6 +26,8 @@ class Bouncer:
         '''
         Create exchanges.
         '''
+        self.log = False
+
         self.start_time = time.time()
         self.symbol = symbol  # ,
         self.base_coin = symbol.split('/')[0]
@@ -87,7 +90,7 @@ class Bouncer:
         for i in range(0, len(self.exchanges)-1):
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
-        logging.info('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
+        self.p('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
             self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
 
         # init balances
@@ -97,7 +100,7 @@ class Bouncer:
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
             loud=False)
 
-        logging.info('Starting base amount [{:.8f} {}, {:.4f} {}]\n'.format(
+        self.p('Starting base amount [{:.8f} {}, {:.4f} {}]\n'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
 
         # set up file for logging
@@ -110,20 +113,41 @@ class Bouncer:
                                'Side', 'Price', 'Exchange', 'Net Gain (%)']
         self.trades = pd.DataFrame(columns=self.trades_headers)
 
+    def p(self, string):
+        if self.log:
+            logging.info(string)
+        else:
+            print(string)
+
     def colorGood(self, strr):
-        return colored(strr, 'green')
+        if not self.log:
+            return colored(strr, 'green')
+        else:
+            return strr
 
     def colorEh(self, strr):
-        return colored(strr, 'yellow')
+        if not self.log:
+            return colored(strr, 'yellow')
+        else:
+            return strr
 
     def colorBad(self, strr):
-        return colored(strr, 'red')
+        if not self.log:
+            return colored(strr, 'red')
+        else:
+            return strr
 
     def colorHigh(self, strr):
-        return colored(strr, 'cyan')
+        if not self.log:
+            return colored(strr, 'cyan')
+        else:
+            return strr
 
     def colorLow(self, strr):
-        return colored(strr, 'magenta')
+        if not self.log:
+            return colored(strr, 'magenta')
+        else:
+            return strr
 
     def colorProfit(self, number):
         '''
@@ -138,7 +162,7 @@ class Bouncer:
             else:
                 form = self.colorEh(number)
         except:
-            logging.warning('Couldn\'t colorize')
+            self.p('Couldn\'t colorize')
         return form
 
     def getWatched(self):
@@ -149,7 +173,7 @@ class Bouncer:
         all_responses = dict()
         for exchange in self.exchanges:
             all_responses[exchange] = exchange.fetch_ticker(self.symbol)
-        # logging.info('Recived from {} in {:.3f} s'.format(
+        # self.p('Recived from {} in {:.3f} s'.format(
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
 
@@ -158,9 +182,9 @@ class Bouncer:
         if responses == None:
             responses = self.getWatched()
 
-        logging.info(
+        self.p(
             '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
-        logging.info('[For {}]:'.format(self.symbol))
+        self.p('[For {}]:'.format(self.symbol))
 
         spread = 0
 
@@ -185,7 +209,7 @@ class Bouncer:
             elif high == responses[exchange]['ask']:
                 sell = exchange
                 logstr = self.colorHigh('\t{}: {}'.format(sell, ask))
-            logging.info(logstr)
+            self.p(logstr)
 
         spread = (self.quote_order_size/high)*(high-low)
 
@@ -199,11 +223,11 @@ class Bouncer:
         else:
             msg = self.colorBad('[NOT PROFITABLE]')
             profitable = False
-        logging.info(
+        self.p(
             '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}, sell on {})'.format(msg, self.colorProfit(spread), self.quote_coin, self.colorProfit(spread-fees), self.quote_coin, self.colorLow(buy.name), self.colorHigh(sell.name)))
 
         # if self.anyOpen():
-        #    logging.info(self.colorEh('Note: currently open trades.'))
+        #    self.p(self.colorEh('Note: currently open trades.'))
 
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
@@ -220,7 +244,7 @@ class Bouncer:
             self.balances[exchange] = exchange.fetch_balance()
         if loud:
             for exchange in self.exchanges:
-                logging.info(
+                self.p(
                     '{} balance response - {}'.format(exchange, pformat(self.balances[exchange])))
 
         self.section = 'total'
@@ -240,8 +264,8 @@ class Bouncer:
                 self.balances[exchange][self.section][self.quote_coin] = 0
         if loud:
             for exchange in self.exchanges:
-                logging.info('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
-                                                                            [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
+                self.p('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
+                                                                      [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
 
         # bittrex_string, binance_string, kraken_string, coinbase_pro_string
         return total_base_amount, total_quote_order_size
@@ -266,7 +290,7 @@ class Bouncer:
                 exchange.create_market_buy_order(
                     self.symbol, self.quote_order_size/2)
             else:
-                logging.warning(
+                self.p(
                     'Insufficient balance on {} to set up balance'.format(exchange.name))
         return False
 
@@ -283,7 +307,7 @@ class Bouncer:
         return False
 
     def cleanup(self):
-        logging.info('Cleaning up for {}...'.format(self.symbol))
+        self.p('Cleaning up for {}...'.format(self.symbol))
         responses = self.getWatched()
         self.updateBalances(loud=False)
 
@@ -294,31 +318,31 @@ class Bouncer:
                 self.balances[exchange][self.section][self.base_coin])
             if remaining > 0 and not self.anyOpen(exchange):
                 try:
-                    logging.info('Selling off {} {} on {}'.format(
+                    self.p('Selling off {} {} on {}'.format(
                         remaining, self.base_coin, exchange.name))
                     exchange.create_limit_sell_order(
                         self.symbol, remaining, ask)
                 except Exception as e:
-                    logging.warning(
+                    self.p(
                         'Error in selling off {} {} on {}: {}'.format(remaining, self.base_coin, exchange.name, e))
             else:
-                logging.info(
+                self.p(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
 
-        logging.info('Final balances:')
+        self.p('Final balances:')
         base, quote = self.updateBalances(loud=False)
-        logging.info('Sums: [{:.8f} {}, {:.3f} {}]'.format(
+        self.p('Sums: [{:.8f} {}, {:.3f} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
-        logging.info('Net: {}%'.format(self.colorProfit(self.net)))
-        logging.info('Done!\n')
+        self.p('Net: {}%'.format(self.colorProfit(self.net)))
+        self.p('Done!\n')
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
         Places the arbitrage transactions simultaneously.
         '''
         # creating processes
-        logging.info('Creating buy order on {} for {} {} at {}'.format(
+        self.p('Creating buy order on {} for {} {} at {}'.format(
             buy_ex, self.quote_order_size/low, self.symbol, low))
         buy_ex.create_limit_buy_order(
             self.symbol, self.quote_order_size/low, low)
@@ -326,7 +350,7 @@ class Bouncer:
                    self.symbol, 'buy', low, buy_ex.name, self.net]
         self.trades.loc[len(self.trades)] = new_row
 
-        logging.info('Creating sell order on {} for {} {} at {}'.format(
+        self.p('Creating sell order on {} for {} {} at {}'.format(
             sell_ex, self.quote_order_size/high, self.symbol, high))
         sell_ex.create_limit_sell_order(
             self.symbol, self.quote_order_size/high, high)
@@ -334,7 +358,7 @@ class Bouncer:
                    self.symbol, 'sell', high, sell_ex.name, self.net]
         self.trades.loc[len(self.trades)] = new_row
 
-        logging.info('Trades initiated ... blocking to completion')
+        self.p('Trades initiated ... blocking to completion')
 
         open_trades = self.anyOpen()
         while open_trades:
@@ -346,9 +370,9 @@ class Bouncer:
         self.updateNet()
 
         self.trades.to_csv(path_or_buf=self.trades_filename)
-        logging.info('Trades completed')
+        self.p('Trades completed')
 
-        logging.info('Balances fetched')
+        self.p('Balances fetched')
         self.updateBalances(loud=False)
 
         return 'Done'
@@ -367,13 +391,13 @@ class Bouncer:
             base_balance = self.balances[sell_ex][self.section][self.base_coin]
 
             if self.anyOpen(buy_ex) or self.anyOpen(sell_ex):
-                logging.warning(self.colorBad(
+                self.p(self.colorBad(
                     'Open orders - taking no action.'))
             elif quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:
                 self.handleTransaction(
                     buy_ex, sell_ex, low, high)
             else:
-                logging.warning(self.colorBad('Balances not sufficient to trade - [{} {} on {}, {} {} on {}]\n(needed [{} {} on {}, {} {} on {}])'.format(
+                self.p(self.colorBad('Balances not sufficient to trade - [{} {} on {}, {} {} on {}]\n(needed [{} {} on {}, {} {} on {}])'.format(
                     quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                     self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
 
@@ -396,7 +420,7 @@ if __name__ == '__main__':
                 i.arbitrate()
             time.sleep(2/len(sys.argv))
         except KeyboardInterrupt:
-            logging.warning('\nQuitting\n')
+            print('\nQuitting\n')
             todo = input('Cleanup balances? (Y/n) ')
             if 'Y' in todo:
                 for i in currencies:
