@@ -31,7 +31,7 @@ class Bouncer:
         self.quote_coin = symbol.split('/')[1]
         self.quote_order_size = quote_order_size
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
-        self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + \
+        self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
         self.threshold = 0.009  # for trades
 
@@ -97,7 +97,7 @@ class Bouncer:
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
             loud=False)
 
-        logging.info('Starting base amount [{} {}, {:.4f} {}]\n'.format(
+        logging.info('Starting base amount [{:.8f} {}, {:.4f} {}]\n'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
 
         # set up file for logging
@@ -106,8 +106,8 @@ class Bouncer:
         self.pro_frame = pd.DataFrame(columns=self.pro_headers)
 
         # set up trades file
-        self.trades_headers = ['Date', 'Symbol', 'Side', 'High', 'Low', 'Adjusted Spread',
-                               'Adj. Spread after fees', 'Fees', 'Sell exchange', 'Buy exchange', 'Net Gain (%)']
+        self.trades_headers = ['Date', 'Symbol',
+                               'Side', 'Price', 'Exchange', 'Net Gain (%)']
         self.trades = pd.DataFrame(columns=self.trades_headers)
 
     def colorGood(self, strr):
@@ -202,6 +202,9 @@ class Bouncer:
         logging.info(
             '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}, sell on {})'.format(msg, self.colorProfit(spread), self.quote_coin, self.colorProfit(spread-fees), self.quote_coin, self.colorLow(buy.name), self.colorHigh(sell.name)))
 
+        # if self.anyOpen():
+        #    logging.info(self.colorEh('Note: currently open trades.'))
+
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
         self.pro_frame.loc[len(self.pro_frame)] = new_row
@@ -267,6 +270,18 @@ class Bouncer:
                     'Insufficient balance on {} to set up balance'.format(exchange.name))
         return False
 
+    def anyOpen(self, exchange=None):
+        if exchange == None:
+            for i in self.exchanges:
+                x = i.fetch_open_orders(self.symbol)
+                if len(x) > 0:
+                    return True
+        else:
+            if len(exchange.fetch_open_orders(self.symbol)) > 0:
+                return True
+
+        return False
+
     def cleanup(self):
         logging.info('Cleaning up for {}...'.format(self.symbol))
         responses = self.getWatched()
@@ -277,7 +292,7 @@ class Bouncer:
             # sell remaining
             remaining = float(
                 self.balances[exchange][self.section][self.base_coin])
-            if remaining > 0:
+            if remaining > 0 and not self.anyOpen(exchange):
                 try:
                     logging.info('Selling off {} {} on {}'.format(
                         remaining, self.base_coin, exchange.name))
@@ -291,8 +306,8 @@ class Bouncer:
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
 
         logging.info('Final balances:')
-        base, quote = self.updateBalances()
-        logging.info('Sums: [{} {}, {:.3f} {}]'.format(
+        base, quote = self.updateBalances(loud=False)
+        logging.info('Sums: [{:.8f} {}, {:.3f} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
         logging.info('Net: {}%'.format(self.colorProfit(self.net)))
@@ -304,51 +319,35 @@ class Bouncer:
         '''
         # creating processes
         logging.info('Creating buy order on {} for {} {} at {}'.format(
-            buy_ex, low/self.quote_order_size, self.symbol, low))
-        buying = multiprocessing.Process(
-            target=buy_ex.create_limit_buy_order, args=(self.symbol, low/self.quote_order_size, low))
+            buy_ex, self.quote_order_size/low, self.symbol, low))
+        buy_ex.create_limit_buy_order(
+            self.symbol, self.quote_order_size/low, low)
+        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                   self.symbol, 'buy', low, buy_ex.name, self.net]
+        self.trades.loc[len(self.trades)] = new_row
+
         logging.info('Creating sell order on {} for {} {} at {}'.format(
-            sell_ex, high/self.quote_order_size, self.symbol, high))
-        selling = multiprocessing.Process(
-            target=sell_ex.create_limit_sell_order, args=(self.symbol, high/self.quote_order_size, high))
+            sell_ex, self.quote_order_size/high, self.symbol, high))
+        sell_ex.create_limit_sell_order(
+            self.symbol, self.quote_order_size/high, high)
+        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                   self.symbol, 'sell', high, sell_ex.name, self.net]
+        self.trades.loc[len(self.trades)] = new_row
 
         logging.info('Trades initiated')
-        # starting process 1
-        buying.start()
-        # starting process 2
-        selling.start()
-
-        # wait until process 1 is finished
-        buying.join()
-        # wait until process 2 is finished
-        selling.join()
 
         # perform calculations for logging
 
         self.updateNet()
 
-        spread = (self.quote_order_size/high)*(high-low)
-
-        fees = (buy_ex.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
-                sell_ex.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
-
-        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, 'buy',
-                   high, low, spread, spread-fees, fees, sell_ex.name, buy_ex.name, self.net]
-
-        self.trades.loc[len(self.trades)] = new_row
-
         # recalculate
         self.updateNet()
 
-        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, 'sell',
-                   high, low, spread, spread-fees, fees, sell_ex.name, buy_ex.name, self.net]
-
-        self.trades.loc[len(self.trades)] = new_row
         self.trades.to_csv(path_or_buf=self.trades_filename)
         logging.info('Trades completed')
 
         logging.info('Balances fetched')
-        self.updateBalances()
+        self.updateBalances(loud=False)
 
         return 'Done'
 
@@ -365,7 +364,10 @@ class Bouncer:
             quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
             base_balance = self.balances[sell_ex][self.section][self.base_coin]
 
-            if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:
+            if self.anyOpen(buy_ex) or self.anyOpen(sell_ex):
+                logging.warning(self.colorBad(
+                    'Open orders - taking no action.'))
+            elif quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:
                 self.handleTransaction(
                     buy_ex, sell_ex, low, high)
             else:
@@ -392,7 +394,9 @@ if __name__ == '__main__':
                 i.arbitrate()
             time.sleep(2/len(sys.argv))
         except KeyboardInterrupt:
-            logging.warning('Quitting\n')
-            for i in currencies:
-                i.cleanup()
+            logging.warning('\nQuitting\n')
+            todo = input('Cleanup balances? (Y/n) ')
+            if 'Y' in todo:
+                for i in currencies:
+                    i.cleanup()
             sys.exit(0)
