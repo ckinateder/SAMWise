@@ -434,8 +434,8 @@ class Bouncer:
                     self.p(self.colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
                         quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                         self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
-        except RateLimitExceeded as e:
-            self.p('Rate limit exceeded ... trying again in 10')
+        except:
+            self.p('Error in call ... trying again in 10')
             time.sleep(10)
             self.arbitrate()
 
