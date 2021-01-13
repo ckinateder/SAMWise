@@ -28,19 +28,6 @@ class Bouncer:
         '''
         self.log = False
 
-        self.start_time = time.time()
-        self.symbol = symbol  # ,
-        self.base_coin = symbol.split('/')[0]
-        self.quote_coin = symbol.split('/')[1]
-        self.quote_order_size = quote_order_size
-        self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
-        self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
-            self.base_coin+'-'+self.quote_coin + '_trades.csv'
-        self.threshold = 0.009  # for trades
-
-        # mark which balance section to look at
-        self.section = 'total'
-
         # load bittrex key
         bittrex_key = open('keys/bittrex_public').read().strip()
         bittrex_secret = open('keys/bittrex_private').read().strip()
@@ -86,10 +73,32 @@ class Bouncer:
         # add to exchange list
         self.exchanges = [self.bittrex, self.binanceus,
                           self.kraken, self.coinbase_pro]
+
+        # check if symbol supported by all
+        if symbol in self.getCommons():
+            self.symbol = symbol
+        else:
+            print(
+                'Symbol \'{}\'not supported by all platforms. Exiting ...'.format(symbol))
+            sys.exit(0)
+
+        self.start_time = time.time()
+        self.base_coin = symbol.split('/')[0]
+        self.quote_coin = symbol.split('/')[1]
+        self.quote_order_size = quote_order_size
+        self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
+        self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
+            self.base_coin+'-'+self.quote_coin + '_trades.csv'
+        self.threshold = 0.009  # for trades
+
+        # mark which balance section to look at
+        self.section = 'total'
+
         exchanges_str = ''
         for i in range(0, len(self.exchanges)-1):
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
+
         self.p('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
             self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
 
@@ -112,6 +121,20 @@ class Bouncer:
         self.trades_headers = ['Date', 'Symbol',
                                'Side', 'Price', 'Exchange', 'Net Gain (%)']
         self.trades = pd.DataFrame(columns=self.trades_headers)
+
+    def getCommons(self):
+        alls = list()
+        for i in self.exchanges:
+            x = list(i.load_markets().keys())
+            for j in x:
+                alls.append(j)
+        out = list()
+        for item in alls:
+            if alls.count(item) == 4:
+                out.append(item)
+        # for i in out:
+        #    print(i, '1', end=' ')
+        return out
 
     def p(self, string):
         if self.log:

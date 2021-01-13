@@ -1,1 +1,1 @@
-python3 src/main.py BTC/USD 15 LTC/USD 15 ETH/USD 23 BCH/USD 20
+python3 src/main.py BTC/USD 15 LTC/USD 15 ETH/USD 23 BCH/USD 20 DASH/USD 20
