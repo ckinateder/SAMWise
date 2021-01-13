@@ -3,6 +3,7 @@ import multiprocessing
 import sys
 import time
 from datetime import datetime
+from os import path
 
 import ccxt
 import pandas as pd
@@ -247,7 +248,7 @@ class Bouncer:
             msg = self.colorBad('[NOT PROFITABLE]')
             profitable = False
 
-        if profitable:  # only print if profitable
+        if profitable or True:  # effectively disabled rn, print all # only print if profitable
             self.p(
                 '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
             self.p('[For {}]:'.format(self.symbol))
@@ -268,7 +269,11 @@ class Bouncer:
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
         self.pro_frame.loc[len(self.pro_frame)] = new_row
-        self.pro_frame.to_csv(path_or_buf=self.pro_filename)
+        if path.exists(self.pro_filename):  # if file exists, append
+            self.pro_frame.to_csv(
+                path_or_buf=self.pro_filename, mode='a', header=False)
+        else:
+            self.pro_frame.to_csv(path_or_buf=self.pro_filename)
 
         return spread, buy, sell, low, high, profitable, fees
 
