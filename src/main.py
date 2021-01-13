@@ -208,10 +208,6 @@ class Bouncer:
         if responses == None:
             responses = self.getWatched()
 
-        self.p(
-            '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
-        self.p('[For {}]:'.format(self.symbol))
-
         spread = 0
 
         low = responses[self.binanceus]['ask']
@@ -225,6 +221,7 @@ class Bouncer:
                 low = ask
 
         # find buy and sell and log
+        exchanges_str = ''
         for exchange in self.exchanges:
             ask = responses[exchange]['ask']
 
@@ -235,7 +232,7 @@ class Bouncer:
             elif high == responses[exchange]['ask']:
                 sell = exchange
                 logstr = self.colorHigh('\t{}: {}'.format(sell, ask))
-            self.p(logstr)
+            exchanges_str += logstr+'\n'
 
         spread = (self.quote_order_size/high)*(high-low)
 
@@ -249,13 +246,21 @@ class Bouncer:
         else:
             msg = self.colorBad('[NOT PROFITABLE]')
             profitable = False
-        self.p(
-            '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, self.colorProfit(spread),
-                                                                                                                  self.quote_coin, self.colorProfit(
-                spread-fees),
-                self.quote_coin, self.colorLow(
-                buy.name),
-                self.colorLow(low), self.colorHigh(sell.name), self.colorHigh(high), self.colorEh('{:.3f}'.format(high-low))))
+
+        if profitable:  # only print if profitable
+            self.p(
+                '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+            self.p('[For {}]:'.format(self.symbol))
+
+            self.p(exchanges_str)
+
+            self.p(
+                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, self.colorProfit(spread),
+                                                                                                                      self.quote_coin, self.colorProfit(
+                    spread-fees),
+                    self.quote_coin, self.colorLow(
+                    buy.name),
+                    self.colorLow(low), self.colorHigh(sell.name), self.colorHigh(high), self.colorEh('{:.3f}'.format(high-low))))
 
         # if self.anyOpen():
         #    self.p(self.colorEh('Note: currently open trades.'))
