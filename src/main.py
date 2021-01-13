@@ -129,11 +129,14 @@ class Bouncer:
             for j in x:
                 alls.append(j)
         out = list()
+
         for item in alls:
             if alls.count(item) == 4:
                 out.append(item)
+        out = set(out)
         # for i in out:
-        #    print(i, '1', end=' ')
+        #    if 'USD' in i:
+        #       print(i, '1', end=' ')
         return out
 
     def p(self, string):
