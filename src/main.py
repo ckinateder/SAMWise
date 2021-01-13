@@ -179,7 +179,7 @@ class Bouncer:
         '''
         Color code a number.
         '''
-        number = round(number, 5)
+        number = round(number, 4)
         try:
             if number > 0:
                 form = self.colorGood(number)
