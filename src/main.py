@@ -450,7 +450,7 @@ if __name__ == '__main__':
             for i in currencies:
                 # i.getSpread()
                 i.arbitrate()
-            time.sleep(2/len(sys.argv))
+            time.sleep(3/len(sys.argv))
         except KeyboardInterrupt:
             print('\nQuitting\n')
             todo = input('Cleanup balances? (Y/n) ')
