@@ -15,9 +15,6 @@ __email__ = 'calvinkinateder@gmail.com'
 # define watched symbols
 detail = 'logs/detail/' + \
     datetime.now().strftime("%m-%d-%Y_%H-%M")+'.log'
-logging.basicConfig(format='%(asctime)s: %(message)s',
-                    filename=detail, level=logging.INFO)
-
 # logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
@@ -27,6 +24,9 @@ class Bouncer:
         Create exchanges.
         '''
         self.log = False
+        if self.log:
+            logging.basicConfig(format='%(asctime)s: %(message)s',
+                                filename=detail, level=logging.INFO)
 
         # load bittrex key
         bittrex_key = open('keys/bittrex_public').read().strip()
