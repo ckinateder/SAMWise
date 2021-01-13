@@ -224,7 +224,12 @@ class Bouncer:
             msg = self.colorBad('[NOT PROFITABLE]')
             profitable = False
         self.p(
-            '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}, sell on {})'.format(msg, self.colorProfit(spread), self.quote_coin, self.colorProfit(spread-fees), self.quote_coin, self.colorLow(buy.name), self.colorHigh(sell.name)))
+            '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, self.colorProfit(spread),
+                                                                                                                  self.quote_coin, self.colorProfit(
+                spread-fees),
+                self.quote_coin, self.colorLow(
+                buy.name),
+                self.colorLow(low), self.colorHigh(sell.name), self.colorHigh(high), self.colorEh('{:.3f}'.format(high-low))))
 
         # if self.anyOpen():
         #    self.p(self.colorEh('Note: currently open trades.'))
