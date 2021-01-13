@@ -412,26 +412,32 @@ class Bouncer:
         '''
         Calculate spread and buy on low and sell on high.
         '''
-        markets = self.getWatched()
-        spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
-            markets)
+        try:
+            markets = self.getWatched()
+            spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
+                markets)
 
-        if profitable:
-            self.updateBalances(loud=False)
-            quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
-            base_balance = self.balances[sell_ex][self.section][self.base_coin]
+            if profitable:
+                self.updateBalances(loud=False)
+                quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
+                base_balance = self.balances[sell_ex][self.section][self.base_coin]
 
-            if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good
-                if not self.anyOpen(buy_ex) and not self.anyOpen(sell_ex):  # no open orders
-                    self.handleTransaction(
-                        buy_ex, sell_ex, low, high)
+                if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good
+                    # no open orders
+                    if not self.anyOpen(buy_ex) and not self.anyOpen(sell_ex):
+                        self.handleTransaction(
+                            buy_ex, sell_ex, low, high)
+                    else:
+                        self.p(self.colorBad(
+                            'Open orders - taking no action.'))
                 else:
-                    self.p(self.colorBad(
-                        'Open orders - taking no action.'))
-            else:
-                self.p(self.colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
-                    quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
-                    self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
+                    self.p(self.colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
+                        quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
+                        self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
+        except RateLimitExceeded as e:
+            self.p('Rate limit exceeded ... trying again in 10')
+            time.sleep(10)
+            self.arbitrate()
 
 
 if __name__ == '__main__':
