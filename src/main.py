@@ -334,11 +334,13 @@ class Bouncer:
                    self.symbol, 'sell', high, sell_ex.name, self.net]
         self.trades.loc[len(self.trades)] = new_row
 
-        logging.info('Trades initiated')
+        logging.info('Trades initiated ... blocking to completion')
 
+        open_trades = self.anyOpen()
+        while open_trades:
+            open_trades = self.anyOpen()
+            time.sleep(10)
         # perform calculations for logging
-
-        self.updateNet()
 
         # recalculate
         self.updateNet()
