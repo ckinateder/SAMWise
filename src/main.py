@@ -421,12 +421,12 @@ class Bouncer:
             quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
             base_balance = self.balances[sell_ex][self.section][self.base_coin]
 
-            if self.anyOpen(buy_ex) or self.anyOpen(sell_ex):
-                self.p(self.colorBad(
-                    'Open orders - taking no action.'))
-            elif quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:
+            if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:
                 self.handleTransaction(
                     buy_ex, sell_ex, low, high)
+            elif self.anyOpen(buy_ex) or self.anyOpen(sell_ex):
+                self.p(self.colorBad(
+                    'Open orders - taking no action.'))
             else:
                 self.p(self.colorBad('Balances not sufficient to trade - [{} {} on {}, {} {} on {}]\n(needed [{} {} on {}, {} {} on {}])'.format(
                     quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
