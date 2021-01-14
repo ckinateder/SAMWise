@@ -136,3 +136,4 @@ keys/*
 !logs/.gitkeep
 !logs/detail/.gitkeep
 .Rproj.user
+SAMWise.Rproj

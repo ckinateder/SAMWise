@@ -28,5 +28,5 @@ $ cd SAMWise
 
 ## Console Output
 
-`(SAMWise)$ ./test_usd`
+`(SAMWise)$ ./tests/test_usd`
 ![console](img/console.png)
