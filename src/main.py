@@ -445,8 +445,7 @@ class Bouncer:
                         quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                         self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
         except Exception as e:
-            print(e)
-            self.p('Error in call ... trying again in 10')
+            self.p('Error in call ... trying again in 10 ({})'.format(e))
             time.sleep(10)
             self.arbitrate()
 
