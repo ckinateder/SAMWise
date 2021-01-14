@@ -132,5 +132,7 @@ dmypy.json
 container/
 keys/*
 !keys/.gitkeep
+logs/*
+!logs/.gitkeep
 !logs/detail/.gitkeep
 .Rproj.user

@@ -270,7 +270,7 @@ class Bouncer:
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
         self.pro_frame.loc[len(self.pro_frame)] = new_row
         if path.exists(self.pro_filename):  # if file exists, append
-            self.pro_frame.to_csv(
+            self.pro_frame.df.loc[[-1]].to_csv(
                 path_or_buf=self.pro_filename, mode='a', header=False)
         else:
             self.pro_frame.to_csv(path_or_buf=self.pro_filename)
