@@ -26,7 +26,13 @@ $ cd SAMWise
 (SAMWise)$ pip3 install -r requirements.txt
 ```
 
+## Usage
+
+Test all pairs containing USD:
+`(SAMWise)$ ./tests/test_usd`
+Or, you can pass arguments to the main script. Format: `[symbol] [trade size ($)]` repeated `n` times.<br>
+`(SAMWise)$ py3 src/main.py BCH/USD 15`
+
 ## Console Output
 
-`(SAMWise)$ ./tests/test_usd`
 ![console](img/console.png)
