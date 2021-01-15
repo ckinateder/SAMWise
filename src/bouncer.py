@@ -196,7 +196,6 @@ class Bouncer:
         '''
         Get responses for each exchange for self.symbol.
         '''
-        before = time.time()
         all_responses = dict()
         for exchange in self.exchanges:
             all_responses[exchange] = exchange.fetch_ticker(self.symbol)

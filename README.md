@@ -14,7 +14,7 @@ The basic design of the program is pretty straightforward. The main class uses t
 
 ## Adding Exchanges
 
-SAMWise supports unlimited exchanges. To add a new exchange, add both the keys into the `keys` folder, instantiate the respective exchange object in the constructor of the `Bouncer` class, and add that exchange to the `self.exchanges` list. For example, to add kraken:
+SAMWise supports unlimited exchanges. To add a new exchange, add both the keys into the `keys` folder, instantiate the respective exchange object in the constructor of the `Bouncer` class, and add that exchange to the `self.exchanges` list. For example, to add [kraken](https://www.kraken.com/):
 
 ```Python
 # load kraken key
@@ -51,3 +51,5 @@ Or, you can pass arguments to the main script. Format: `[symbol] [trade size ($)
 ## Console Output
 
 ![console](img/console.png)
+
+![video](img/video.gif)
