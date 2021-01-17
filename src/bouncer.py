@@ -3,12 +3,14 @@ import multiprocessing
 import sys
 import time
 from datetime import datetime
-from os import path
+from os import path, listdir
+from getpass import getpass
 
 import ccxt
 import pandas as pd
 from pprint import pformat, pprint
 from termcolor import colored
+
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -21,6 +23,12 @@ detail = 'logs/detail/' + \
 
 class Bouncer:
     def __init__(self, symbol, quote_order_size):
+        self.keypath = 'keys/'
+        add = input('Would you like to add exhanges? (Y/n): ')
+        if 'y' in add.lower():
+            self.setupExchanges()
+        else:
+            self.createExchanges()
         '''
         Create exchanges.
         '''
@@ -62,7 +70,7 @@ class Bouncer:
         coinbase_pro_key = open('keys/coinbase_pro_public').read().strip()
         coinbase_pro_secret = open('keys/coinbase_pro_private').read().strip()
         coinbase_pro_passphrase = open(
-            'keys/coinbase_pro_passphrase').read().strip()
+            'keys/coinbase_pro_password').read().strip()
 
         # create coinbase_pro exchange
         self.coinbase_pro = ccxt.coinbasepro({
@@ -123,6 +131,78 @@ class Bouncer:
                                'Side', 'Price', 'Exchange', 'Net Gain (%)']
         self.trades = pd.DataFrame(columns=self.trades_headers)
 
+    def setupExchanges(self):
+        '''
+        Sets up all exchanges from the CLI. (for first time)
+        '''
+        moreToAdd = True
+        while moreToAdd:
+            exchstr = input('Enter name of exchange to add: ')
+            if exchstr in ccxt.exchanges:
+                public = input('Paste public key: ')
+                private = getpass('Paste private key: ')
+                password_req_str = input(
+                    'Does {} require a password? (Y/n): '.format(exchstr))
+
+                with open(self.keypath+exchstr+'_public', 'w+') as pub:
+                    pub.write(public)
+                with open(self.keypath+exchstr+'_private', 'w+') as priv:
+                    priv.write(public)
+
+                if 'y' in password_req_str.lower():
+                    password_req = True
+                else:
+                    password_req = False
+
+                if password_req:
+                    password = getpass('Enter password: ')
+                    with open(self.keypath+exchstr+'_password', 'w+') as passw:
+                        passw.write(password)
+
+                print('Saved keys to files')
+
+                exchange_class = getattr(ccxt, exchstr)
+
+                if password_req:
+                    globals()['self'+exchstr] = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                        'password': password,
+                    })
+                else:
+                    globals()['self'+exchstr] = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                    })
+
+                self.exchanges.append(globals()['self'+exchstr])
+
+            print('Exchange {} added!'.format(exchstr))
+
+            more = input('Add another exchange? (Y/n): ')
+            if 'y' in more.lower():
+                moreToAdd = True
+                print()
+            else:
+                moreToAdd = False
+
+    def createExchanges(self):
+        file_list = listdir(self.keypath)
+        for i in range(0, len(file_list)-2):
+            x = file_list[i]
+            if '.DS_Store' in x or '.gitkeep' in x:
+                file_list.remove(x)
+        for i in range(0, len(file_list)):
+            x = file_list[i]
+            if '_public' in x:
+                file_list[i] = x.replace('_public', '')
+            elif '_private' in x:
+                file_list[i] = x.replace('_private', '')
+            elif '_password' in x:
+                file_list[i] = x.replace('_password', '')
+        all_ex = list(set(file_list))
+        print(all_ex)
+        
     def getCommons(self):
         alls = list()
         for i in self.exchanges:
