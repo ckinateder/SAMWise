@@ -24,11 +24,13 @@ detail = 'logs/detail/' + \
 class Bouncer:
     def __init__(self, symbol, quote_order_size):
         self.keypath = 'keys/'
-        add = input('Would you like to add exhanges? (Y/n): ')
+        self.exchanges = list()
+        add = input('Would you like to add new exhanges? (Y/n): ')
         if 'y' in add.lower():
             self.setupExchanges()
         else:
-            self.createExchanges()
+            self.loadExchanges()
+            sys.exit(0)
         '''
         Create exchanges.
         '''
@@ -66,22 +68,22 @@ class Bouncer:
             'secret': kraken_secret,
         })
 
-        # load coinbase_pro key
-        coinbase_pro_key = open('keys/coinbase_pro_public').read().strip()
-        coinbase_pro_secret = open('keys/coinbase_pro_private').read().strip()
-        coinbase_pro_passphrase = open(
-            'keys/coinbase_pro_password').read().strip()
+        # load coinbasepro key
+        coinbasepro_key = open('keys/coinbasepro_public').read().strip()
+        coinbasepro_secret = open('keys/coinbasepro_private').read().strip()
+        coinbasepro_passphrase = open(
+            'keys/coinbasepro_password').read().strip()
 
-        # create coinbase_pro exchange
-        self.coinbase_pro = ccxt.coinbasepro({
-            'apiKey': coinbase_pro_key,
-            'secret': coinbase_pro_secret,
-            'password': coinbase_pro_passphrase,
+        # create coinbasepro exchange
+        self.coinbasepro = ccxt.coinbasepro({
+            'apiKey': coinbasepro_key,
+            'secret': coinbasepro_secret,
+            'password': coinbasepro_passphrase,
         })
 
         # add to exchange list
         self.exchanges = [self.bittrex, self.binanceus,
-                          self.kraken, self.coinbase_pro]
+                          self.kraken, self.coinbasepro]
 
         # check if symbol supported by all
         if symbol in self.getCommons():
@@ -154,39 +156,48 @@ class Bouncer:
                 else:
                     password_req = False
 
-                if password_req:
-                    password = getpass('Enter password: ')
-                    with open(self.keypath+exchstr+'_password', 'w+') as passw:
-                        passw.write(password)
-
-                print('Saved keys to files')
-
                 exchange_class = getattr(ccxt, exchstr)
 
                 if password_req:
-                    globals()['self'+exchstr] = exchange_class({
+                    password = getpass(
+                        'Enter password for {}: '.format(exchstr))
+                    with open(self.keypath+exchstr+'_password', 'w+') as passw:
+                        passw.write(password)
+
+                    print('Saved keys to files')
+
+                    current = exchange_class({
                         'apiKey': public,
                         'secret': private,
                         'password': password,
                     })
                 else:
-                    globals()['self'+exchstr] = exchange_class({
+                    current = exchange_class({
                         'apiKey': public,
                         'secret': private,
                     })
 
-                self.exchanges.append(globals()['self'+exchstr])
+                try:
+                    current.checkRequiredCredentials()
+                    print('Exchange {} added successfully!'.format(exchstr))
+                    self.exchanges.append(current)
+                except:
+                    print('Invalid credentials ... moving on.')
 
-            print('Exchange {} added!'.format(exchstr))
-
-            more = input('Add another exchange? (Y/n): ')
-            if 'y' in more.lower():
-                moreToAdd = True
-                print()
+                more = input('Add another exchange? (Y/n): ')
+                if 'y' in more.lower():
+                    moreToAdd = True
+                    print()
+                else:
+                    moreToAdd = False
             else:
-                moreToAdd = False
+                print('Sorry, {} is not supported yet :('.format(exchstr))
 
-    def createExchanges(self):
+    def loadExchanges(self):
+        '''
+        Create self.exchanges for all existing ones
+        '''
+        # find exchanges from file structure
         file_list = listdir(self.keypath)
         for i in range(0, len(file_list)-2):
             x = file_list[i]
@@ -201,8 +212,46 @@ class Bouncer:
             elif '_password' in x:
                 file_list[i] = x.replace('_password', '')
         all_ex = list(set(file_list))
-        print(all_ex)
-        
+
+        print('Creating exchange objects for {}.'.format(all_ex))
+
+        # create objs
+        for exchstr in all_ex:
+            if exchstr in ccxt.exchanges:  # j to be safe
+                public = open(self.keypath+exchstr+'_public')
+                private = open(self.keypath+exchstr+'_private')
+
+                exchange_class = getattr(ccxt, exchstr)
+                print(exchange_class)
+
+                if path.exists(self.keypath+exchstr+'_password'):
+                    password = getpass(
+                        'Enter password for {}: '.format(exchstr))
+                    password = open(self.keypath+exchstr+'_password')
+
+                    current = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                        'password': password,
+                    })
+                else:
+                    current = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                    })
+                try:
+                    print(self.exchanges)
+                    print(current.fetch_balance())
+                    print('Exchange {} added successfully!'.format(exchstr))
+                    self.exchanges.append(current)
+                except Exception as e:
+                    print(repr(e))
+                    print('Invalid credentials ... moving on.')
+            else:
+                print('Sorry, {} is not supported yet :('.format(exchstr))
+
+        print('Done! Added exchanges {}.'.format(self.exchanges))
+
     def getCommons(self):
         alls = list()
         for i in self.exchanges:
@@ -290,8 +339,8 @@ class Bouncer:
 
         spread = 0
 
-        low = responses[self.binanceus]['ask']
-        high = responses[self.binanceus]['ask']
+        low = responses[self.exchanges[0]]['ask']
+        high = responses[self.exchanges[0]]['ask']
 
         for exchange in responses:
             ask = responses[exchange]['ask']
@@ -387,7 +436,7 @@ class Bouncer:
                 self.p('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
                                                                       [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
 
-        # bittrex_string, binance_string, kraken_string, coinbase_pro_string
+        # bittrex_string, binance_string, kraken_string, coinbasepro_string
         return total_base_amount, total_quote_order_size
 
     def updateNet(self, loud=False):
