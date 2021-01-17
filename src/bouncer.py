@@ -22,68 +22,14 @@ detail = 'logs/detail/' + \
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size):
-        self.keypath = 'keys/'
-        self.exchanges = list()
-        add = input('Would you like to add new exhanges? (Y/n): ')
-        if 'y' in add.lower():
-            self.setupExchanges()
-        else:
-            self.loadExchanges()
+    def __init__(self, symbol, quote_order_size, exchanges):
         '''
         Create exchanges.
         '''
-        self.log = False
-        if self.log:
-            logging.basicConfig(format='%(asctime)s: %(message)s',
-                                filename=detail, level=logging.INFO)
-
-        # load bittrex key
-        bittrex_key = open('keys/bittrex_public').read().strip()
-        bittrex_secret = open('keys/bittrex_private').read().strip()
-
-        # create bittrex exchange
-        self.bittrex = ccxt.bittrex({
-            'apiKey': bittrex_key,
-            'secret': bittrex_secret,
-        })
-
-        # load binanceus key
-        binanceus_key = open('keys/binanceus_public').read().strip()
-        binanceus_secret = open('keys/binanceus_private').read().strip()
-
-        # create binanceus exchange
-        self.binanceus = ccxt.binanceus({
-            'apiKey': binanceus_key,
-            'secret': binanceus_secret,
-        })
-        # load kraken key
-        kraken_key = open('keys/kraken_public').read().strip()
-        kraken_secret = open('keys/kraken_private').read().strip()
-
-        # create kraken exchange
-        self.kraken = ccxt.kraken({
-            'apiKey': kraken_key,
-            'secret': kraken_secret,
-        })
-
-        # load coinbasepro key
-        coinbasepro_key = open('keys/coinbasepro_public').read().strip()
-        coinbasepro_secret = open('keys/coinbasepro_private').read().strip()
-        coinbasepro_passphrase = open(
-            'keys/coinbasepro_password').read().strip()
-
-        # create coinbasepro exchange
-        self.coinbasepro = ccxt.coinbasepro({
-            'apiKey': coinbasepro_key,
-            'secret': coinbasepro_secret,
-            'password': coinbasepro_passphrase,
-        })
 
         # add to exchange list
-        self.exchanges = [self.bittrex, self.binanceus,
-                          self.kraken, self.coinbasepro]
-
+        self.exchanges = exchanges
+        self.log = False
         # check if symbol supported by all
         if symbol in self.getCommons():
             self.symbol = symbol
@@ -131,125 +77,6 @@ class Bouncer:
         self.trades_headers = ['Date', 'Symbol',
                                'Side', 'Price', 'Exchange', 'Net Gain (%)']
         self.trades = pd.DataFrame(columns=self.trades_headers)
-
-    def setupExchanges(self):
-        '''
-        Sets up all exchanges from the CLI. (for first time)
-        '''
-        moreToAdd = True
-        while moreToAdd:
-            exchstr = input('Enter name of exchange to add: ')
-            if exchstr in ccxt.exchanges:
-                public = input('Paste public key: ').strip()
-                private = getpass('Paste private key: ').strip()
-                password_req_str = input(
-                    'Does {} require a password? (Y/n): '.format(exchstr))
-                print(public)
-                print(private)
-
-                if 'y' in password_req_str.lower():
-                    password_req = True
-                else:
-                    password_req = False
-
-                exchange_class = getattr(ccxt, exchstr)
-
-                if password_req:
-                    password = getpass(
-                        'Enter password for {}: '.format(exchstr)).strip()
-
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                        'password': password,
-                    })
-                else:
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                    })
-
-                try:
-                    current.fetch_balance()
-                    print('Exchange {} added successfully!'.format(exchstr))
-                    self.exchanges.append(current)
-                    # only write if works
-                    with open(self.keypath+exchstr+'_public', 'w+') as pub:
-                        pub.write(public)
-                    with open(self.keypath+exchstr+'_private', 'w+') as priv:
-                        priv.write(private)
-                    if password_req:
-                        with open(self.keypath+exchstr+'_password', 'w+') as passw:
-                            passw.write(password)
-
-                    print('Saved keys to files')
-
-                except ccxt.AuthenticationError:
-                    print('Invalid credentials for {} ... moving on.'.format(exchstr))
-
-                more = input('Add another exchange? (Y/n): ')
-                if 'y' in more.lower():
-                    moreToAdd = True
-                    print()
-                else:
-                    moreToAdd = False
-            else:
-                print('Sorry, {} is not supported yet :('.format(exchstr))
-
-    def loadExchanges(self):
-        '''
-        Create self.exchanges for all existing ones
-        '''
-        # find exchanges from file structure
-        file_list = listdir(self.keypath)
-        for i in range(0, len(file_list)-2):
-            x = file_list[i]
-            if '.DS_Store' in x or '.gitkeep' in x:
-                file_list.remove(x)
-        for i in range(0, len(file_list)):
-            x = file_list[i]
-            if '_public' in x:
-                file_list[i] = x.replace('_public', '')
-            elif '_private' in x:
-                file_list[i] = x.replace('_private', '')
-            elif '_password' in x:
-                file_list[i] = x.replace('_password', '')
-        all_ex = list(set(file_list))
-
-        print('Creating exchange objects for {}.'.format(all_ex))
-
-        # create objs
-        for exchstr in all_ex:
-            if exchstr in ccxt.exchanges:  # j to be safe
-                public = open(self.keypath+exchstr+'_public').read().strip()
-                private = open(self.keypath+exchstr+'_private').read().strip()
-
-                exchange_class = getattr(ccxt, exchstr)
-
-                if path.exists(self.keypath+exchstr+'_password'):
-                    password = open(self.keypath+exchstr +
-                                    '_password').read().strip()
-
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                        'password': password,
-                    })
-                else:
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                    })
-                try:
-                    current.fetch_balance()
-                    print('Exchange {} added successfully!'.format(exchstr))
-                    self.exchanges.append(current)
-                except ccxt.AuthenticationError:
-                    print('Invalid credentials for {} ... moving on.'.format(exchstr))
-            else:
-                print('Sorry, {} is not supported yet :('.format(exchstr))
-
-        print('Done! Added exchanges {}.'.format(self.exchanges))
 
     def getCommons(self):
         alls = list()
