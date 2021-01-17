@@ -30,7 +30,6 @@ class Bouncer:
             self.setupExchanges()
         else:
             self.loadExchanges()
-            sys.exit(0)
         '''
         Create exchanges.
         '''
@@ -141,15 +140,12 @@ class Bouncer:
         while moreToAdd:
             exchstr = input('Enter name of exchange to add: ')
             if exchstr in ccxt.exchanges:
-                public = input('Paste public key: ')
-                private = getpass('Paste private key: ')
+                public = input('Paste public key: ').strip()
+                private = getpass('Paste private key: ').strip()
                 password_req_str = input(
                     'Does {} require a password? (Y/n): '.format(exchstr))
-
-                with open(self.keypath+exchstr+'_public', 'w+') as pub:
-                    pub.write(public)
-                with open(self.keypath+exchstr+'_private', 'w+') as priv:
-                    priv.write(public)
+                print(public)
+                print(private)
 
                 if 'y' in password_req_str.lower():
                     password_req = True
@@ -160,11 +156,7 @@ class Bouncer:
 
                 if password_req:
                     password = getpass(
-                        'Enter password for {}: '.format(exchstr))
-                    with open(self.keypath+exchstr+'_password', 'w+') as passw:
-                        passw.write(password)
-
-                    print('Saved keys to files')
+                        'Enter password for {}: '.format(exchstr)).strip()
 
                     current = exchange_class({
                         'apiKey': public,
@@ -178,11 +170,22 @@ class Bouncer:
                     })
 
                 try:
-                    current.checkRequiredCredentials()
+                    current.fetch_balance()
                     print('Exchange {} added successfully!'.format(exchstr))
                     self.exchanges.append(current)
-                except:
-                    print('Invalid credentials ... moving on.')
+                    # only write if works
+                    with open(self.keypath+exchstr+'_public', 'w+') as pub:
+                        pub.write(public)
+                    with open(self.keypath+exchstr+'_private', 'w+') as priv:
+                        priv.write(private)
+                    if password_req:
+                        with open(self.keypath+exchstr+'_password', 'w+') as passw:
+                            passw.write(password)
+
+                    print('Saved keys to files')
+
+                except ccxt.AuthenticationError:
+                    print('Invalid credentials for {} ... moving on.'.format(exchstr))
 
                 more = input('Add another exchange? (Y/n): ')
                 if 'y' in more.lower():
