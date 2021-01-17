@@ -14,7 +14,7 @@ The basic design of the program is pretty straightforward. The main class uses t
 
 ## Adding Exchanges
 
-SAMWise supports unlimited exchanges. To add a new exchange, add both the keys into the `keys` folder, instantiate the respective exchange object in the constructor of the `Bouncer` class, and add that exchange to the `self.exchanges` list. For example, to add [kraken](https://www.kraken.com/):
+SAMWise supports all exchanges supported by ccxt. To add a new exchange, follow the prompts when running the program.
 
 ```Python
 # load kraken key

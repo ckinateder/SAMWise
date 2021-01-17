@@ -89,7 +89,7 @@ def loadExchanges():
     file_list = listdir(keypath)
     for i in range(0, len(file_list)-2):
         x = file_list[i]
-        if '.DS_Store' in x or '.gitkeep' in x:
+        if '.DS_Store' in x or 'gitkeep' in x:
             file_list.remove(x)
     for i in range(0, len(file_list)):
         x = file_list[i]
