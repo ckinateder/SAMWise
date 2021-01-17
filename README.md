@@ -16,21 +16,6 @@ The basic design of the program is pretty straightforward. The main class uses t
 
 SAMWise supports all exchanges supported by ccxt. To add a new exchange, follow the prompts when running the program.
 
-```Python
-# load kraken key
-kraken_key = open('keys/kraken_public').read().strip()
-kraken_secret = open('keys/kraken_private').read().strip()
-
-# create kraken exchange
-self.kraken = ccxt.kraken({
-    'apiKey': kraken_key,
-    'secret': kraken_secret,
-})
-
-# append to exchanges
-self.exchanges.append(self.kraken)
-```
-
 ## Installation
 
 Clone repository and install dependencies by using
