@@ -218,16 +218,14 @@ class Bouncer:
         # create objs
         for exchstr in all_ex:
             if exchstr in ccxt.exchanges:  # j to be safe
-                public = open(self.keypath+exchstr+'_public')
-                private = open(self.keypath+exchstr+'_private')
+                public = open(self.keypath+exchstr+'_public').read().strip()
+                private = open(self.keypath+exchstr+'_private').read().strip()
 
                 exchange_class = getattr(ccxt, exchstr)
-                print(exchange_class)
 
                 if path.exists(self.keypath+exchstr+'_password'):
-                    password = getpass(
-                        'Enter password for {}: '.format(exchstr))
-                    password = open(self.keypath+exchstr+'_password')
+                    password = open(self.keypath+exchstr +
+                                    '_password').read().strip()
 
                     current = exchange_class({
                         'apiKey': public,
@@ -240,13 +238,11 @@ class Bouncer:
                         'secret': private,
                     })
                 try:
-                    print(self.exchanges)
-                    print(current.fetch_balance())
+                    current.fetch_balance()
                     print('Exchange {} added successfully!'.format(exchstr))
                     self.exchanges.append(current)
-                except Exception as e:
-                    print(repr(e))
-                    print('Invalid credentials ... moving on.')
+                except ccxt.AuthenticationError:
+                    print('Invalid credentials for {} ... moving on.'.format(exchstr))
             else:
                 print('Sorry, {} is not supported yet :('.format(exchstr))
 
