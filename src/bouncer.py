@@ -22,7 +22,7 @@ detail = 'logs/detail/' + \
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq):
         '''
         Create exchanges.
         '''
@@ -35,8 +35,12 @@ class Bouncer:
             self.symbol = symbol
         else:
             print(
-                'Symbol \'{}\'not supported by all platforms. Exiting ...'.format(symbol))
+                'Symbol \'{}\' not supported by all platforms. Exiting ...'.format(symbol))
             sys.exit(0)
+
+        # initialize balances
+        if initializeq:
+            self.inititalizeBalances()
 
         self.start_time = time.time()
         self.base_coin = symbol.split('/')[0]
@@ -281,9 +285,11 @@ class Bouncer:
         Optional function used to initialize the balances buying the crypto needed in each exchange.
         '''
         for exchange in self.exchanges:
-            if exchange.fetch_balance()[self.section] >= self.quote_order_size/2:
+            if exchange.fetch_balance()[self.section] >= self.quote_order_size:
+                self.p('Creating market buy order for {} {} on {}'.format(
+                    self.quote_order_size, self.symbol, exchange.name))
                 exchange.create_market_buy_order(
-                    self.symbol, self.quote_order_size/2)
+                    self.symbol, self.quote_order_size)
             else:
                 self.p(
                     'Insufficient balance on {} to set up balance'.format(exchange.name))

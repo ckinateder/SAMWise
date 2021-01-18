@@ -148,14 +148,28 @@ if __name__ == '__main__':
     else:
         exchanges = loadExchanges()
 
+    ini = input('Would you like to initalize the exchanges with crypto? (Y/n): ')
+    if 'y' in ini.lower():
+        inip = True
+    else:
+        inip = False
+
     if len(sys.argv) > 1:
         for i in range(1, len(sys.argv), 2):
             currencies.append(
-                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges))
+                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip))
     else:
-        # default
-        size = 15
-        currencies = [Bouncer('BCH/USD', size, exchanges)]
+        curr = input(
+            'Which crypto ticker would you like to run on? [BTC, ETH, DASH...]: ')+'/USD'
+        try:
+            invest = float(input(
+                'How much would you like each transaction to be worth in dollars? $'))
+        except:
+            print('Sorry, enter a number.')
+            invest = float(input(
+                'How much would you like each transaction to be worth in dollars? $'))
+
+        currencies.append(Bouncer(curr, invest, exchanges, inip))
 
     while True:
         try:
