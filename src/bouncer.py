@@ -9,8 +9,8 @@ from getpass import getpass
 import ccxt
 import pandas as pd
 from pprint import pformat, pprint
-from termcolor import colored
 
+from crayon import *
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -59,7 +59,7 @@ class Bouncer:
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
 
-        self.p('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
+        print('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
             self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
 
         # init balances
@@ -69,7 +69,7 @@ class Bouncer:
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
             loud=False)
 
-        self.p('Starting base amount [{:.8f} {}, {:.4f} {}]\n'.format(
+        print('Starting base amount [{:.8f} {}, {:.4f} {}]\n'.format(
             self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
 
         # set up file for logging
@@ -99,58 +99,6 @@ class Bouncer:
         #       print(i, '1', end=' ')
         return out
 
-    def p(self, string):
-        if self.log:
-            logging.info(string)
-        else:
-            print(string)
-
-    def colorGood(self, strr):
-        if not self.log:
-            return colored(strr, 'green')
-        else:
-            return strr
-
-    def colorEh(self, strr):
-        if not self.log:
-            return colored(strr, 'yellow')
-        else:
-            return strr
-
-    def colorBad(self, strr):
-        if not self.log:
-            return colored(strr, 'red')
-        else:
-            return strr
-
-    def colorHigh(self, strr):
-        if not self.log:
-            return colored(strr, 'cyan')
-        else:
-            return strr
-
-    def colorLow(self, strr):
-        if not self.log:
-            return colored(strr, 'magenta')
-        else:
-            return strr
-
-    def colorProfit(self, number):
-        '''
-        Color code a number.
-        '''
-        number = round(number, 4)
-        try:
-            if number > 0:
-                form = self.colorGood(number)
-            elif number < 0:
-                form = self.colorBad(number)
-            else:
-                form = self.colorEh(number)
-        except:
-            self.p('Couldn\'t colorize')
-        return form
-
     def getWatched(self):
         '''
         Get responses for each exchange for self.symbol.
@@ -158,7 +106,7 @@ class Bouncer:
         all_responses = dict()
         for exchange in self.exchanges:
             all_responses[exchange] = exchange.fetch_ticker(self.symbol)
-        # self.p('Recived from {} in {:.3f} s'.format(
+        # print('Recived from {} in {:.3f} s'.format(
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
 
@@ -187,10 +135,10 @@ class Bouncer:
             logstr = '\t{}: {}'.format(exchange, ask)
             if low == responses[exchange]['ask']:
                 buy = exchange
-                logstr = self.colorLow('\t{}: {}'.format(buy, ask))
+                logstr = colorLow('\t{}: {}'.format(buy, ask))
             elif high == responses[exchange]['ask']:
                 sell = exchange
-                logstr = self.colorHigh('\t{}: {}'.format(sell, ask))
+                logstr = colorHigh('\t{}: {}'.format(sell, ask))
             exchanges_str += logstr+'\n'
 
         spread = (self.quote_order_size/high)*(high-low)
@@ -199,30 +147,30 @@ class Bouncer:
                 sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
 
         if spread - fees > self.threshold:
-            msg = self.colorGood(
+            msg = colorGood(
                 ' '*53+'found profitable pair ****\n' + '[PROFITABLE]')
             profitable = True
         else:
-            msg = self.colorBad('[NOT PROFITABLE]')
+            msg = colorBad('[NOT PROFITABLE]')
             profitable = False
 
         if profitable or True:  # effectively disabled rn, print all # only print if profitable
-            self.p(
+            print(
                 '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
-            self.p('[For {}]:'.format(self.symbol))
+            print('[For {}]:'.format(self.symbol))
 
-            self.p(exchanges_str)
+            print(exchanges_str)
 
-            self.p(
-                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, self.colorProfit(spread),
-                                                                                                                      self.quote_coin, self.colorProfit(
+            print(
+                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, colorProfit(spread),
+                                                                                                                      self.quote_coin, colorProfit(
                     spread-fees),
-                    self.quote_coin, self.colorLow(
+                    self.quote_coin, colorLow(
                     buy.name),
-                    self.colorLow(low), self.colorHigh(sell.name), self.colorHigh(high), self.colorEh('{:.3f}'.format(high-low))))
+                    colorLow(low), colorHigh(sell.name), colorHigh(high), colorEh('{:.3f}'.format(high-low))))
 
         # if self.anyOpen():
-        #    self.p(self.colorEh('Note: currently open trades.'))
+        #    print(colorEh('Note: currently open trades.'))
 
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
@@ -243,7 +191,7 @@ class Bouncer:
             self.balances[exchange] = exchange.fetch_balance()
         if loud:
             for exchange in self.exchanges:
-                self.p(
+                print(
                     '{} balance response - {}'.format(exchange, pformat(self.balances[exchange])))
 
         self.section = 'total'
@@ -263,8 +211,8 @@ class Bouncer:
                 self.balances[exchange][self.section][self.quote_coin] = 0
         if loud:
             for exchange in self.exchanges:
-                self.p('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
-                                                                      [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
+                print('\t{} balances ({}) - [{}: {}, {}: {}]'.format(exchange, self.section, self.base_coin, self.balances[exchange][self.section]
+                                                                     [self.base_coin], self.quote_coin, self.balances[exchange][self.section][self.quote_coin]))
 
         # bittrex_string, binance_string, kraken_string, coinbasepro_string
         return total_base_amount, total_quote_order_size
@@ -286,12 +234,12 @@ class Bouncer:
         '''
         for exchange in self.exchanges:
             if exchange.fetch_balance()[self.section] >= self.quote_order_size:
-                self.p('Creating market buy order for {} {} on {}'.format(
+                print('Creating market buy order for {} {} on {}'.format(
                     self.quote_order_size, self.symbol, exchange.name))
                 exchange.create_market_buy_order(
                     self.symbol, self.quote_order_size)
             else:
-                self.p(
+                print(
                     'Insufficient balance on {} to set up balance'.format(exchange.name))
         return False
 
@@ -308,7 +256,7 @@ class Bouncer:
         return False
 
     def cleanup(self):
-        self.p('Cleaning up for {}...'.format(self.symbol))
+        print('Cleaning up for {}...'.format(self.symbol))
         responses = self.getWatched()
         self.updateBalances(loud=False)
 
@@ -319,31 +267,31 @@ class Bouncer:
                 self.balances[exchange][self.section][self.base_coin])
             if remaining > 0 and not self.anyOpen(exchange):
                 try:
-                    self.p('Selling off {} {} on {}'.format(
+                    print('Selling off {} {} on {}'.format(
                         remaining, self.base_coin, exchange.name))
                     exchange.create_limit_sell_order(
                         self.symbol, remaining, ask)
                 except Exception as e:
-                    self.p(
+                    print(
                         'Error in selling off {} {} on {}: {}'.format(remaining, self.base_coin, exchange.name, e))
             else:
-                self.p(
+                print(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
 
-        self.p('Final balances:')
+        print('Final balances:')
         base, quote = self.updateBalances(loud=False)
-        self.p('Sums: [{:.8f} {}, {:.3f} {}]'.format(
+        print('Sums: [{:.8f} {}, {:.3f} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
-        self.p('Net: {}%'.format(self.colorProfit(self.net)))
-        self.p('Done!\n')
+        print('Net: {}%'.format(colorProfit(self.net)))
+        print('Done!\n')
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
         Places the arbitrage transactions simultaneously.
         '''
         # creating processes
-        self.p('Creating buy order on {} for {} {} at {}'.format(
+        print('Creating buy order on {} for {} {} at {}'.format(
             buy_ex, self.quote_order_size/low, self.symbol, low))
         buy_ex.create_limit_buy_order(
             self.symbol, self.quote_order_size/low, low)
@@ -351,7 +299,7 @@ class Bouncer:
                    self.symbol, 'buy', low, buy_ex.name, self.net]
         self.trades.loc[len(self.trades)] = new_row
 
-        self.p('Creating sell order on {} for {} {} at {}'.format(
+        print('Creating sell order on {} for {} {} at {}'.format(
             sell_ex, self.quote_order_size/high, self.symbol, high))
         sell_ex.create_limit_sell_order(
             self.symbol, self.quote_order_size/high, high)
@@ -359,7 +307,7 @@ class Bouncer:
                    self.symbol, 'sell', high, sell_ex.name, self.net]
         self.trades.loc[len(self.trades)] = new_row
 
-        self.p('Trades initiated ... blocking to completion')
+        print('Trades initiated ... blocking to completion')
 
         open_trades = self.anyOpen()
         while open_trades:
@@ -371,9 +319,9 @@ class Bouncer:
         self.updateNet()
 
         self.trades.to_csv(path_or_buf=self.trades_filename)
-        self.p('Trades completed')
+        print('Trades completed')
 
-        self.p('Balances fetched')
+        print('Balances fetched')
         self.updateBalances(loud=False)
 
         return 'Done'
@@ -398,13 +346,13 @@ class Bouncer:
                         self.handleTransaction(
                             buy_ex, sell_ex, low, high)
                     else:
-                        self.p(self.colorBad(
+                        print(colorBad(
                             'Open orders - taking no action.'))
                 else:
-                    self.p(self.colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
+                    print(colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
                         quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                         self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
         except Exception as e:
-            self.p('Error in call ... trying again in 10 ({})'.format(e))
+            print('Error in call ... trying again in 10 ({})'.format(e))
             time.sleep(10)
             self.arbitrate()

@@ -6,6 +6,7 @@ from os import listdir, path
 import ccxt
 
 from bouncer import Bouncer
+from crayon import *
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -138,17 +139,19 @@ def loadExchanges():
     return exchanges
 
 
+# run main
 if __name__ == '__main__':
     currencies = list()
     keypath = 'keys/'
 
-    add = input('Would you like to add new exhanges? (Y/n): ')
+    add = input(colorGood('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
     else:
         exchanges = loadExchanges()
 
-    ini = input('Would you like to initalize the exchanges with crypto? (Y/n): ')
+    ini = input(
+        colorGood('Would you like to initalize the exchanges with crypto? (Y/n): '))
     if 'y' in ini.lower():
         inip = True
     else:
@@ -159,15 +162,12 @@ if __name__ == '__main__':
             currencies.append(
                 Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip))
     else:
-        curr = input(
-            'Which crypto ticker would you like to run on? [BTC, ETH, DASH...]: ')+'/USD'
-        try:
-            invest = float(input(
-                'How much would you like each transaction to be worth in dollars? $'))
-        except:
-            print('Sorry, enter a number.')
-            invest = float(input(
-                'How much would you like each transaction to be worth in dollars? $'))
+        curr = input(colorGood(
+            'Which crypto ticker would you like to run on? [BTC, ETH, DASH...]: '))+'/USD'
+        invest = ''
+        while type(invest) == str:
+            invest = float(input(colorGood(
+                'How much would you like each transaction to be worth in dollars?')+' $'))
 
         currencies.append(Bouncer(curr, invest, exchanges, inip))
 
