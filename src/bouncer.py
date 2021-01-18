@@ -59,7 +59,7 @@ class Bouncer:
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
 
-        print('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n'.format(
+        print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n').format(
             self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
 
         # init balances
@@ -156,7 +156,7 @@ class Bouncer:
 
         if profitable or True:  # effectively disabled rn, print all # only print if profitable
             print(
-                '/'+'-'*55+datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+                '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
             print('[For {}]:'.format(self.symbol))
 
             print(exchanges_str)

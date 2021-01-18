@@ -21,6 +21,10 @@ def colorLow(strr):
     return colored(strr, 'magenta')
 
 
+def colorClock(strr):
+    return colored(text=strr, color='grey', on_color='on_yellow')
+
+
 def colorProfit(number):
     '''
     Color code a number.

@@ -52,7 +52,7 @@ def setupExchanges():
 
             try:
                 current.fetch_balance()
-                print('Exchange {} added successfully!'.format(exchstr))
+                print(colorGood('Exchange {} added successfully!').format(exchstr))
                 exchanges.append(current)
                 # only write if works
                 with open(keypath+exchstr+'_public', 'w+') as pub:
@@ -63,10 +63,11 @@ def setupExchanges():
                     with open(keypath+exchstr+'_password', 'w+') as passw:
                         passw.write(password)
 
-                print('Saved keys to files')
+                print(colorGood('Saved keys to files'))
 
             except ccxt.AuthenticationError:
-                print('Invalid credentials for {} ... moving on.'.format(exchstr))
+                print(
+                    colorBad('Invalid credentials for {} ... moving on.').format(exchstr))
 
             more = input('Add another exchange? (Y/n): ')
             if 'y' in more.lower():
@@ -75,9 +76,9 @@ def setupExchanges():
             else:
                 moreToAdd = False
         else:
-            print('Sorry, {} is not supported yet :('.format(exchstr))
+            print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
 
-    print('Done! Added exchanges {}.'.format(exchanges))
+    print(colorGood('Done! Added exchanges {}.').format(exchanges))
     return exchanges
 
 
@@ -128,14 +129,15 @@ def loadExchanges():
                 })
             try:
                 current.fetch_balance()
-                print('Exchange {} added successfully!'.format(exchstr))
+                print(colorGood('Exchange {} added successfully!').format(exchstr))
                 exchanges.append(current)
             except ccxt.AuthenticationError:
-                print('Invalid credentials for {} ... moving on.'.format(exchstr))
+                print(
+                    colorBad('Invalid credentials for {} ... moving on.').format(exchstr))
         else:
-            print('Sorry, {} is not supported yet :('.format(exchstr))
+            print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
 
-    print('Done! Added exchanges {}.'.format(exchanges))
+    print(colorGood('Done! Added exchanges {}.').format(exchanges))
     return exchanges
 
 
@@ -144,14 +146,14 @@ if __name__ == '__main__':
     currencies = list()
     keypath = 'keys/'
 
-    add = input(colorGood('Would you like to add new exhanges? (Y/n): '))
+    add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
     else:
         exchanges = loadExchanges()
 
     ini = input(
-        colorGood('Would you like to initalize the exchanges with crypto? (Y/n): '))
+        ('Would you like to initalize the exchanges with crypto? (Y/n): '))
     if 'y' in ini.lower():
         inip = True
     else:
@@ -162,11 +164,11 @@ if __name__ == '__main__':
             currencies.append(
                 Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip))
     else:
-        curr = input(colorGood(
+        curr = input((
             'Which crypto ticker would you like to run on? [BTC, ETH, DASH...]: '))+'/USD'
         invest = ''
         while type(invest) == str:
-            invest = float(input(colorGood(
+            invest = float(input((
                 'How much would you like each transaction to be worth in dollars?')+' $'))
 
         currencies.append(Bouncer(curr, invest, exchanges, inip))
@@ -175,7 +177,7 @@ if __name__ == '__main__':
         try:
             for i in currencies:
                 i.arbitrate()
-            time.sleep(3/len(sys.argv))
+            time.sleep(3/len(currencies))
         except KeyboardInterrupt:
             print('\nQuitting\n')
             todo = input('Cleanup balances? (Y/n) ')
