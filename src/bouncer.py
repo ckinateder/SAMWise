@@ -15,21 +15,15 @@ from crayon import *
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
 
-# define watched symbols
-detail = 'logs/detail/' + \
-    datetime.now().strftime("%m-%d-%Y_%H-%M")+'.log'
-# logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq, active=True):
         '''
-        Create exchanges.
+        Create the class.
         '''
 
         # add to exchange list
         self.exchanges = exchanges
-        self.log = False
         # check if symbol supported by all
         if symbol in self.getCommons():
             self.symbol = symbol
@@ -38,6 +32,7 @@ class Bouncer:
                 'Symbol \'{}\' not supported by all platforms. Exiting ...'.format(symbol))
             sys.exit(0)
 
+        self.active = active
         # initialize balances
         if initializeq:
             self.inititalizeBalances()
@@ -59,8 +54,11 @@ class Bouncer:
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
 
-        print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n').format(
-            self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
+        if active:
+            print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n').format(
+                self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
+        else:
+            print(colorEh('Created Bouncer scanning for {}.').format(self.symbol))
 
         # init balances
         self.balances = dict()
@@ -69,8 +67,10 @@ class Bouncer:
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
             loud=False)
 
-        print('Starting base amount [{:.8f} {}, {:.4f} {}]\n'.format(
-            self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
+        if active:
+            print(colorClock('Starting base amount [{:.8f} {}, {:.4f} {}]').format(
+                self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
+            print()
 
         # set up file for logging
         self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
@@ -335,7 +335,7 @@ class Bouncer:
             spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
                 markets)
 
-            if profitable:
+            if profitable and self.active:
                 self.updateBalances(loud=False)
                 quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
                 base_balance = self.balances[sell_ex][self.section][self.base_coin]
@@ -353,6 +353,6 @@ class Bouncer:
                         quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                         self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
         except Exception as e:
-            print('Error in call ... trying again in 10 ({})'.format(e))
+            print(colorBad('Error in call ... trying again in 10 ({})').format(e))
             time.sleep(10)
             self.arbitrate()

@@ -143,35 +143,56 @@ def loadExchanges():
 
 # run main
 if __name__ == '__main__':
+    WIDTH = 80  # of console
+    # welcome
+    print()
+    print('Welcome to SAMWise!'.center(WIDTH))
+    print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
+    print('Created by Calvin Kinateder, 2021'.center(WIDTH))
+    print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
+    print(('-'*80)+'\n')
+
     currencies = list()
     keypath = 'keys/'
+    inip = False
 
+    # check for adding exchanges
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
     else:
         exchanges = loadExchanges()
 
-    ini = input(
-        ('Would you like to initalize the exchanges with crypto? (Y/n): '))
-    if 'y' in ini.lower():
-        inip = True
+    # check for scanning
+    scan = input(
+        ('Would you like to run in scanner mode? (Y/n): '))
+    if 'y' in scan.lower():
+        active = False
     else:
-        inip = False
+        active = True
+        # check for initialization
+        ini = input(
+            ('Would you like to initalize the exchanges with crypto? (Y/n): '))
+        if 'y' in ini.lower():
+            inip = True
+        else:
+            inip = False
 
+    # check for commandline override
     if len(sys.argv) > 1:
         for i in range(1, len(sys.argv), 2):
             currencies.append(
-                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip))
+                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, active))
     else:
         curr = input((
             'Which crypto ticker would you like to run on? [BTC, ETH, DASH...]: '))+'/USD'
+
         invest = ''
         while type(invest) == str:
             invest = float(input((
                 'How much would you like each transaction to be worth in dollars?')+' $'))
 
-        currencies.append(Bouncer(curr, invest, exchanges, inip))
+        currencies.append(Bouncer(curr, invest, exchanges, inip, active))
 
     while True:
         try:
@@ -180,8 +201,9 @@ if __name__ == '__main__':
             time.sleep(3/len(currencies))
         except KeyboardInterrupt:
             print('\nQuitting\n')
-            todo = input('Cleanup balances? (Y/n) ')
-            if 'Y' in todo:
-                for i in currencies:
-                    i.cleanup()
-            sys.exit(0)
+            if active:
+                todo = input('Cleanup balances? (Y/n) ')
+                if 'Y' in todo:
+                    for i in currencies:
+                        i.cleanup()
+                sys.exit(0)
