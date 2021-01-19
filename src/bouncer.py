@@ -122,8 +122,9 @@ class Bouncer:
 
         for exchange in responses:
             ask = responses[exchange]['ask']
-            if ask > high:
-                high = ask
+            bid = responses[exchange]['bid']
+            if bid > high:
+                high = bid
             elif ask < low:
                 low = ask
 
