@@ -35,4 +35,6 @@ Or, you can pass arguments to the main script. Format: `[symbol] [trade size ($)
 
 ## Console Output
 
-![console](img/console.png)
+![demo](img/demo.png)
+
+![scanner](img/scanner.png)

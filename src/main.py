@@ -141,6 +141,21 @@ def loadExchanges():
     return exchanges
 
 
+def getCommons(exchanges):
+    alls = list()
+    for i in exchanges:
+        x = list(i.load_markets().keys())
+        for j in x:
+            alls.append(j)
+    out = list()
+
+    for item in alls:
+        if alls.count(item) == 4 and 'USD' in item:  # Important - only allows usd
+            out.append(item)
+    out = list(set(out))
+    return out
+
+
 # run main
 if __name__ == '__main__':
     WIDTH = 80  # of console
@@ -184,15 +199,28 @@ if __name__ == '__main__':
             currencies.append(
                 Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, active))
     else:
-        curr = input((
-            'Which crypto ticker would you like to run on? [BTC, ETH, DASH...]: '))+'/USD'
+        commons = getCommons(exchanges)
+        curr = 'list'
+        while 'list' in curr.lower():
+            curr = input((
+                'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): '))
+            if 'list' in curr.lower():
+                print(colorEh(commons))
 
         invest = ''
-        while type(invest) == str:
-            invest = float(input((
-                'How much would you like each transaction to be worth in dollars?')+' $'))
+        if active:
+            while type(invest) == str:
+                invest = float(input((
+                    'How much would you like each transaction to be worth in dollars?')+' $'))
+        else:
+            invest = 100
 
-        currencies.append(Bouncer(curr, invest, exchanges, inip, active))
+        if 'all' in curr.lower():
+            for sym in commons:
+                currencies.append(
+                    Bouncer(sym, invest, exchanges, inip, active))
+        else:
+            currencies.append(Bouncer(curr, invest, exchanges, inip, active))
 
     while True:
         try:

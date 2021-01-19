@@ -159,7 +159,7 @@ class Bouncer:
                 '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
             print('[For {}]:'.format(self.symbol))
 
-            print(exchanges_str)
+            print(exchanges_str, end='')
 
             print(
                 '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, colorProfit(spread),
