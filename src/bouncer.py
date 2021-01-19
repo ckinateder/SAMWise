@@ -139,7 +139,7 @@ class Bouncer:
             elif high == responses[exchange]['ask']:
                 sell = exchange
                 logstr = colorHigh('\t{}: {}'.format(sell, ask))
-            exchanges_str += logstr  # +'\n'
+            exchanges_str += logstr+'\n'
 
         spread = (self.quote_order_size/high)*(high-low)
 
