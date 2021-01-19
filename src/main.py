@@ -206,4 +206,4 @@ if __name__ == '__main__':
                 if 'Y' in todo:
                     for i in currencies:
                         i.cleanup()
-                sys.exit(0)
+            sys.exit(0)
