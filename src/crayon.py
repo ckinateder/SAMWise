@@ -29,7 +29,7 @@ def colorProfit(number):
     '''
     Color code a number.
     '''
-    number = round(number, 4)
+    number = round(number, 3)
     try:
         if number > 0:
             form = colorGood(number)

@@ -117,28 +117,38 @@ class Bouncer:
 
         spread = 0
 
-        low = responses[self.exchanges[0]]['ask']
-        high = responses[self.exchanges[0]]['ask']
+        # choose one for ask and one for bid maybe
+        sep_one = 'ask'
+        sep_two = 'ask'
+        #
+
+        low = responses[self.exchanges[0]][sep_one]
+        high = responses[self.exchanges[0]][sep_two]
 
         for exchange in responses:
-            ask = responses[exchange]['ask']
-            if ask > high:
-                high = ask
-            elif ask < low:
-                low = ask
+            a = responses[exchange][sep_one]
+            b = responses[exchange][sep_two]
+            #print('\t{}: {:.3f} bid, {:.3f} ask'.format(exchange, a, b))
+            if b > high:
+                high = b
+            elif a < low:
+                low = a
 
         # find buy and sell and log
         exchanges_str = ''
         for exchange in self.exchanges:
-            ask = responses[exchange]['ask']
+            a = responses[exchange][sep_one]
+            b = responses[exchange][sep_two]
 
-            logstr = '\t{}: {}'.format(exchange, ask)
-            if low == responses[exchange]['ask']:
+            logstr = '\t{}: {:.3f} bid, {:.3f} ask'.format(exchange, a, b)
+            if low == a:
                 buy = exchange
-                logstr = colorLow('\t{}: {}'.format(buy, ask))
-            elif high == responses[exchange]['ask']:
+                logstr = colorLow(
+                    '\t{}: {:.3f} bid, {:.3f} ask'.format(buy, a, b))
+            elif high == b:
                 sell = exchange
-                logstr = colorHigh('\t{}: {}'.format(sell, ask))
+                logstr = colorHigh(
+                    '\t{}: {:.3f} bid, {:.3f} ask'.format(sell, a, b))
             exchanges_str += logstr+'\n'
 
         spread = (self.quote_order_size/high)*(high-low)
@@ -162,15 +172,22 @@ class Bouncer:
             print(exchanges_str, end='')
 
             print(
-                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg, colorProfit(spread),
-                                                                                                                      self.quote_coin, colorProfit(
-                    spread-fees),
-                    self.quote_coin, colorLow(
-                    buy.name),
-                    colorLow(low), colorHigh(sell.name), colorHigh(high), colorEh('{:.3f}'.format(high-low))))
-
-        # if self.anyOpen():
-        #    print(colorEh('Note: currently open trades.'))
+                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg,
+                                                                                                                      colorProfit(
+                                                                                                                          spread),
+                                                                                                                      self.quote_coin,
+                                                                                                                      colorProfit(
+                                                                                                                          spread-fees),
+                                                                                                                      self.quote_coin,
+                                                                                                                      colorLow(
+                                                                                                                          buy.name),
+                                                                                                                      colorLow(
+                                                                                                                          low),
+                                                                                                                      colorHigh(
+                                                                                                                          sell.name),
+                                                                                                                      colorHigh(
+                                                                                                                          high),
+                                                                                                                      colorEh('{:.3f}'.format(high-low))))
 
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
@@ -241,7 +258,8 @@ class Bouncer:
             else:
                 print(
                     'Insufficient balance on {} to set up balance'.format(exchange.name))
-        return False
+
+        self.blockTrades(5)
 
     def anyOpen(self, exchange=None):
         if exchange == None:
@@ -277,7 +295,7 @@ class Bouncer:
             else:
                 print(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
-
+        self.blockTrades(5)
         print('Final balances:')
         base, quote = self.updateBalances(loud=False)
         print('Sums: [{:.8f} {}, {:.3f} {}]'.format(
@@ -285,6 +303,14 @@ class Bouncer:
         self.updateNet()
         print('Net: {}%'.format(colorProfit(self.net)))
         print('Done!\n')
+
+    def blockTrades(self, timewait):
+        print(colorEh('Trades initiated ... blocking to completion'))
+
+        open_trades = self.anyOpen()
+        while open_trades:
+            open_trades = self.anyOpen()
+            time.sleep(timewait)
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
@@ -307,12 +333,7 @@ class Bouncer:
                    self.symbol, 'sell', high, sell_ex.name, self.net]
         self.trades.loc[len(self.trades)] = new_row
 
-        print('Trades initiated ... blocking to completion')
-
-        open_trades = self.anyOpen()
-        while open_trades:
-            open_trades = self.anyOpen()
-            time.sleep(10)
+        self.blockTrades(5)
         # perform calculations for logging
 
         # recalculate
