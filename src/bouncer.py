@@ -117,38 +117,28 @@ class Bouncer:
 
         spread = 0
 
-        # choose one for ask and one for bid maybe
-        sep_one = 'ask'
-        sep_two = 'ask'
-        #
-
-        low = responses[self.exchanges[0]][sep_one]
-        high = responses[self.exchanges[0]][sep_two]
+        low = responses[self.exchanges[0]]['ask']
+        high = responses[self.exchanges[0]]['ask']
 
         for exchange in responses:
-            a = responses[exchange][sep_one]
-            b = responses[exchange][sep_two]
-            #print('\t{}: {:.3f} bid, {:.3f} ask'.format(exchange, a, b))
-            if b > high:
-                high = b
-            elif a < low:
-                low = a
+            ask = responses[exchange]['ask']
+            if ask > high:
+                high = ask
+            elif ask < low:
+                low = ask
 
         # find buy and sell and log
         exchanges_str = ''
         for exchange in self.exchanges:
-            a = responses[exchange][sep_one]
-            b = responses[exchange][sep_two]
+            ask = responses[exchange]['ask']
 
-            logstr = '\t{}: {:.3f} bid, {:.3f} ask'.format(exchange, a, b)
-            if low == a:
+            logstr = '\t{}: {:.3f}'.format(exchange, ask)
+            if low == ask:
                 buy = exchange
-                logstr = colorLow(
-                    '\t{}: {:.3f} bid, {:.3f} ask'.format(buy, a, b))
-            elif high == b:
+                logstr = colorLow('\t{}: {:.3f}'.format(buy, ask))
+            elif high == ask:
                 sell = exchange
-                logstr = colorHigh(
-                    '\t{}: {:.3f} bid, {:.3f} ask'.format(sell, a, b))
+                logstr = colorHigh('\t{}: {:.3f}'.format(sell, ask))
             exchanges_str += logstr+'\n'
 
         spread = (self.quote_order_size/high)*(high-low)
