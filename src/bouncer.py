@@ -117,8 +117,8 @@ class Bouncer:
 
         spread = 0
 
-        low = responses[self.exchanges[0]]['ask']
-        high = responses[self.exchanges[0]]['bid']
+        low = responses[self.exchanges[0]]['bid']
+        high = responses[self.exchanges[0]]['ask']
 
         for exchange in responses:
             ask = responses[exchange]['ask']
@@ -135,10 +135,10 @@ class Bouncer:
             bid = responses[exchange]['bid']
 
             logstr = '\t{}: {}'.format(exchange, ask)
-            if low == responses[exchange]['ask']:
+            if low == bid:
                 buy = exchange
                 logstr = colorLow('\t{}: {}'.format(buy, ask))
-            elif high == responses[exchange]['bid']:
+            elif high == ask:
                 sell = exchange
                 logstr = colorHigh('\t{}: {}'.format(sell, bid))
             exchanges_str += logstr+'\n'
