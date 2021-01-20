@@ -117,14 +117,13 @@ class Bouncer:
 
         spread = 0
 
-        low = responses[self.exchanges[0]]['bid']
+        low = responses[self.exchanges[0]]['ask']
         high = responses[self.exchanges[0]]['ask']
 
         for exchange in responses:
             ask = responses[exchange]['ask']
-            bid = responses[exchange]['bid']
-            if bid > high:
-                high = bid
+            if ask > high:
+                high = ask
             elif ask < low:
                 low = ask
 
@@ -132,15 +131,14 @@ class Bouncer:
         exchanges_str = ''
         for exchange in self.exchanges:
             ask = responses[exchange]['ask']
-            bid = responses[exchange]['bid']
 
             logstr = '\t{}: {}'.format(exchange, ask)
-            if low == bid:
+            if low == responses[exchange]['ask']:
                 buy = exchange
                 logstr = colorLow('\t{}: {}'.format(buy, ask))
-            elif high == ask:
+            elif high == responses[exchange]['ask']:
                 sell = exchange
-                logstr = colorHigh('\t{}: {}'.format(sell, bid))
+                logstr = colorHigh('\t{}: {}'.format(sell, ask))
             exchanges_str += logstr+'\n'
 
         spread = (self.quote_order_size/high)*(high-low)
