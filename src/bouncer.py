@@ -74,7 +74,7 @@ class Bouncer:
 
         # set up file for logging
         self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
-                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange']
+                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange', 'Seq Profitable']
         self.pro_frame = pd.DataFrame(columns=self.pro_headers)
 
         # set up trades file
@@ -179,14 +179,30 @@ class Bouncer:
                                                                                                                           high),
                                                                                                                       colorEh('{:.3f}'.format(high-low))))
 
+        # check last row
+        if path.exists(self.pro_filename):
+            prev = pd.read_csv(self.pro_filename)
+            if len(prev.index) > 1:
+                last_sell = prev.iloc[-2]['Sell exchange']
+                last_buy = prev.iloc[-2]['Buy exchange']
+                current_sell = prev.iloc[-1]['Sell exchange']
+                current_buy = prev.iloc[-1]['Buy exchange']
+                if last_sell == current_sell or last_buy == current_buy:
+                    seq_profitable = False
+                else:
+                    seq_profitable = True
+        else:
+            seq_profitable = False
+
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
-                   high, low, spread, spread-fees, fees, profitable, sell.name, buy.name]
+                   high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
         self.pro_frame.loc[len(self.pro_frame)] = new_row
+
         if path.exists(self.pro_filename):  # if file exists, append
             self.pro_frame.iloc[[-1]].to_csv(
-                path_or_buf=self.pro_filename, mode='a', header=False)
+                path_or_buf=self.pro_filename, mode='a', header=False, index=False)
         else:
-            self.pro_frame.to_csv(path_or_buf=self.pro_filename)
+            self.pro_frame.to_csv(path_or_buf=self.pro_filename, index=False)
 
         return spread, buy, sell, low, high, profitable, fees
 
