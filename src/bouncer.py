@@ -17,13 +17,14 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq, active=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq, active=True, logging=True):
         '''
         Create the class.
         '''
 
         # add to exchange list
         self.exchanges = exchanges
+        self.logging = True  # log to file?
         # check if symbol supported by all
         if symbol in self.getCommons():
             self.symbol = symbol
@@ -58,7 +59,11 @@ class Bouncer:
             print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n').format(
                 self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
         else:
-            print(colorEh('Created Bouncer scanning for {}.').format(self.symbol))
+            if logging:
+                print(colorEh('Created Bouncer scanning for {}.').format(self.symbol))
+            else:
+                print(colorEh('Created Bouncer scanning for {}. Logging disabled.').format(
+                    self.symbol))
 
         # init balances
         self.balances = dict()
@@ -187,13 +192,15 @@ class Bouncer:
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
         self.pro_frame.loc[len(self.pro_frame)] = new_row
 
-        if path.exists(self.pro_filename):  # if file exists, append
-            self.pro_frame.iloc[[-1]].to_csv(
-                path_or_buf=self.pro_filename, mode='a', header=False, index=False)
-        else:
-            self.pro_frame.to_csv(path_or_buf=self.pro_filename, index=False)
+        if logging:
+            if path.exists(self.pro_filename):  # if file exists, append
+                self.pro_frame.iloc[[-1]].to_csv(
+                    path_or_buf=self.pro_filename, mode='a', header=False, index=False)
+            else:
+                self.pro_frame.to_csv(
+                    path_or_buf=self.pro_filename, index=False)
 
-        return spread, buy, sell, low, high, profitable, fees
+            return spread, buy, sell, low, high, profitable, fees
 
     def updateBalances(self, loud=True):
         '''
@@ -350,6 +357,8 @@ class Bouncer:
             markets = self.getWatched()
             spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
                 markets)
+
+            # add and subtract from mock balances herê
 
             if profitable and self.active:
                 self.updateBalances(loud=False)

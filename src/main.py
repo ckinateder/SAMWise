@@ -170,7 +170,7 @@ if __name__ == '__main__':
     currencies = list()
     keypath = 'keys/'
     inip = False
-
+    log = True
     # check for adding exchanges
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
@@ -183,6 +183,9 @@ if __name__ == '__main__':
         ('Would you like to run in scanner mode? (Y/n): '))
     if 'y' in scan.lower():
         active = False
+        login = input('Would you like to disable logging to file? (Y/n): ')
+        if 'y' in login.lower():
+            log = False
     else:
         active = True
         # check for initialization
@@ -197,7 +200,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         for i in range(1, len(sys.argv), 2):
             currencies.append(
-                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, active))
+                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, active, log))
     else:
         commons = getCommons(exchanges)
         curr = 'list'
@@ -218,9 +221,10 @@ if __name__ == '__main__':
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, active))
+                    Bouncer(sym, invest, exchanges, inip, active, log))
         else:
-            currencies.append(Bouncer(curr, invest, exchanges, inip, active))
+            currencies.append(
+                Bouncer(curr, invest, exchanges, inip, active, log))
 
     while True:
         try:
