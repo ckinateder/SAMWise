@@ -181,17 +181,7 @@ class Bouncer:
 
         # check last row
         seq_profitable = False
-        if path.exists(self.pro_filename):
-            prev = pd.read_csv(self.pro_filename)
-            if len(prev.index) > 1:
-                last_sell = prev.iloc[-2]['Sell exchange']
-                last_buy = prev.iloc[-2]['Buy exchange']
-                current_sell = prev.iloc[-1]['Sell exchange']
-                current_buy = prev.iloc[-1]['Buy exchange']
-                if last_sell == current_sell or last_buy == current_buy:
-                    seq_profitable = False
-                else:
-                    seq_profitable = True
+        # not implementing yet
 
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
