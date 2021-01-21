@@ -180,6 +180,7 @@ class Bouncer:
                                                                                                                       colorEh('{:.3f}'.format(high-low))))
 
         # check last row
+        seq_profitable = False
         if path.exists(self.pro_filename):
             prev = pd.read_csv(self.pro_filename)
             if len(prev.index) > 1:
@@ -191,8 +192,6 @@ class Bouncer:
                     seq_profitable = False
                 else:
                     seq_profitable = True
-        else:
-            seq_profitable = False
 
         new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                    high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
