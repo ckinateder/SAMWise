@@ -93,9 +93,9 @@ def setupExchanges():
     return exchanges
 
 
-def loadExchanges():
+def getAvalibleExchanges():
     '''
-    Create exchanges for all existing ones
+    Get all existing exchanges
     '''
     exchanges = list()
     # find exchanges from file structure
@@ -113,9 +113,15 @@ def loadExchanges():
         elif '_password' in x:
             file_list[i] = x.replace('_password', '')
     all_ex = list(set(file_list))
+    return all_ex
 
+
+def loadExchanges(all_ex):
+    '''
+    Create exchanges objects for all existing ones
+    '''
     print('Creating exchange objects for {}.'.format(all_ex))
-
+    exchanges = list()
     # create objs
     for exchstr in all_ex:
         if exchstr in ccxt.exchanges:  # j to be safe
@@ -207,8 +213,17 @@ def configure():
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
-    else:
-        exchanges = loadExchanges()
+
+    availables = getAvalibleExchanges()
+
+    available_str = '\n'
+    for i in range(0, len(availables)):
+        available_str += '\t{}: {}\n'.format(i, availables[i])
+    whichones = input(
+        'Which exchanges would you like run on? (enter a comma separated list, ex. \'0, 1, 3\')? {{{}}}: '.format(available_str))
+
+    # create exchanges
+    exchanges = loadExchanges(availables)
 
     # check for scanning
     scan = input(
