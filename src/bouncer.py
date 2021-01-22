@@ -79,7 +79,7 @@ class Bouncer:
 
         # set up file for logging
         self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
-                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange', 'Seq Profitable']
+                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange', 'Seq Profitable', 'All Prices']
         self.pro_frame = pd.DataFrame(columns=self.pro_headers)
 
         # set up trades file
@@ -188,9 +188,13 @@ class Bouncer:
             # check last row
             seq_profitable = False
             # not implementing yet
+            all_prices = ''
+            for exchange in responses:
+                ask = responses[exchange]['ask']
+                all_prices += '{}: {}'.format(exchange.name, ask)
 
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
-                       high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
+                       high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable, all_prices]
             self.pro_frame.loc[len(self.pro_frame)] = new_row
 
             if logging:

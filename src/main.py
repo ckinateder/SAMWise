@@ -265,11 +265,20 @@ def configure():
         invest = ''
         if globals()['active']:
             while type(invest) == str:
-                invest = float(input((
-                    'How much would you like each transaction to be worth in dollars?')+' $'))
+                invest = input((
+                    'How much would you like each transaction to be worth in dollars?')+' $')
+                try:
+                    invest = float(invest)
+                except:
+                    if invest == '':
+                        invest = 100  # default
+                    else:
+                        print(colorBad('Enter a number.'))
         else:
             invest = 100
 
+        if curr == '':
+            curr = 'all'
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
