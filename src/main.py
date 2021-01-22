@@ -4,12 +4,20 @@ from getpass import getpass
 from os import listdir, path
 
 import ccxt
+from pynput import keyboard
 
 from bouncer import Bouncer
 from crayon import *
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
+
+
+# initialize vars
+inip = False
+log = True
+active = True
+KILL = False
 
 
 def setupExchanges():
@@ -156,6 +164,38 @@ def getCommons(exchanges):
     return out
 
 
+def on_press(key):
+    try:
+        pass
+        # print('alphanumeric key {0} pressed'.format(
+        #    key.char))
+    except AttributeError:
+        pass
+        # print('special key {0} pressed'.format(
+        #   key))
+
+
+def on_release(key):
+    # print('{0} released'.format(
+    # key))
+    if hasattr(key, 'char'):
+        if key.char == 'q':
+            globals()['KILL'] = True
+
+    if key == keyboard.Key.esc:
+        globals()['KILL'] = True
+
+
+def kill():
+    print('\nQuitting\n')
+    if active:
+        todo = input('Cleanup balances? (Y/n) ')
+        if 'Y' in todo:
+            for i in currencies:
+                i.cleanup()
+    sys.exit(0)
+
+
 # run main
 if __name__ == '__main__':
     WIDTH = 80  # of console
@@ -165,12 +205,18 @@ if __name__ == '__main__':
     print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
     print('Created by Calvin Kinateder, 2021'.center(WIDTH))
     print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
+    print('Press \'q\' or ESC to quit.'.center(WIDTH))
     print(('-'*80)+'\n')
+
+    # attach key listener
+    # ...or, in a non-blocking fashion:
+    listener = keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release)
+    listener.start()
 
     currencies = list()
     keypath = 'keys/'
-    inip = False
-    log = True
     # check for adding exchanges
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
@@ -187,7 +233,6 @@ if __name__ == '__main__':
         if 'y' in login.lower():
             log = False
     else:
-        active = True
         # check for initialization
         ini = input(
             ('Would you like to initalize the exchanges with crypto? (Y/n): '))
@@ -230,12 +275,8 @@ if __name__ == '__main__':
         try:
             for i in currencies:
                 i.arbitrate()
+                if KILL:
+                    kill()
             time.sleep(3/len(currencies))
         except KeyboardInterrupt:
-            print('\nQuitting\n')
-            if active:
-                todo = input('Cleanup balances? (Y/n) ')
-                if 'Y' in todo:
-                    for i in currencies:
-                        i.cleanup()
-            sys.exit(0)
+            kill()
