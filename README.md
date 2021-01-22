@@ -29,7 +29,10 @@ $ cd SAMWise
 ## Usage
 
 All you have to do is run the main class and follow the prompts.
-```(SAMWise)$ py3 src/main.py```
+
+```Bash
+(SAMWise)$ py3 src/main.py
+```
 
 ## Console Output
 

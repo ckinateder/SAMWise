@@ -124,32 +124,35 @@ def loadExchanges(all_ex):
     # create objs
     for exchstr in all_ex:
         if exchstr in ccxt.exchanges:  # j to be safe
-            public = open(keypath+exchstr+'_public').read().strip()
-            private = open(keypath+exchstr+'_private').read().strip()
-
-            exchange_class = getattr(ccxt, exchstr)
-
-            if path.exists(keypath+exchstr+'_password'):
-                password = open(keypath+exchstr +
-                                '_password').read().strip()
-
-                current = exchange_class({
-                    'apiKey': public,
-                    'secret': private,
-                    'password': password,
-                })
-            else:
-                current = exchange_class({
-                    'apiKey': public,
-                    'secret': private,
-                })
             try:
+                public = open(keypath+exchstr+'_public').read().strip()
+                private = open(keypath+exchstr+'_private').read().strip()
+
+                exchange_class = getattr(ccxt, exchstr)
+
+                if path.exists(keypath+exchstr+'_password'):
+                    password = open(keypath+exchstr +
+                                    '_password').read().strip()
+
+                    current = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                        'password': password,
+                    })
+                else:
+                    current = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                    })
                 current.fetch_balance()
                 print(colorGood('Exchange {} added successfully!').format(exchstr))
                 exchanges.append(current)
             except ccxt.AuthenticationError:
                 print(
                     colorBad('Invalid credentials for {} ... moving on.').format(exchstr))
+            except FileNotFoundError:
+                print(colorBad(
+                    'Keys for {} not found in {} ... moving on.'.format(exchstr, keypath)))
         else:
             print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
 
