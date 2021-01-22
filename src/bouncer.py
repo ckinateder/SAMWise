@@ -132,75 +132,79 @@ class Bouncer:
             elif ask < low:
                 low = ask
 
-        # find buy and sell and log
-        exchanges_str = ''
-        for exchange in self.exchanges:
-            ask = responses[exchange]['ask']
+        if high > 0 and low > 0:
+            # find buy and sell and log
+            exchanges_str = ''
+            for exchange in self.exchanges:
+                ask = responses[exchange]['ask']
 
-            logstr = '\t{}: {:.3f}'.format(exchange, ask)
-            if low == ask:
-                buy = exchange
-                logstr = colorLow('\t{}: {:.3f}'.format(buy, ask))
-            elif high == ask:
-                sell = exchange
-                logstr = colorHigh('\t{}: {:.3f}'.format(sell, ask))
-            exchanges_str += logstr+'\n'
+                logstr = '\t{}: {:.3f}'.format(exchange, ask)
+                if low == ask:
+                    buy = exchange
+                    logstr = colorLow('\t{}: {:.3f}'.format(buy, ask))
+                elif high == ask:
+                    sell = exchange
+                    logstr = colorHigh('\t{}: {:.3f}'.format(sell, ask))
+                exchanges_str += logstr+'\n'
 
-        spread = (self.quote_order_size/high)*(high-low)
+            spread = (self.quote_order_size/high)*(high-low)
 
-        fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
-                sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
+            fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
+                    sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
 
-        if spread - fees > self.threshold:
-            msg = colorGood(
-                ' '*53+'found profitable pair ****\n' + '[PROFITABLE]')
-            profitable = True
-        else:
-            msg = colorBad('[NOT PROFITABLE]')
-            profitable = False
-
-        if profitable or True:  # effectively disabled rn, print all # only print if profitable
-            print(
-                '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {}]:'.format(self.symbol))
-
-            print(exchanges_str, end='')
-
-            print(
-                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg,
-                                                                                                                      colorProfit(
-                                                                                                                          spread),
-                                                                                                                      self.quote_coin,
-                                                                                                                      colorProfit(
-                                                                                                                          spread-fees),
-                                                                                                                      self.quote_coin,
-                                                                                                                      colorLow(
-                                                                                                                          buy.name),
-                                                                                                                      colorLow(
-                                                                                                                          low),
-                                                                                                                      colorHigh(
-                                                                                                                          sell.name),
-                                                                                                                      colorHigh(
-                                                                                                                          high),
-                                                                                                                      colorEh('{:.3f}'.format(high-low))))
-
-        # check last row
-        seq_profitable = False
-        # not implementing yet
-
-        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
-                   high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
-        self.pro_frame.loc[len(self.pro_frame)] = new_row
-
-        if logging:
-            if path.exists(self.pro_filename):  # if file exists, append
-                self.pro_frame.iloc[[-1]].to_csv(
-                    path_or_buf=self.pro_filename, mode='a', header=False, index=False)
+            if spread - fees > self.threshold:
+                msg = colorGood(
+                    ' '*53+'found profitable pair ****\n' + '[PROFITABLE]')
+                profitable = True
             else:
-                self.pro_frame.to_csv(
-                    path_or_buf=self.pro_filename, index=False)
+                msg = colorBad('[NOT PROFITABLE]')
+                profitable = False
 
-            return spread, buy, sell, low, high, profitable, fees
+            if profitable or True:  # effectively disabled rn, print all # only print if profitable
+                print(
+                    '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+                print('[For {}]:'.format(self.symbol))
+
+                print(exchanges_str, end='')
+
+                print(
+                    '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg,
+                                                                                                                          colorProfit(
+                                                                                                                              spread),
+                                                                                                                          self.quote_coin,
+                                                                                                                          colorProfit(
+                                                                                                                              spread-fees),
+                                                                                                                          self.quote_coin,
+                                                                                                                          colorLow(
+                                                                                                                              buy.name),
+                                                                                                                          colorLow(
+                                                                                                                              low),
+                                                                                                                          colorHigh(
+                                                                                                                              sell.name),
+                                                                                                                          colorHigh(
+                                                                                                                              high),
+                                                                                                                          colorEh('{:.3f}'.format(high-low))))
+
+            # check last row
+            seq_profitable = False
+            # not implementing yet
+
+            new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
+                       high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable]
+            self.pro_frame.loc[len(self.pro_frame)] = new_row
+
+            if logging:
+                if path.exists(self.pro_filename):  # if file exists, append
+                    self.pro_frame.iloc[[-1]].to_csv(
+                        path_or_buf=self.pro_filename, mode='a', header=False, index=False)
+                else:
+                    self.pro_frame.to_csv(
+                        path_or_buf=self.pro_filename, index=False)
+
+            return spread, buy, sell, low, high, profitable, fees, False
+        else:
+            print(colorBad('Error in currency {}: price returned 0.'.format(self.symbol)))
+            return 0, self.exchanges[0], self.exchanges[0], low, high, False, 0, True
 
     def updateBalances(self, loud=True):
         '''
@@ -355,12 +359,12 @@ class Bouncer:
         '''
         try:
             markets = self.getWatched()
-            spread, buy_ex, sell_ex, low, high, profitable, fees_applied = self.getSpread(
+            spread, buy_ex, sell_ex, low, high, profitable, fees_applied, error = self.getSpread(
                 markets)
 
             # add and subtract from mock balances herê
 
-            if profitable and self.active:
+            if profitable and self.active and not error:
                 self.updateBalances(loud=False)
                 quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
                 base_balance = self.balances[sell_ex][self.section][self.base_coin]

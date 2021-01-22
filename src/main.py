@@ -20,7 +20,6 @@ __email__ = 'calvinkinateder@gmail.com'
 KILL = False
 currencies = list()
 keypath = 'keys/'
-active = True
 
 
 def setupExchanges():
@@ -167,8 +166,7 @@ def getCommons(exchanges):
     out = list()
 
     for item in alls:
-        # and 'USD' in item:  # Important - only allows usd
-        if alls.count(item) == len(exchanges):
+        if alls.count(item) == len(exchanges) and 'USD' in item:  # Important - only allows usd
             out.append(item)
     out = list(set(out))
     return out
@@ -198,7 +196,7 @@ def on_release(key):
 
 def kill():
     print('\nQuitting\n')
-    if active:
+    if globals()['active']:
         todo = input('Cleanup balances? (Y/n) ')
         if 'Y' in todo:
             for i in currencies:
@@ -210,7 +208,7 @@ def configure():
     # check for adding exchanges
     inip = False
     log = True
-    active = True
+    globals()['active'] = True
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
@@ -222,7 +220,7 @@ def configure():
         available_str += '\t{}: {}\n'.format(i, availables[i])
     whichones = input(
         'Which exchanges would you like to run on? (enter a comma separated list or \'all\') {{available: {}}}: '.format(availables))
-    if 'all' in whichones:
+    if 'all' in whichones or whichones == '':
         actuals = availables
     else:
         actuals = [x.strip(' ')
@@ -234,7 +232,7 @@ def configure():
     scan = input(
         ('Would you like to run in scanner mode? (Y/n): '))
     if 'y' in scan.lower():
-        active = False
+        globals()['active'] = False
         login = input('Would you like to disable logging to file? (Y/n): ')
         if 'y' in login.lower():
             log = False
@@ -251,7 +249,7 @@ def configure():
     if len(sys.argv) > 1:
         for i in range(1, len(sys.argv), 2):
             currencies.append(
-                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, active, log))
+                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, globals()['active'], log))
     else:
         commons = getCommons(exchanges)
         curr = 'list'
@@ -262,7 +260,7 @@ def configure():
                 print(colorEh(commons))
 
         invest = ''
-        if active:
+        if globals()['active']:
             while type(invest) == str:
                 invest = float(input((
                     'How much would you like each transaction to be worth in dollars?')+' $'))
@@ -272,10 +270,10 @@ def configure():
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, active, log))
+                    Bouncer(sym, invest, exchanges, inip, globals()['active'], log))
         else:
             currencies.append(
-                Bouncer(curr, invest, exchanges, inip, active, log))
+                Bouncer(curr, invest, exchanges, inip, globals()['active'], log))
 
 
 # run main
