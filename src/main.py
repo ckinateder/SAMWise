@@ -17,10 +17,10 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 # initialize vars
-inip = False
-log = True
-active = True
 KILL = False
+currencies = list()
+keypath = 'keys/'
+active = True
 
 
 def setupExchanges():
@@ -199,32 +199,11 @@ def kill():
     sys.exit(0)
 
 
-# run main
-if __name__ == '__main__':
-    WIDTH = 80  # of console
-    # welcome
-    print()
-    print('Welcome to SAMWise!'.center(WIDTH))
-    print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
-    print('Created by Calvin Kinateder, 2021'.center(WIDTH))
-    print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
-    if dynamic_input:
-        print('Press \'q\' or ESC to quit.'.center(WIDTH))
-    else:
-        print('CTRL C to quit.'.center(WIDTH))
-    print(('-'*80)+'\n')
-
-    # attach key listener
-    # ...or, in a non-blocking fashion:
-    if dynamic_input:
-        listener = keyboard.Listener(
-            on_press=on_press,
-            on_release=on_release)
-        listener.start()
-
-    currencies = list()
-    keypath = 'keys/'
+def configure():
     # check for adding exchanges
+    inip = False
+    log = True
+    active = True
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
@@ -277,6 +256,32 @@ if __name__ == '__main__':
         else:
             currencies.append(
                 Bouncer(curr, invest, exchanges, inip, active, log))
+
+
+# run main
+if __name__ == '__main__':
+    WIDTH = 80  # of console
+    # welcome
+    print()
+    print('Welcome to SAMWise!'.center(WIDTH))
+    print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
+    print('Created by Calvin Kinateder, 2021'.center(WIDTH))
+    print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
+    if dynamic_input:
+        print('Press \'q\' or ESC to quit.'.center(WIDTH))
+    else:
+        print('CTRL C to quit.'.center(WIDTH))
+    print(('-'*80)+'\n')
+
+    # attach key listener
+    # ...or, in a non-blocking fashion:
+    if dynamic_input:
+        listener = keyboard.Listener(
+            on_press=on_press,
+            on_release=on_release)
+        listener.start()
+
+    configure()
 
     while True:
         try:

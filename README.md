@@ -28,10 +28,8 @@ $ cd SAMWise
 
 ## Usage
 
-Test all pairs containing USD:<br>
-`(SAMWise)$ ./tests/test_usd`<br>
-Or, you can pass arguments to the main script. Format: `[symbol] [trade size ($)]` repeated `n` times.<br>
-`(SAMWise)$ py3 src/main.py BCH/USD 15`
+All you have to do is run the main class and follow the prompts.
+```(SAMWise)$ py3 src/main.py```
 
 ## Console Output
 
