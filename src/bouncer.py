@@ -191,7 +191,7 @@ class Bouncer:
             all_prices = ''
             for exchange in responses:
                 ask = responses[exchange]['ask']
-                all_prices += '{}: {}'.format(exchange.name, ask)
+                all_prices += '{}: {}, '.format(exchange.name, ask)
 
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
                        high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable, all_prices]
