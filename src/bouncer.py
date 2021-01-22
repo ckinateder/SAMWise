@@ -96,7 +96,7 @@ class Bouncer:
         out = list()
 
         for item in alls:
-            if alls.count(item) == 4:
+            if alls.count(item) == len(self.exchanges):
                 out.append(item)
         out = set(out)
         # for i in out:

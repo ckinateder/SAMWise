@@ -93,7 +93,7 @@ def setupExchanges():
     return exchanges
 
 
-def getAvalibleExchanges():
+def getAvailableExchanges():
     '''
     Get all existing exchanges
     '''
@@ -167,7 +167,8 @@ def getCommons(exchanges):
     out = list()
 
     for item in alls:
-        if alls.count(item) == 4 and 'USD' in item:  # Important - only allows usd
+        # and 'USD' in item:  # Important - only allows usd
+        if alls.count(item) == len(exchanges):
             out.append(item)
     out = list(set(out))
     return out
@@ -213,17 +214,21 @@ def configure():
     add = input(('Would you like to add new exhanges? (Y/n): '))
     if 'y' in add.lower():
         exchanges = setupExchanges()
-
-    availables = getAvalibleExchanges()
+    # get availables
+    availables = getAvailableExchanges()
 
     available_str = '\n'
     for i in range(0, len(availables)):
         available_str += '\t{}: {}\n'.format(i, availables[i])
     whichones = input(
-        'Which exchanges would you like run on? (enter a comma separated list, ex. \'0, 1, 3\')? {{{}}}: '.format(available_str))
-
+        'Which exchanges would you like to run on? (enter a comma separated list or \'all\') {{available: {}}}: '.format(availables))
+    if 'all' in whichones:
+        actuals = availables
+    else:
+        actuals = [x.strip(' ')
+                   for x in whichones.split(',')]  # remove whitespace
     # create exchanges
-    exchanges = loadExchanges(availables)
+    exchanges = loadExchanges(actuals)
 
     # check for scanning
     scan = input(
