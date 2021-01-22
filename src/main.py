@@ -4,8 +4,11 @@ from getpass import getpass
 from os import listdir, path
 
 import ccxt
-from pynput import keyboard
-
+try:
+    from pynput import keyboard
+    dynamic_input = True
+except:
+    dynamic_input = False
 from bouncer import Bouncer
 from crayon import *
 
@@ -205,15 +208,19 @@ if __name__ == '__main__':
     print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
     print('Created by Calvin Kinateder, 2021'.center(WIDTH))
     print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
-    print('Press \'q\' or ESC to quit.'.center(WIDTH))
+    if dynamic_input:
+        print('Press \'q\' or ESC to quit.'.center(WIDTH))
+    else:
+        print('CTRL C to quit.'.center(WIDTH))
     print(('-'*80)+'\n')
 
     # attach key listener
     # ...or, in a non-blocking fashion:
-    listener = keyboard.Listener(
-        on_press=on_press,
-        on_release=on_release)
-    listener.start()
+    if dynamic_input:
+        listener = keyboard.Listener(
+            on_press=on_press,
+            on_release=on_release)
+        listener.start()
 
     currencies = list()
     keypath = 'keys/'
