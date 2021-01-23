@@ -133,6 +133,17 @@ class Bouncer:
         response_items = list(responses.items())
 
         # set high and low
+        '''
+        Format:
+        [
+            (exchange,{
+                ask: 333,
+                bid: 345,
+                ...
+            }),
+            ...
+        ]
+        '''
         low = response_items[0][1][sect]
         high = response_items[-1][1][sect]
 
