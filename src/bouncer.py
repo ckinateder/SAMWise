@@ -5,6 +5,10 @@ import time
 from datetime import datetime
 from os import path, listdir
 from getpass import getpass
+import operator
+
+from collections import OrderedDict
+from operator import getitem
 
 import ccxt
 import pandas as pd
@@ -121,31 +125,31 @@ class Bouncer:
             responses = self.getWatched()
 
         spread = 0
+        sect = 'ask'
+        # sort exchanges from low to high
+        responses = OrderedDict(sorted(responses.items(),
+                                       key=lambda x: getitem(x[1], 'ask')))
 
-        low = responses[self.exchanges[0]]['ask']
-        high = responses[self.exchanges[0]]['ask']
+        response_items = list(responses.items())
 
-        for exchange in responses:
-            ask = responses[exchange]['ask']
-            if ask > high:
-                high = ask
-            elif ask < low:
-                low = ask
+        # set high and low
+        low = response_items[0][1][sect]
+        high = response_items[-1][1][sect]
 
         if high > 0 and low > 0:
             # find buy and sell and log
-            exchanges_str = ''
-            for exchange in self.exchanges:
-                ask = responses[exchange]['ask']
-
-                logstr = '\t{}: {:.3f}'.format(exchange, ask)
-                if low == ask:
-                    buy = exchange
-                    logstr = colorLow('\t{}: {:.3f}'.format(buy, ask))
-                elif high == ask:
-                    sell = exchange
-                    logstr = colorHigh('\t{}: {:.3f}'.format(sell, ask))
+            exchanges_str = colorLow('\t{}: {:.3f}'.format(
+                response_items[0][0].name, response_items[0][1][sect]))+'\n'
+            for i in range(1, len(responses)-1):
+                ask = response_items[i][1][sect]
+                logstr = '\t{}: {:.3f}'.format(response_items[i][0].name, ask)
                 exchanges_str += logstr+'\n'
+
+            exchanges_str += colorHigh('\t{}: {:.3f}'.format(
+                response_items[-1][0].name, response_items[-1][1][sect]))+'\n'
+
+            buy = response_items[0][0]
+            sell = response_items[-1][0]
 
             spread = (self.quote_order_size/high)*(high-low)
 
@@ -190,7 +194,7 @@ class Bouncer:
             # not implementing yet
             all_prices = ''
             for exchange in responses:
-                ask = responses[exchange]['ask']
+                ask = responses[exchange][sect]
                 all_prices += '{}: {}, '.format(exchange.name, ask)
 
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
@@ -289,7 +293,7 @@ class Bouncer:
         self.updateBalances(loud=False)
 
         for exchange in responses:
-            ask = responses[exchange]['ask']
+            ask = responses[exchange][sect]
             # sell remaining
             remaining = float(
                 self.balances[exchange][self.section][self.base_coin])
@@ -372,7 +376,7 @@ class Bouncer:
                 self.updateBalances(loud=False)
                 quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
                 base_balance = self.balances[sell_ex][self.section][self.base_coin]
-
+                # right here, try to check with second highest too and see if can sell if balances are bad
                 if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good
                     # no open orders
                     if not self.anyOpen(buy_ex) and not self.anyOpen(sell_ex):
