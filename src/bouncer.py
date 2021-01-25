@@ -134,7 +134,7 @@ class Bouncer:
 
         # set high and low
         '''
-        Format:
+        Format on response_items
         [
             (exchange,{
                 ask: 333,
@@ -146,6 +146,9 @@ class Bouncer:
         '''
         low = response_items[0][1][sect]
         high = response_items[-1][1][sect]
+        sec_low = 1e10
+        sec_high = 1e10
+        second_msg = ''
 
         if high > 0 and low > 0:
             # find buy and sell and log
@@ -162,6 +165,9 @@ class Bouncer:
             buy = response_items[0][0]
             sell = response_items[-1][0]
 
+            backup_buy = None
+            backup_sell = None
+
             spread = (self.quote_order_size/high)*(high-low)
 
             fees = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
@@ -174,6 +180,33 @@ class Bouncer:
             else:
                 msg = colorBad('[NOT PROFITABLE]')
                 profitable = False
+
+            # check for sec high
+            sell_sh = response_items[-2][0]
+            sec_high = response_items[-2][1][sect]
+
+            spread_sh = (self.quote_order_size/sec_high)*(sec_high-low)
+            fees_sh = (buy.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/low, low, takerOrMaker='taker', params={})['cost'] +
+                       sell_sh.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sec_high, sec_high, takerOrMaker='taker', params={})['cost'])
+
+            if (spread_sh - fees_sh) > self.threshold:
+                backup_sell = sell_sh
+                second_msg = colorGood('Found second highest pair still profitable: buy on {}, sell on {}.'.format(
+                    buy, backup_sell, spread_sh - fees_sh))
+
+            # and second low
+            buy_sl = response_items[1][0]
+            sec_low = response_items[1][1][sect]
+
+            spread_sl = (self.quote_order_size/high)*(high-sec_low)
+
+            fees_sl = (buy_sl.calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/sec_low, sec_low, takerOrMaker='taker', params={})['cost'] +
+                       sell.calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/high, high, takerOrMaker='taker', params={})['cost'])
+
+            if (spread_sl - fees_sl) > self.threshold:
+                backup_buy = buy_sl
+                second_msg = colorGood('Found second highest pair still profitable: buy on {}, sell on {}.'.format(
+                    backup_buy, sell, spread_sl - fees_sl))
 
             if profitable or True:  # effectively disabled rn, print all # only print if profitable
                 print(
@@ -199,7 +232,7 @@ class Bouncer:
                                                                                                                           colorHigh(
                                                                                                                               high),
                                                                                                                           colorEh('{:.3f}'.format(high-low))))
-
+                print(second_msg, end='')
             # check last row
             seq_profitable = False
             # not implementing yet
@@ -220,10 +253,10 @@ class Bouncer:
                     self.pro_frame.to_csv(
                         path_or_buf=self.pro_filename, index=False)
 
-            return spread, buy, sell, low, high, profitable, fees, False
+            return spread, buy, sell, low, high, profitable, fees, False, backup_buy, backup_sell, sec_low, sec_high
         else:
             print(colorBad('Error in currency {}: price returned 0.'.format(self.symbol)))
-            return 0, self.exchanges[0], self.exchanges[0], low, high, False, 0, True
+            return 0, self.exchanges[0], self.exchanges[0], low, high, False, 0, True, backup_buy, backup_sell, sec_low, sec_high
 
     def updateBalances(self, loud=True):
         '''
@@ -378,24 +411,45 @@ class Bouncer:
         '''
         try:
             markets = self.getWatched()
-            spread, buy_ex, sell_ex, low, high, profitable, fees_applied, error = self.getSpread(
+            spread, buy_ex, sell_ex, low, high, profitable, fees_applied, error, backup_buy, backup_sell, sec_low, sec_high = self.getSpread(
                 markets)
 
             # add and subtract from mock balances herê
 
             if profitable and self.active and not error:
+                # get balances
                 self.updateBalances(loud=False)
                 quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
                 base_balance = self.balances[sell_ex][self.section][self.base_coin]
+                if backup_buy:
+                    backup_quote_balance = self.balances[backup_buy][self.section][self.quote_coin]
+                else:
+                    backup_quote_balance = 0
+                if backup_sell:
+                    backup_base_balance = self.balances[backup_sell][self.section][self.base_coin]
+                else:
+                    backup_base_balance = 0
                 # right here, try to check with second highest too and see if can sell if balances are bad
-                if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good
-                    # no open orders
-                    if not self.anyOpen(buy_ex) and not self.anyOpen(sell_ex):
-                        self.handleTransaction(
-                            buy_ex, sell_ex, low, high)
-                    else:
-                        print(colorBad(
-                            'Open orders - taking no action.'))
+                if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good for original
+                    self.handleTransaction(
+                        buy_ex, sell_ex, low, high)
+                # not enough to sell, so try to sell on backup
+                elif quote_balance >= self.quote_order_size and backup_base_balance >= self.quote_order_size/sec_high:
+                    print(colorClock(
+                        'Not enough to sell, trying to sell on second highest {}'.format(backup_sell)))
+                    self.handleTransaction(
+                        buy_ex, backup_sell, low, sec_high)
+                # not enough to buy, so try to buy on backup
+                elif backup_quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:
+                    print(colorClock(
+                        'Not enough to buy, trying to buy on second highest {}'.format(backup_buy)))
+                    self.handleTransaction(
+                        backup_buy, sell_ex, sec_low, high)
+                elif backup_quote_balance >= self.quote_order_size and backup_base_balance >= self.quote_order_size/sec_high:  # not enough on either
+                    print(colorClock('Not enough to sell or buy, trying to sell on second highest {} and buy on second lowest {}.'.format(
+                        backup_sell, backup_buy)))
+                    self.handleTransaction(
+                        backup_buy, backup_sell, sec_low, sec_high)
                 else:
                     print(colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
                         quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
