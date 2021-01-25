@@ -232,7 +232,8 @@ class Bouncer:
                                                                                                                           colorHigh(
                                                                                                                               high),
                                                                                                                           colorEh('{:.3f}'.format(high-low))))
-                print(second_msg, end='')
+                if second_msg:
+                    print(second_msg)
             # check last row
             seq_profitable = False
             # not implementing yet
