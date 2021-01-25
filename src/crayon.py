@@ -25,11 +25,11 @@ def colorClock(strr):
     return colored(text=strr, color='grey', on_color='on_yellow')
 
 
-def colorProfit(number):
+def colorProfit(number, dig=3):
     '''
     Color code a number.
     '''
-    number = round(number, 3)
+    number = round(number, dig)
     try:
         if number > 0:
             form = colorGood(number)
