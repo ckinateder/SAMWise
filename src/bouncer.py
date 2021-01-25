@@ -176,13 +176,18 @@ class Bouncer:
         exchanges_str += colorHigh('\t{}: {:.3f}'.format(
             response_items[-1][0].name, response_items[-1][1][sect]))+'\n'
 
-        # get last in list
+        # get last in list, sorted from low to high spread_w_fees
         '''
-        line from spreads:
-        (-0.022639462650848048,
-         {'buy': ccxt.binanceus(), 'sell': ccxt.bittrex()})
-        [0] for spread after fees
-        [1] for buy and sell
+        sample from spreads:
+        {
+            'buy': ccxt.coinbasepro(),
+            'buy_price': 108.223,
+            'fees': 0.1825,
+            'no_fees': 4.187884615384616,
+            'sell': ccxt.bittrex(),
+            'sell_price': 130.0,
+            'spread_w_fees': 4.0053846153846155
+        }
         '''
         most_profitable = spreads[-1]
         buy = most_profitable['buy']
@@ -257,8 +262,7 @@ class Bouncer:
                 self.pro_frame.to_csv(
                     path_or_buf=self.pro_filename, index=False)
 
-        # soon to just return spreads and error
-        return spread, buy, sell, low, high, profitable, False, spreads
+        return spreads, False
 
     def updateBalances(self, loud=True):
         '''
@@ -413,27 +417,33 @@ class Bouncer:
         '''
         try:
             markets = self.getWatched()
-            spread, buy_ex, sell_ex, low, high, profitable, error, spreads = self.getSpread(
-                markets)
+            spreads, error = self.getSpread(markets)
 
             # add and subtract from mock balances here
 
-            if profitable and self.active and not error:
+            if spreads and self.active and not error:
                 # get balances
                 self.updateBalances(loud=False)
-                quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
-                base_balance = self.balances[sell_ex][self.section][self.base_coin]
 
-                # right here, try to check with second highest too and see if can sell if balances are bad
-                if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good for original
-                    self.handleTransaction(
-                        buy_ex, sell_ex, low, high)
-                # not enough to sell, so try to sell on backup
+                action_taken = False
+                for pair in spreads:
+                    if not action_taken:
+                        buy_ex = pair['buy']
+                        sell_ex = pair['sell']
+                        low = pair['buy_price']
+                        high = pair['sell_price']
 
-                else:
-                    print(colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
-                        quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
-                        self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
+                        quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
+                        base_balance = self.balances[sell_ex][self.section][self.base_coin]
+                        if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good for original
+                            self.handleTransaction(
+                                buy_ex, sell_ex, low, high)
+                            action_taken = True
+                        else:
+                            print(colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
+                                quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
+                                self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
+
         except Exception as e:
             print(colorBad('Error in call ... trying again in 10 ({})').format(e))
             time.sleep(10)
