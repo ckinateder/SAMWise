@@ -167,15 +167,11 @@ class Bouncer:
         spreads = sorted(spreads.values(), key=lambda x: getitem(
             x, 'spread_w_fees'))  # as a list
         # find buy and sell and log
-        exchanges_str = colorLow('\t{}: {:.3f}'.format(
-            response_items[0][0].name, response_items[0][1][sect]))+'\n'
-        for i in range(1, len(responses)-1):
+        exchanges_str = ''
+        for i in range(0, len(responses)):
             ask = response_items[i][1][sect]
             logstr = '\t{}: {:.3f}'.format(response_items[i][0].name, ask)
             exchanges_str += logstr+'\n'
-
-        exchanges_str += colorHigh('\t{}: {:.3f}'.format(
-            response_items[-1][0].name, response_items[-1][1][sect]))+'\n'
 
         # get last in list, sorted from low to high spread_w_fees
         '''
