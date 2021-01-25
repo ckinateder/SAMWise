@@ -166,12 +166,6 @@ class Bouncer:
 
         spreads = sorted(spreads.values(), key=lambda x: getitem(
             x, 'spread_w_fees'))  # as a list
-        # find buy and sell and log
-        exchanges_str = ''
-        for i in range(0, len(responses)):
-            ask = response_items[i][1][sect]
-            logstr = '\t{}: {:.3f}'.format(response_items[i][0].name, ask)
-            exchanges_str += logstr+'\n'
 
         # get last in list, sorted from low to high spread_w_fees
         '''
@@ -195,6 +189,21 @@ class Bouncer:
         fees = most_profitable['fees']
         no_fees = most_profitable['no_fees']
         spread = most_profitable['spread_w_fees']
+
+        # find buy and sell and log
+        exchanges_str = ''
+        for i in range(0, len(responses)):
+            ask = response_items[i][1][sect]
+            if response_items[i][0] == buy:
+                logstr = colorLow('\t{}: {:.3f}'.format(
+                    response_items[i][0].name, ask))
+            elif response_items[i][0] == sell:
+                logstr = colorHigh('\t{}: {:.3f}'.format(
+                    response_items[i][0].name, ask))
+            else:
+                logstr = '\t{}: {:.3f}'.format(response_items[i][0].name, ask)
+            exchanges_str += logstr+'\n'
+
         # remove all values less than threshold
         for i in range(0, len(spreads)):
             if spreads[i]['spread_w_fees'] <= self.threshold:
