@@ -191,7 +191,7 @@ class Bouncer:
 
             if (spread_sh - fees_sh) > self.threshold:
                 backup_sell = sell_sh
-                second_msg = colorGood('Found second highest pair still profitable: buy on {}, sell on {} ({:.3f} {} after fees)'.format(
+                second_msg = colorGood('2nd profitable pair: buy on {}, sell on {} ({:.3f} {} after fees)'.format(
                     buy, backup_sell, spread_sh - fees_sh, self.quote_coin))
 
             # and second low
@@ -205,7 +205,7 @@ class Bouncer:
 
             if (spread_sl - fees_sl) > self.threshold:
                 backup_buy = buy_sl
-                second_msg = colorGood('Found second highest pair still profitable: buy on {}, sell on {} ({:.3f} {} after fees)'.format(
+                second_msg = colorGood('2nd profitable pair: buy on {}, sell on {} ({:.3f} {} after fees)'.format(
                     backup_buy, sell, spread_sl - fees_sl, self.quote_coin))
 
             if profitable or True:  # effectively disabled rn, print all # only print if profitable
