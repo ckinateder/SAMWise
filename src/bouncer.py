@@ -125,7 +125,8 @@ class Bouncer:
             responses = self.getWatched()
 
         sect = 'ask'
-
+        responses = OrderedDict(sorted(responses.items(),
+                                       key=lambda x: getitem(x[1], 'ask')))
         response_items = list(responses.items())
 
         # set high and low
