@@ -146,8 +146,9 @@ class Bouncer:
         '''
         low = response_items[0][1][sect]
         high = response_items[-1][1][sect]
-        sec_low = 1e10
-        sec_high = 1e10
+
+        backup_buy = None
+        backup_sell = None
         second_msg = ''
 
         if high > 0 and low > 0:
@@ -164,9 +165,6 @@ class Bouncer:
 
             buy = response_items[0][0]
             sell = response_items[-1][0]
-
-            backup_buy = None
-            backup_sell = None
 
             spread = (self.quote_order_size/high)*(high-low)
 
@@ -211,7 +209,8 @@ class Bouncer:
             if profitable or True:  # effectively disabled rn, print all # only print if profitable
                 print(
                     '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-                print('[For {}]:'.format(self.symbol))
+                print('[For {} w/ {} {}]:'.format(self.symbol,
+                                                  self.quote_order_size, self.quote_coin))
 
                 print(exchanges_str, end='')
 
@@ -226,11 +225,11 @@ class Bouncer:
                                                                                                                           colorLow(
                                                                                                                               buy.name),
                                                                                                                           colorLow(
-                                                                                                                              low),
+                                                                                                                              '{:.3f}'.format(low)),
                                                                                                                           colorHigh(
                                                                                                                               sell.name),
                                                                                                                           colorHigh(
-                                                                                                                              high),
+                                                                                                                              '{:.3f}'.format(high)),
                                                                                                                           colorEh('{:.3f}'.format(high-low))))
                 if second_msg:
                     print(second_msg)
@@ -257,7 +256,7 @@ class Bouncer:
             return spread, buy, sell, low, high, profitable, fees, False, backup_buy, backup_sell, sec_low, sec_high
         else:
             print(colorBad('Error in currency {}: price returned 0.'.format(self.symbol)))
-            return 0, self.exchanges[0], self.exchanges[0], low, high, False, 0, True, backup_buy, backup_sell, sec_low, sec_high
+            return 0, self.exchanges[0], self.exchanges[0], low, high, False, 0, True, backup_buy, backup_sell, 0, 0
 
     def updateBalances(self, loud=True):
         '''
