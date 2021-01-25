@@ -125,9 +125,6 @@ class Bouncer:
             responses = self.getWatched()
 
         sect = 'ask'
-        # sort exchanges from low to high
-        responses = OrderedDict(sorted(responses.items(),
-                                       key=lambda x: getitem(x[1], 'ask')))
 
         response_items = list(responses.items())
 
@@ -145,7 +142,7 @@ class Bouncer:
         '''
 
         # make ordered dict of spreads COUNTING fees
-        spreads = OrderedDict()
+        spreads = dict()
         for test_buy in response_items:
             for test_sell in response_items:
                 buy_price = test_buy[1][sect]
@@ -163,10 +160,11 @@ class Bouncer:
                         'sell_price': sell_price,
                         'fees': test_fee,
                         'no_fees': test_spread,
-                        'w_fees': spread_w_fee  # yes this the key as well
+                        'spread_w_fees': spread_w_fee  # yes this the key as well
                     }
 
-        spreads = OrderedDict(sorted(spreads.items()))
+        spreads = sorted(spreads.values(), key=lambda x: getitem(
+            x, 'spread_w_fees'))  # as a list
         # find buy and sell and log
         exchanges_str = colorLow('\t{}: {:.3f}'.format(
             response_items[0][0].name, response_items[0][1][sect]))+'\n'
@@ -179,14 +177,14 @@ class Bouncer:
             response_items[-1][0].name, response_items[-1][1][sect]))+'\n'
 
         # get last in list
-        list_of_spreads = list(spreads.items())
         '''
-        line from list_of_spreads:
-        (-0.022639462650848048, {'buy': ccxt.binanceus(), 'sell': ccxt.bittrex()})
+        line from spreads:
+        (-0.022639462650848048,
+         {'buy': ccxt.binanceus(), 'sell': ccxt.bittrex()})
         [0] for spread after fees
         [1] for buy and sell
         '''
-        most_profitable = list_of_spreads[-1][1]
+        most_profitable = spreads[-1]
         buy = most_profitable['buy']
         sell = most_profitable['sell']
 
@@ -194,16 +192,21 @@ class Bouncer:
         high = most_profitable['sell_price']  # ditto
         fees = most_profitable['fees']
         no_fees = most_profitable['no_fees']
-        spread = most_profitable['w_fees']
+        spread = most_profitable['spread_w_fees']
         # remove all values less than threshold
-        for sett in list_of_spreads:
-            if sett[0] <= self.threshold:
-                del spreads[sett[0]]
+        for i in range(0, len(spreads)):
+            if spreads[i]['spread_w_fees'] <= self.threshold:
+                spreads[i] = None
+        spreads[:] = [x for x in spreads if x]
 
         # if empty, not profitable
         if spreads:
-            msg = colorGood(
-                ' '*53+'found profitable pair ****\n' + '[PROFITABLE]')
+            if len(spreads) == 1:
+                msg = colorGood(
+                    ' '*52+'found one profitable pair ****\n' + '[PROFITABLE]')
+            else:
+                msg = colorGood(
+                    ' '*52+'found {} profitable pairs ****\n'.format(len(spreads)) + '[PROFITABLE]')
             profitable = True
         else:
             msg = colorBad('[NOT PROFITABLE]')
@@ -413,7 +416,7 @@ class Bouncer:
             spread, buy_ex, sell_ex, low, high, profitable, error, spreads = self.getSpread(
                 markets)
 
-            # add and subtract from mock balances herê
+            # add and subtract from mock balances here
 
             if profitable and self.active and not error:
                 # get balances
