@@ -440,7 +440,7 @@ class Bouncer:
                                 buy_ex, sell_ex, low, high)
                             action_taken = True
                         else:
-                            print(colorBad('Balances not sufficient to trade - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
+                            print(colorBad('Balances too low - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
                                 quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
                                 self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
 
