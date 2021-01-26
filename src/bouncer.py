@@ -199,17 +199,17 @@ class Bouncer:
             if exchange == buy:
                 fee = exchange.calculateFee(
                     self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                logstr = colorLow('\t{}: ${:.2f} (fees on ${} order: ${:.2f})'.format(
+                logstr = colorLow('\t{}: ${:.2f} (fees on ${:.2f} order: ${:.2f})'.format(
                     exchange.name, ask, self.quote_order_size, fee))
             elif exchange == sell:
                 fee = exchange.calculateFee(
                     self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                logstr = colorHigh('\t{}: ${:.2f} (fees on ${} order: ${:.2f})'.format(
+                logstr = colorHigh('\t{}: ${:.2f} (fees on ${:.2f} order: ${:.2f})'.format(
                     exchange.name, ask, self.quote_order_size, fee))
             else:
                 fee = exchange.calculateFee(
                     self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                logstr = '\t{}: ${:.2f} (fees on ${} order: ${:.2f})'.format(
+                logstr = '\t{}: ${:.2f} (fees on ${:.2f} order: ${:.2f})'.format(
                     exchange.name, ask, self.quote_order_size, fee)
             exchanges_str += logstr+'\n'
 
@@ -452,15 +452,15 @@ class Bouncer:
                             self.handleTransaction(
                                 buy_ex, sell_ex, low, high)
                             action_taken = True
+                        elif quote_balance < self.quote_order_size and base_balance < self.quote_order_size/high:
+                            print(colorBad('Insufficient balance (missing ${:.2f} on {}, {:.4f} {} on {})'.format(
+                                self.quote_order_size-quote_balance, buy_ex.name, self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
                         elif quote_balance < self.quote_order_size:
                             print(colorBad('Insufficient balance (missing ${:.2f} on {})'.format(
                                 self.quote_order_size-quote_balance, buy_ex.name)))
                         elif base_balance < self.quote_order_size/high:
                             print(colorBad('Insufficient balance (missing {:.4f} {} on {})'.format(
                                 self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
-                        else:
-                            print(colorBad('Insufficient balance (missing ${:.2f} on {}, {:.4f} {} on {})'.format(
-                                self.quote_order_size-quote_balance, buy_ex.name, self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
 
         except Exception as e:
             print(colorBad('Error in call ... trying again in 10 ({})').format(e))
