@@ -362,12 +362,14 @@ class Bouncer:
         '''
         Optional function used to initialize the balances buying the crypto needed in each exchange.
         '''
+        # note, bc of fees it will buy 1 dollar higher.
+        self.updateBalances(loud=False)
         for exchange in self.exchanges:
-            if exchange.fetch_balance()[self.section][self.quote_coin] >= self.quote_order_size:
+            if self.balances[exchange][self.section][self.quote_coin] >= self.quote_order_size:
                 print('Creating market buy order for {} {} on {}'.format(
-                    self.quote_order_size, self.symbol, exchange.name))
+                    self.quote_order_size+1, self.symbol, exchange.name))
                 exchange.create_market_buy_order(
-                    self.symbol, self.quote_order_size)
+                    self.symbol, self.quote_order_size+1)
             else:
                 print(
                     '* Insufficient balance on {} to set up balance'.format(exchange.name))
