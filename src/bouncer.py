@@ -115,7 +115,7 @@ class Bouncer:
         all_responses = dict()
         for exchange in self.exchanges:
             all_responses[exchange] = exchange.fetch_ticker(self.symbol)
-        # print('Recived from {} in {:.3f} s'.format(
+        # print('Recived from {} in {:.2f} s'.format(
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
 
@@ -125,6 +125,7 @@ class Bouncer:
             responses = self.getWatched()
 
         sect = 'ask'
+        # not necessary to sort but it helps
         responses = OrderedDict(sorted(responses.items(),
                                        key=lambda x: getitem(x[1], 'ask')))
         response_items = list(responses.items())
@@ -194,14 +195,22 @@ class Bouncer:
         exchanges_str = ''
         for i in range(0, len(responses)):
             ask = response_items[i][1][sect]
-            if response_items[i][0] == buy:
-                logstr = colorLow('\t{}: {:.3f}'.format(
-                    response_items[i][0].name, ask))
-            elif response_items[i][0] == sell:
-                logstr = colorHigh('\t{}: {:.3f}'.format(
-                    response_items[i][0].name, ask))
+            exchange = response_items[i][0]
+            if exchange == buy:
+                fee = exchange.calculateFee(
+                    self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                logstr = colorLow('\t{}: ${:.2f} (fees on ${} order: ${:.2f})'.format(
+                    exchange.name, ask, self.quote_order_size, fee))
+            elif exchange == sell:
+                fee = exchange.calculateFee(
+                    self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                logstr = colorHigh('\t{}: ${:.2f} (fees on ${} order: ${:.2f})'.format(
+                    exchange.name, ask, self.quote_order_size, fee))
             else:
-                logstr = '\t{}: {:.3f}'.format(response_items[i][0].name, ask)
+                fee = exchange.calculateFee(
+                    self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                logstr = '\t{}: ${:.2f} (fees on ${} order: ${:.2f})'.format(
+                    exchange.name, ask, self.quote_order_size, fee)
             exchanges_str += logstr+'\n'
 
         # remove all values less than threshold
@@ -226,28 +235,26 @@ class Bouncer:
         if profitable or True:  # effectively disabled rn, print all # only print if profitable
             print(
                 '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {} w/ {} {}]:'.format(self.symbol,
-                                              self.quote_order_size, self.quote_coin))
+            print('[For {} w/ ${:.2f}]:'.format(self.symbol,
+                                                self.quote_order_size))
 
             print(exchanges_str, end='')
 
             print(
-                '{} Adjusted Spread: {} {} (after fees: {} {})\n(buy on {}: {}, sell on {}: {} [grs.dif: {}])'.format(msg,
-                                                                                                                      colorProfit(
-                                                                                                                          no_fees),
-                                                                                                                      self.quote_coin,
-                                                                                                                      colorProfit(
-                                                                                                                          spread),
-                                                                                                                      self.quote_coin,
-                                                                                                                      colorLow(
-                                                                                                                          buy.name),
-                                                                                                                      colorLow(
-                                                                                                                          '{:.3f}'.format(low)),
-                                                                                                                      colorHigh(
-                                                                                                                          sell.name),
-                                                                                                                      colorHigh(
-                                                                                                                          '{:.3f}'.format(high)),
-                                                                                                                      colorEh('{:.3f}'.format(high-low))))
+                '{} Adjusted Spread: ${} (after fees: ${})\n(buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(msg,
+                                                                                                                       colorProfit(
+                                                                                                                           no_fees),
+                                                                                                                       colorProfit(
+                                                                                                                           spread),
+                                                                                                                       colorLow(
+                                                                                                                           buy.name),
+                                                                                                                       colorLow(
+                                                                                                                           '{:.2f}'.format(low)),
+                                                                                                                       colorHigh(
+                                                                                                                           sell.name),
+                                                                                                                       colorHigh(
+                                                                                                                           '{:.2f}'.format(high)),
+                                                                                                                       colorEh('{:.2f}'.format(high-low))))
         # check last row
         seq_profitable = False
         # not implementing yet
@@ -368,7 +375,7 @@ class Bouncer:
         self.blockTrades(5)
         print('Final balances:')
         base, quote = self.updateBalances(loud=False)
-        print('Sums: [{:.8f} {}, {:.3f} {}]'.format(
+        print('Sums: [{:.8f} {}, {:.2f} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
         print('Net: {}%'.format(colorProfit(self.net)))
@@ -446,9 +453,9 @@ class Bouncer:
                                 buy_ex, sell_ex, low, high)
                             action_taken = True
                         else:
-                            print(colorBad('Balances too low - [{:.4f} {} on {}, {:.4f} {} on {}]\n(needed [{:.4f} {} on {}, {:.4f} {} on {}])'.format(
-                                quote_balance, self.quote_coin, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
-                                self.quote_order_size, self.quote_coin, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
+                            print(colorBad('Balances too low - [${:.2f} on {}, {:.4f} {} on {}]\n(needed [${:.2f} on {}, {:.4f} {} on {}])'.format(
+                                quote_balance, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
+                                self.quote_order_size, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
 
         except Exception as e:
             print(colorBad('Error in call ... trying again in 10 ({})').format(e))
