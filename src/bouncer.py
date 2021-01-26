@@ -43,10 +43,6 @@ class Bouncer:
             sys.exit(0)
 
         self.active = active
-        # initialize balances
-        if initializeq:
-            self.inititalizeBalances()
-
         self.start_time = time.time()
         self.base_coin = symbol.split('/')[0]
         self.quote_coin = symbol.split('/')[1]
@@ -56,6 +52,7 @@ class Bouncer:
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
         self.threshold = 0.009  # for trades
         exchanges_str = ''
+
         for i in range(0, len(self.exchanges)-1):
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
@@ -73,6 +70,12 @@ class Bouncer:
         # init balances
         self.balances = dict()
         self.net = 0
+
+        # initialize balances
+        if initializeq:
+            print('Initializing balances with ${} worth of {} in each account.'.format(
+                self.quote_order_size, self.base_coin))
+            self.inititalizeBalances()
 
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
             loud=False)
