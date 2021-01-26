@@ -217,7 +217,7 @@ def configure():
         exchanges = loadExchanges(getAvailableExchanges())
         for i in range(1, len(sys.argv), 2):
             currencies.append(
-                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, globals()['active'], log))
+                Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, False, log))
     else:
         add = input(('Would you like to add new exhanges? (Y/n): '))
         if 'y' in add.lower():
@@ -278,19 +278,16 @@ def configure():
             invest = 100
 
         speedup = ''
-        if globals()['active']:
-            while type(speedup) == str:
-                speedup = input(
-                    'What would you like to set to speedup (-100 to 100%)? A higher number will lower profits per trade but increase speed: ')
-                try:
-                    speedup = float(speedup)
-                except:
-                    if speedup == '':
-                        speedup = 0  # default
-                    else:
-                        print(colorBad('Enter a number.'))
-        else:
-            speedup = 0
+        while type(speedup) == str:
+            speedup = input(
+                'What would you like to set to speedup (-100 to 100%)? A higher number will lower profits per trade but increase speed: ')
+            try:
+                speedup = float(speedup)
+            except:
+                if speedup == '':
+                    speedup = 0  # default
+                else:
+                    print(colorBad('Enter a number.'))
 
         if curr == '':
             curr = 'all'
