@@ -251,13 +251,11 @@ class Bouncer:
             msg = colorBad('[NOT PROFITABLE]')
             profitable = False
 
+        print('/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+        print('[For {} w/ ${:.3f}]:'.format(self.symbol,
+                                            self.quote_order_size))
+        print(exchanges_str, end='')
         if spreads:  # only print if profitable
-            print(
-                '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {} w/ ${:.3f}]:'.format(self.symbol,
-                                                self.quote_order_size))
-            print(exchanges_str, end='')
-
             print(
                 colorGood('applied speedup of {}% (found {} profitable pairs ****)'.format(self.speedup, len(spreads))).rjust(90))
             for i in range(len(spreads)-1, -1, -1):
@@ -277,22 +275,21 @@ class Bouncer:
                         '{:.3f}'.format(item['sell_price'])),
                     colorEh('{:.3f}'.format(item['sell_price']-item['buy_price']))))
         else:
-            '''
             print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(msg,
-                                                                                                                           colorProfit(
-                                                                                                                               no_fees),
-                                                                                                                           colorProfit(
-                                                                                                                               spread),
-                                                                                                                           colorLow(
-                                                                                                                               buy.name),
-                                                                                                                           colorLow(
-                                                                                                                               '{:.3f}'.format(low)),
-                                                                                                                           colorHigh(
-                                                                                                                               sell.name),
-                                                                                                                           colorHigh(
-                                                                                                                               '{:.3f}'.format(high)),
-                                                                                                                           colorEh('{:.3f}'.format(high-low))))
-            '''
+                                                                                                                          colorProfit(
+                                                                                                                              no_fees),
+                                                                                                                          colorProfit(
+                                                                                                                              spread),
+                                                                                                                          colorLow(
+                                                                                                                              buy.name),
+                                                                                                                          colorLow(
+                                                                                                                              '{:.3f}'.format(low)),
+                                                                                                                          colorHigh(
+                                                                                                                              sell.name),
+                                                                                                                          colorHigh(
+                                                                                                                              '{:.3f}'.format(high)),
+                                                                                                                          colorEh('{:.3f}'.format(high-low))))
+
             pass
         # check last row
         seq_profitable = False
@@ -362,17 +359,25 @@ class Bouncer:
         '''
         Optional function used to initialize the balances buying the crypto needed in each exchange.
         '''
-        # note, bc of fees it will buy 1 dollar higher.
+        # note, bc of fees it will buy 2 dollar higher.
         self.updateBalances(loud=False)
+
         for exchange in self.exchanges:
+            price = (exchange.fetch_ticker(self.symbol))['bid']
             if self.balances[exchange][self.section][self.quote_coin] >= self.quote_order_size:
-                print('Creating market buy order for {} {} on {}'.format(
-                    self.quote_order_size+1, self.symbol, exchange.name))
-                exchange.create_market_buy_order(
-                    self.symbol, self.quote_order_size+1)
+                try:
+                    print('Creating buy order on {} for {} {} at {}'.format(
+                        exchange, self.quote_order_size/price, self.symbol, price))
+                    exchange.create_limit_buy_order(
+                        self.symbol, self.quote_order_size/price, price)
+                    new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                               self.symbol, 'buy', price, exchange.name, self.net]
+                    self.trades.loc[len(self.trades)] = new_row
+                except ccxt.ExchangeNotAvailable:
+                    print('Market on {} offline.'.format(exchange.name))
             else:
                 print(
-                    '* Insufficient balance on {} to set up balance'.format(exchange.name))
+                    '* Insufficient funds on {} to initialize balance'.format(exchange.name))
 
         self.blockTrades(5)
 
@@ -400,13 +405,13 @@ class Bouncer:
                 self.balances[exchange][self.section][self.base_coin])
             if remaining > 0 and not self.anyOpen(exchange):
                 try:
-                    print('Selling off {} {} on {}'.format(
+                    print('Selling off {:.6f} {} on {}'.format(
                         remaining, self.base_coin, exchange.name))
                     exchange.create_limit_sell_order(
                         self.symbol, remaining, ask)
                 except Exception as e:
                     print(
-                        '* Error in selling off {} {} on {}: {}'.format(remaining, self.base_coin, exchange.name, e))
+                        '* Error in selling off {:.6f} {} on {}: {}'.format(remaining, self.base_coin, exchange.name, e))
             else:
                 print(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
@@ -433,31 +438,33 @@ class Bouncer:
         '''
         Places the arbitrage transactions simultaneously.
         '''
-        # creating processes
-        print('Creating buy order on {} for {} {} at {}'.format(
-            buy_ex, self.quote_order_size/low, self.symbol, low))
-        buy_ex.create_limit_buy_order(
-            self.symbol, self.quote_order_size/low, low)
-        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
-                   self.symbol, 'buy', low, buy_ex.name, self.net]
-        self.trades.loc[len(self.trades)] = new_row
+        try:
+            # creating processes
+            print('Creating buy order on {} for {:.6f} {} at ${}'.format(
+                buy_ex, self.quote_order_size/low, self.symbol, low))
+            buy_ex.create_limit_buy_order(
+                self.symbol, self.quote_order_size/low, low)
+            new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                       self.symbol, 'buy', low, buy_ex.name, self.net]
+            self.trades.loc[len(self.trades)] = new_row
+            self.trades.to_csv(path_or_buf=self.trades_filename)
 
-        print('Creating sell order on {} for {} {} at {}'.format(
-            sell_ex, self.quote_order_size/high, self.symbol, high))
-        sell_ex.create_limit_sell_order(
-            self.symbol, self.quote_order_size/high, high)
-        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
-                   self.symbol, 'sell', high, sell_ex.name, self.net]
-        self.trades.loc[len(self.trades)] = new_row
+            print('Creating sell order on {} for {:.6f} {} at ${}'.format(
+                sell_ex, self.quote_order_size/high, self.symbol, high))
+            sell_ex.create_limit_sell_order(
+                self.symbol, self.quote_order_size/high, high)
+            new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                       self.symbol, 'sell', high, sell_ex.name, self.net]
+            self.trades.loc[len(self.trades)] = new_row
+            self.trades.to_csv(path_or_buf=self.trades_filename)
 
-        self.blockTrades(5)
-        # perform calculations for logging
+            self.blockTrades(5)
+            # perform calculations for logging
+        except ccxt.ExchangeNotAvailable:
+            print(colorBad('Exchange not available.'))
 
         # recalculate
         self.updateNet()
-
-        self.trades.to_csv(path_or_buf=self.trades_filename)
-        print('Trades completed')
 
         print('Balances fetched')
         self.updateBalances(loud=False)

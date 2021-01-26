@@ -258,7 +258,7 @@ def configure():
         curr = 'list'
         while 'list' in curr.lower():
             curr = input((
-                'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): '))
+                'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): ')).upper()
             if 'list' in curr.lower():
                 print(colorEh(commons))
 
@@ -280,7 +280,7 @@ def configure():
         speedup = ''
         if globals()['active']:
             while type(speedup) == str:
-                invest = input(
+                speedup = input(
                     'What would you like to set to speedup (-100 to 100%)? A higher number will lower profits per trade but increase speed: ')
                 try:
                     speedup = float(speedup)
