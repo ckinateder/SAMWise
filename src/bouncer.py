@@ -55,6 +55,8 @@ class Bouncer:
         self.section = 'total'
         # precision to display quotes
         self.precision = ':.3f'
+        # speedup is used to narrow the price gap to enable trades to finish faster.
+        self.speedup = 0.05
 
         exchanges_str = ''
         for i in range(0, len(self.exchanges)-1):
@@ -62,8 +64,8 @@ class Bouncer:
         exchanges_str += 'and '+self.exchanges[-1].name
 
         if active:
-            print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}\n').format(
-                self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold))
+            print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}, Speedup: {}\n').format(
+                self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold, self.speedup))
         else:
             if logging:
                 print(colorEh('Created Bouncer scanning for {}.').format(self.symbol))
@@ -149,8 +151,8 @@ class Bouncer:
         spreads = dict()
         for test_buy in response_items:
             for test_sell in response_items:
-                buy_price = test_buy[1]['bid']
-                sell_price = test_sell[1]['ask']
+                buy_price = test_buy[1]['bid']*(1+self.speedup)
+                sell_price = test_sell[1]['ask']*(1-self.speedup)
                 if test_buy != test_sell:
                     test_spread = (self.quote_order_size /
                                    sell_price)*(sell_price-buy_price)
