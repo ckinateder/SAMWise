@@ -212,48 +212,48 @@ def configure():
     inip = False
     log = True
     globals()['active'] = True
-    add = input(('Would you like to add new exhanges? (Y/n): '))
-    if 'y' in add.lower():
-        exchanges = setupExchanges()
-    # get availables
-    availables = getAvailableExchanges()
-
-    available_str = '\n'
-    for i in range(0, len(availables)):
-        available_str += '\t{}: {}\n'.format(i, availables[i])
-    whichones = input(
-        'Which exchanges would you like to run on? (enter a comma separated list or \'all\') {{available: {}}}: '.format(availables))
-    if 'all' in whichones or whichones == '':
-        actuals = availables
-    else:
-        actuals = [x.strip(' ')
-                   for x in whichones.split(',')]  # remove whitespace
-    # create exchanges
-    exchanges = loadExchanges(actuals)
-
-    # check for scanning
-    scan = input(
-        ('Would you like to run in scanner mode? (Y/n): '))
-    if 'y' in scan.lower():
-        globals()['active'] = False
-        login = input('Would you like to disable logging to file? (Y/n): ')
-        if 'y' in login.lower():
-            log = False
-    else:
-        # check for initialization
-        ini = input(
-            ('Would you like to initalize the exchanges with crypto? (Y/n): '))
-        if 'y' in ini.lower():
-            inip = True
-        else:
-            inip = False
-
     # check for commandline override
     if len(sys.argv) > 1:
+        exchanges = loadExchanges(getAvailableExchanges())
         for i in range(1, len(sys.argv), 2):
             currencies.append(
                 Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, inip, globals()['active'], log))
     else:
+        add = input(('Would you like to add new exhanges? (Y/n): '))
+        if 'y' in add.lower():
+            exchanges = setupExchanges()
+        # get availables
+        availables = getAvailableExchanges()
+
+        available_str = '\n'
+        for i in range(0, len(availables)):
+            available_str += '\t{}: {}\n'.format(i, availables[i])
+        whichones = input(
+            'Which exchanges would you like to run on? (enter a comma separated list or \'all\') {{available: {}}}: '.format(availables))
+        if 'all' in whichones or whichones == '':
+            actuals = availables
+        else:
+            actuals = [x.strip(' ')
+                       for x in whichones.split(',')]  # remove whitespace
+        # create exchanges
+        exchanges = loadExchanges(actuals)
+
+        # check for scanning
+        scan = input(
+            ('Would you like to run in scanner mode? (Y/n): '))
+        if 'y' in scan.lower():
+            globals()['active'] = False
+            login = input('Would you like to disable logging to file? (Y/n): ')
+            if 'y' in login.lower():
+                log = False
+        else:
+            # check for initialization
+            ini = input(
+                ('Would you like to initalize the exchanges with crypto? (Y/n): '))
+            if 'y' in ini.lower():
+                inip = True
+            else:
+                inip = False
         commons = getCommons(exchanges)
         curr = 'list'
         while 'list' in curr.lower():
