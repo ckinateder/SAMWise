@@ -295,12 +295,14 @@ if __name__ == '__main__':
     print()
     print('Welcome to SAMWise!'.center(WIDTH))
     print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
+    with open('img/banner.txt') as banner:
+        print(banner.read(), end='')
     print('Created by Calvin Kinateder, 2021'.center(WIDTH))
     print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
     if dynamic_input:
         print('Press \'q\' or ESC to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
     else:
-        print('CTRL C to quit.'.center(WIDTH))
+        print('CTRL C to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
     print(('-'*80)+'\n')
 
     # attach key listener
