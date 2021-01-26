@@ -62,10 +62,11 @@ class Bouncer:
                 self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold, self.speedup))
         else:
             if logging:
-                print(colorEh('Created Bouncer scanning for {}.').format(self.symbol))
+                print(colorEh('Created Bouncer scanning for {} with {}% speedup.').format(
+                    self.symbol, self.speedup))
             else:
-                print(colorEh('Created Bouncer scanning for {}. Logging disabled.').format(
-                    self.symbol))
+                print(colorEh('Created Bouncer scanning for {} with {}% speedup. Logging disabled.').format(
+                    self.symbol, self.speedup))
 
         # init balances
         self.balances = dict()
@@ -273,7 +274,7 @@ class Bouncer:
                         item['sell'].name),
                     colorHigh(
                         '{:.3f}'.format(item['sell_price'])),
-                    colorEh('{:.3f}'.format(item['sell_price']-item['buy_price']))))
+                    colorProfit('{:.3f}'.format(item['sell_price']-item['buy_price']))))
         else:
             print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(msg,
                                                                                                                           colorProfit(
@@ -288,7 +289,7 @@ class Bouncer:
                                                                                                                               sell.name),
                                                                                                                           colorHigh(
                                                                                                                               '{:.3f}'.format(high)),
-                                                                                                                          colorEh('{:.3f}'.format(high-low))))
+                                                                                                                          colorProfit('{:.3f}'.format(high-low))))
 
             pass
         # check last row
