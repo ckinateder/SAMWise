@@ -277,15 +277,30 @@ def configure():
         else:
             invest = 100
 
+        speedup = ''
+        if globals()['active']:
+            while type(speedup) == str:
+                invest = input(
+                    'What would you like to set to speedup (-100 to 100%)? A higher number will lower profits per trade but increase speed: ')
+                try:
+                    speedup = float(speedup)
+                except:
+                    if speedup == '':
+                        speedup = 0  # default
+                    else:
+                        print(colorBad('Enter a number.'))
+        else:
+            speedup = 0
+
         if curr == '':
             curr = 'all'
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, globals()['active'], log))
+                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['active'], log))
         else:
             currencies.append(
-                Bouncer(curr, invest, exchanges, inip, globals()['active'], log))
+                Bouncer(curr, invest, exchanges, inip, speedup, globals()['active'], log))
 
 
 # run main

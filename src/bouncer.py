@@ -21,12 +21,17 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq, speedup=0, active=True, logging=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq, speedup=2, active=True, logging=True):
         '''
         Create the class.
         '''
 
-        # add to exchange list
+        # mark which balance section to look at
+        self.section = 'total'
+        # precision to display quotes
+        self.precision = ':.3f'
+        # speedup is used to narrow the price gap to enable trades to finish faster.
+        self.speedup = speedup
         self.exchanges = exchanges
         self.logging = True  # log to file?
         # check if symbol supported by all
@@ -50,14 +55,6 @@ class Bouncer:
         self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
         self.threshold = 0.009  # for trades
-
-        # mark which balance section to look at
-        self.section = 'total'
-        # precision to display quotes
-        self.precision = ':.3f'
-        # speedup is used to narrow the price gap to enable trades to finish faster.
-        self.speedup = 2
-
         exchanges_str = ''
         for i in range(0, len(self.exchanges)-1):
             exchanges_str += self.exchanges[i].name+', '
