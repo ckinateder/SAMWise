@@ -274,7 +274,7 @@ class Bouncer:
                         item['sell'].name),
                     colorHigh(
                         '{:.3f}'.format(item['sell_price'])),
-                    colorProfit('{:.3f}'.format(item['sell_price']-item['buy_price']))))
+                    colorProfit((item['sell_price']-item['buy_price']))))
         else:
             print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(msg,
                                                                                                                           colorProfit(
@@ -289,7 +289,7 @@ class Bouncer:
                                                                                                                               sell.name),
                                                                                                                           colorHigh(
                                                                                                                               '{:.3f}'.format(high)),
-                                                                                                                          colorProfit('{:.3f}'.format(high-low))))
+                                                                                                                          colorProfit((high-low))))
 
             pass
         # check last row
