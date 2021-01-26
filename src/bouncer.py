@@ -363,7 +363,7 @@ class Bouncer:
         Optional function used to initialize the balances buying the crypto needed in each exchange.
         '''
         for exchange in self.exchanges:
-            if exchange.fetch_balance()[self.section] >= self.quote_order_size:
+            if exchange.fetch_balance()[self.section][self.quote_coin] >= self.quote_order_size:
                 print('Creating market buy order for {} {} on {}'.format(
                     self.quote_order_size, self.symbol, exchange.name))
                 exchange.create_market_buy_order(
