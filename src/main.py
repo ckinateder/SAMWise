@@ -298,7 +298,7 @@ if __name__ == '__main__':
     print('Created by Calvin Kinateder, 2021'.center(WIDTH))
     print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
     if dynamic_input:
-        print('Press \'q\' or ESC to quit.'.center(WIDTH))
+        print('Press \'q\' or ESC to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
     else:
         print('CTRL C to quit.'.center(WIDTH))
     print(('-'*80)+'\n')

@@ -452,10 +452,15 @@ class Bouncer:
                             self.handleTransaction(
                                 buy_ex, sell_ex, low, high)
                             action_taken = True
+                        elif quote_balance < self.quote_order_size:
+                            print(colorBad('Insufficient balance (missing ${:.2f} on {})'.format(
+                                self.quote_order_size-quote_balance, buy_ex.name)))
+                        elif base_balance < self.quote_order_size/high:
+                            print(colorBad('Insufficient balance (missing {:.4f} {} on {})'.format(
+                                self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
                         else:
-                            print(colorBad('Balances too low - [${:.2f} on {}, {:.4f} {} on {}]\n(needed [${:.2f} on {}, {:.4f} {} on {}])'.format(
-                                quote_balance, buy_ex.name, base_balance, self.base_coin, sell_ex.name,
-                                self.quote_order_size, buy_ex.name, self.quote_order_size/high, self.base_coin, sell_ex.name)))
+                            print(colorBad('Insufficient balance (missing ${:.2f} on {}, {:.4f} {} on {})'.format(
+                                self.quote_order_size-quote_balance, buy_ex.name, self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
 
         except Exception as e:
             print(colorBad('Error in call ... trying again in 10 ({})').format(e))
