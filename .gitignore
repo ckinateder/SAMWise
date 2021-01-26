@@ -139,3 +139,5 @@ logs/*
 SAMWise.Rproj
 .RData
 .Rhistory
+
+nohup.out

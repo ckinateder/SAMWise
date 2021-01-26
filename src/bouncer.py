@@ -425,6 +425,8 @@ class Bouncer:
             open_trades = self.anyOpen()
             time.sleep(timewait)
 
+        print(colorGood('Trades completed! Moving on.'))
+
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         '''
         Places the arbitrage transactions simultaneously.
