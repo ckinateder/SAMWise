@@ -21,7 +21,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=2, active=False, logging=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=2, active=False, logging=True, loud=True):
         '''
         Create the class.
         '''
@@ -33,6 +33,7 @@ class Bouncer:
         # speedup is used to narrow the price gap to enable trades to finish faster.
         self.speedup = speedup
         self.exchanges = exchanges
+        self.loud = loud
         self.logging = True  # log to file?
         # check if symbol supported by all
         if symbol in self.getCommons():
@@ -276,27 +277,27 @@ class Bouncer:
                         '{:.3f}'.format(item['sell_price'])),
                     colorProfit(item['speedup'])))
         else:
-            '''
-            print('/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {} w/ ${:.3f}]:'.format(self.symbol,
-                                                self.quote_order_size))
-            print(exchanges_str, end='')
-            print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
-                                                                                                                            colorProfit(
-                                                                                                                                no_fees),
-                                                                                                                            colorProfit(
-                                                                                                                                spread),
-                                                                                                                            colorLow(
-                                                                                                                                buy.name),
-                                                                                                                            colorLow(
-                                                                                                                                '{:.3f}'.format(low)),
-                                                                                                                            colorHigh(
-                                                                                                                                sell.name),
-                                                                                                                            colorHigh(
-                                                                                                                                '{:.3f}'.format(high)),
-                                                                                                                            colorProfit((high-low))))
-                                                                                                                            '''
-            pass
+            if self.loud:
+                print(
+                    '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+                print('[For {} w/ ${:.3f}]:'.format(self.symbol,
+                                                    self.quote_order_size))
+                print(exchanges_str, end='')
+                print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
+                                                                                                                              colorProfit(
+                    no_fees),
+                    colorProfit(
+                    spread),
+                    colorLow(
+                    buy.name),
+                    colorLow(
+                    '{:.3f}'.format(low)),
+                    colorHigh(
+                    sell.name),
+                    colorHigh(
+                    '{:.3f}'.format(high)),
+                    colorProfit((high-low))))
+
         # check last row
         seq_profitable = False
         # not implementing yet
