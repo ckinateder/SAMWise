@@ -53,6 +53,16 @@ class Bouncer:
         self.threshold = 0.009  # for trades
         exchanges_str = ''
 
+        # set up file for logging
+        self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
+                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange', 'Seq Profitable', 'All Prices']
+        self.pro_frame = pd.DataFrame(columns=self.pro_headers)
+
+        # set up trades file
+        self.trades_headers = ['Date', 'Symbol',
+                               'Side', 'Price', 'Exchange', 'Net Gain (%)']
+        self.trades = pd.DataFrame(columns=self.trades_headers)
+
         for i in range(0, len(self.exchanges)-1):
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
@@ -85,16 +95,6 @@ class Bouncer:
             print(colorClock('Starting base amount [{:.8f} {}, {:.4f} {}]').format(
                 self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
             print()
-
-        # set up file for logging
-        self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
-                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange', 'Seq Profitable', 'All Prices']
-        self.pro_frame = pd.DataFrame(columns=self.pro_headers)
-
-        # set up trades file
-        self.trades_headers = ['Date', 'Symbol',
-                               'Side', 'Price', 'Exchange', 'Net Gain (%)']
-        self.trades = pd.DataFrame(columns=self.trades_headers)
 
     def getCommons(self):
         alls = list()
