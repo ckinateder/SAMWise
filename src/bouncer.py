@@ -370,10 +370,10 @@ class Bouncer:
             price = (exchange.fetch_ticker(self.symbol))['bid']
             if self.balances[exchange][self.section][self.quote_coin] >= self.quote_order_size:
                 try:
-                    print('Creating buy order on {} for {} {} at {}'.format(
-                        exchange, self.quote_order_size/price, self.symbol, price))
-                    exchange.create_limit_buy_order(
-                        self.symbol, self.quote_order_size/price, price)
+                    print('Creating buy order on {} for {} {}'.format(
+                        exchange, self.quote_order_size/price, self.symbol))
+                    exchange.create_market_buy_order(
+                        self.symbol, self.quote_order_size/price)
                     new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
                                self.symbol, 'buy', price, exchange.name, self.net]
                     self.trades.loc[len(self.trades)] = new_row
