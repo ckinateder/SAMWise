@@ -323,19 +323,16 @@ def configure():
                 print(colorEh(commons))
 
         invest = ''
-        if globals()['active']:
-            while type(invest) == str:
-                invest = input((
-                    'How much would you like each transaction to be worth in dollars?')+' $')
-                try:
-                    invest = float(invest)
-                except:
-                    if invest == '':
-                        invest = 100  # default
-                    else:
-                        print(colorBad('Enter a number.'))
-        else:
-            invest = 100
+        while type(invest) == str:
+            invest = input((
+                'How much would you like each transaction to be worth in dollars?')+' $')
+            try:
+                invest = float(invest)
+            except:
+                if invest == '':
+                    invest = 100  # default
+                else:
+                    print(colorBad('Enter a number.'))
 
         speedup = ''
         while type(speedup) == str:
