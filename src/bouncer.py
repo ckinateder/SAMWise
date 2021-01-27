@@ -403,7 +403,7 @@ class Bouncer:
         self.updateBalances(loud=False)
 
         for exchange in responses:
-            ask = responses[exchange][self.section]
+            ask = responses[exchange]['ask']*.999
             # sell remaining
             remaining = float(
                 self.balances[exchange][self.section][self.base_coin])
