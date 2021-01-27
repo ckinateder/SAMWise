@@ -230,8 +230,10 @@ def configure():
             available_str += '\t{}: {}\n'.format(i, availables[i])
         whichones = input(
             'Which exchanges would you like to run on? (enter a comma separated list or \'all\') {{available: {}}}: '.format(availables))
-        if 'all' in whichones or whichones == '':
+        if 'all' in whichones:
             actuals = availables
+        elif whichones == '':
+            actuals = ['binanceus', 'kraken', 'coinbasepro']
         else:
             actuals = [x.strip(' ')
                        for x in whichones.split(',')]  # remove whitespace

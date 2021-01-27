@@ -441,21 +441,22 @@ class Bouncer:
         '''
         Places the arbitrage transactions simultaneously.
         '''
+        amt = self.quote_order_size/high
         try:
             # creating processes
             print('Creating buy order on {} for {:.6f} {} at ${}'.format(
-                buy_ex, self.quote_order_size/low, self.symbol, low))
+                buy_ex, amt, self.symbol, low))
             buy_ex.create_limit_buy_order(
-                self.symbol, self.quote_order_size/low, low)
+                self.symbol, amt, low)
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
                        self.symbol, 'buy', low, buy_ex.name, self.net]
             self.trades.loc[len(self.trades)] = new_row
             self.trades.to_csv(path_or_buf=self.trades_filename)
 
             print('Creating sell order on {} for {:.6f} {} at ${}'.format(
-                sell_ex, self.quote_order_size/high, self.symbol, high))
+                sell_ex, amt, self.symbol, high))
             sell_ex.create_limit_sell_order(
-                self.symbol, self.quote_order_size/high, high)
+                self.symbol, amt, high)
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
                        self.symbol, 'sell', high, sell_ex.name, self.net]
             self.trades.loc[len(self.trades)] = new_row
