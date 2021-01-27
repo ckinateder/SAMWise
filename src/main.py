@@ -233,7 +233,7 @@ def configure():
         if 'all' in whichones:
             actuals = availables
         elif whichones == '':
-            actuals = ['binanceus', 'kraken', 'coinbasepro']
+            actuals = availables  # ['binanceus', 'kraken', 'coinbasepro']
         else:
             actuals = [x.strip(' ')
                        for x in whichones.split(',')]  # remove whitespace
@@ -282,7 +282,7 @@ def configure():
         speedup = ''
         while type(speedup) == str:
             speedup = input(
-                'What would you like to set to speedup (-100 to 100%)? A higher number will lower profits per trade but increase speed: ')
+                'Max speedup? (-100 to 100%) ')
             try:
                 speedup = float(speedup)
             except:

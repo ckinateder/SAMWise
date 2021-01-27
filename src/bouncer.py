@@ -21,7 +21,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=2, active=False, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=50, active=False, logging=True, loud=True):
         '''
         Create the class.
         '''
@@ -31,7 +31,7 @@ class Bouncer:
         # precision to display quotes
         self.precision = ':.3f'
         # speedup is used to narrow the price gap to enable trades to finish faster.
-        self.speedup = speedup
+        self.max_speedup = speedup
         self.exchanges = exchanges
         self.loud = loud
         self.logging = True  # log to file?
@@ -51,7 +51,7 @@ class Bouncer:
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
         self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
-        self.threshold = 0.009  # for trades
+        self.threshold = 0.01  # for trades
         exchanges_str = ''
 
         # set up file for logging
@@ -69,15 +69,15 @@ class Bouncer:
         exchanges_str += 'and '+self.exchanges[-1].name
 
         if active:
-            print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}, Max speedup: {}%\n').format(
-                self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold, self.speedup))
+            print(colorGood('Created Bouncer investing ${} on {} with max {}% speedup and threshold ${}.\nActive on {}.').format(
+                self.quote_order_size, self.symbol, self.max_speedup, self.threshold, exchanges_str))
         else:
             if logging:
-                print(colorEh('Created Bouncer scanning for {} with max {}% speedup.').format(
-                    self.symbol, self.speedup))
+                print(colorEh('Created Bouncer scanning for {} with max {}% speedup and threshold ${}.').format(
+                    self.symbol, self.max_speedup, self.threshold))
             else:
-                print(colorEh('Created Bouncer scanning for {} with max {}% speedup. Logging disabled.').format(
-                    self.symbol, self.speedup))
+                print(colorEh('Created Bouncer scanning for {} with max {}% speedup and threshold ${}. Logging disabled.').format(
+                    self.symbol, self.max_speedup, self.threshold))
 
         # init balances
         self.balances = dict()
@@ -152,13 +152,15 @@ class Bouncer:
         spreads = dict()
         for test_buy in response_items:
             for test_sell in response_items:
-                buy_price = test_buy[1]['bid']*(1+(self.speedup/100))
-                sell_price = test_sell[1]['ask']*(1-(self.speedup/100))
-                actual_speedup = self.speedup
-                if sell_price-buy_price <= 0:  # disable speedup
-                    buy_price = test_buy[1]['bid']
-                    sell_price = test_sell[1]['ask']
-                    actual_speedup = 0
+                # calculate speedup
+                buy_price = test_buy[1]['bid']  # *(1+(self.max_speedup/100))
+                sell_price = test_sell[1]['ask']  # *(1-(self.max_speedup/100))
+                actual_speedup = 0
+                inc = .001
+                while sell_price-buy_price > self.threshold+inc and actual_speedup < self.max_speedup-inc:
+                    actual_speedup += inc
+                    buy_price = test_buy[1]['bid']*(1+(actual_speedup/100))
+                    sell_price = test_sell[1]['ask']*(1-(actual_speedup/100))
 
                 if test_buy != test_sell:
                     test_spread = (self.quote_order_size /
@@ -259,7 +261,7 @@ class Bouncer:
                                                 self.quote_order_size))
             print(exchanges_str, end='')
             print(
-                colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.speedup, len(spreads))).rjust(90))
+                colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(90))
             for i in range(len(spreads)-1, -1, -1):
                 item = spreads[i]
                 print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%])'.format(
