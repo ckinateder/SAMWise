@@ -128,8 +128,6 @@ class Bouncer:
         # get tickers for the watched symbols and return exchanges and spread
         if responses == None:
             responses = self.getWatched()
-
-        sect = 'ask'
         # not necessary to sort but it helps
         responses = OrderedDict(sorted(responses.items(),
                                        key=lambda x: getitem(x[1], 'ask')))
@@ -329,8 +327,6 @@ class Bouncer:
                 print(
                     '{} balance response - {}'.format(exchange, pformat(self.balances[exchange])))
 
-        self.section = 'total'
-
         total_base_amount = 0
         for exchange in self.exchanges:
             if self.base_coin in self.balances[exchange][self.section]:
@@ -407,7 +403,7 @@ class Bouncer:
         self.updateBalances(loud=False)
 
         for exchange in responses:
-            ask = responses[exchange][sect]
+            ask = responses[exchange][self.section]
             # sell remaining
             remaining = float(
                 self.balances[exchange][self.section][self.base_coin])

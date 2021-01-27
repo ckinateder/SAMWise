@@ -201,7 +201,7 @@ def kill():
     print('\nQuitting\n')
     if globals()['active']:
         todo = input('Cleanup balances? (Y/n) ')
-        if 'Y' in todo:
+        if 'y' in todo.lower():
             for i in currencies:
                 i.cleanup()
     sys.exit(0)
