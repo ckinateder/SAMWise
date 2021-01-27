@@ -130,7 +130,7 @@ def getAvailableExchanges():
     file_list = listdir(keypath)
     for i in range(0, len(file_list)-2):
         x = file_list[i]
-        if '.DS_Store' in x or 'gitkeep' in x:
+        if '.DS_Store' in x or '.gitkeep' in x:
             file_list.remove(x)
     for i in range(0, len(file_list)):
         x = file_list[i]
@@ -140,6 +140,8 @@ def getAvailableExchanges():
             file_list[i] = x.replace('_private', '')
         elif '_password' in x:
             file_list[i] = x.replace('_password', '')
+        elif '_uid' in x:
+            file_list[i] = x.replace('_uid', '')
     all_ex = list(set(file_list))
     return all_ex
 
