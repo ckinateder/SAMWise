@@ -21,7 +21,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq, speedup=2, active=True, logging=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=2, active=False, logging=True):
         '''
         Create the class.
         '''
