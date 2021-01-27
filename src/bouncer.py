@@ -58,14 +58,14 @@ class Bouncer:
         exchanges_str += 'and '+self.exchanges[-1].name
 
         if active:
-            print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}, Speedup: {}%\n').format(
+            print(colorGood('Created Bouncer for {} investing {} {}.\nActive on {}\nThreshold: {}, Max speedup: {}%\n').format(
                 self.symbol, self.quote_order_size, self.quote_coin, exchanges_str, self.threshold, self.speedup))
         else:
             if logging:
-                print(colorEh('Created Bouncer scanning for {} with {}% speedup.').format(
+                print(colorEh('Created Bouncer scanning for {} with max {}% speedup.').format(
                     self.symbol, self.speedup))
             else:
-                print(colorEh('Created Bouncer scanning for {} with {}% speedup. Logging disabled.').format(
+                print(colorEh('Created Bouncer scanning for {} with max {}% speedup. Logging disabled.').format(
                     self.symbol, self.speedup))
 
         # init balances
@@ -149,11 +149,18 @@ class Bouncer:
         '''
 
         # make ordered dict of spreads COUNTING fees
+
         spreads = dict()
         for test_buy in response_items:
             for test_sell in response_items:
                 buy_price = test_buy[1]['bid']*(1+(self.speedup/100))
                 sell_price = test_sell[1]['ask']*(1-(self.speedup/100))
+                actual_speedup = self.speedup
+                if sell_price-buy_price <= 0:  # disable speedup
+                    buy_price = test_buy[1]['bid']
+                    sell_price = test_sell[1]['ask']
+                    actual_speedup = 0
+
                 if test_buy != test_sell:
                     test_spread = (self.quote_order_size /
                                    sell_price)*(sell_price-buy_price)
@@ -171,7 +178,8 @@ class Bouncer:
                         'sell_price': sell_price,
                         'fees': test_fee,
                         'no_fees': test_spread,
-                        'spread_w_fees': spread_w_fee  # yes this the key as well
+                        'spread_w_fees': spread_w_fee,
+                        'speedup': actual_speedup  # a percent
                     }
 
         spreads = sorted(spreads.values(), key=lambda x: getitem(
@@ -191,7 +199,8 @@ class Bouncer:
             'sell_ask': 130.0,
             'sell_bid': 100.0,
             'sell_price': 130.0,
-            'spread_w_fees': 19.74134769230769
+            'spread_w_fees': 19.74134769230769,
+            'speedup': 2
         }
         '''
         most_profitable = spreads[-1]
@@ -241,27 +250,20 @@ class Bouncer:
 
         # if empty, not profitable
         if spreads:
-            if len(spreads) == 1:
-                msg = colorGood(
-                    ('found one profitable pair ****'.rjust(90) + '\n[PROFITABLE]'))
-            else:
-                msg = colorGood(
-                    ('found {} profitable pairs ****'.format(len(spreads))).rjust(90) + '\n[PROFITABLE]')
             profitable = True
         else:
-            msg = colorBad('[NOT PROFITABLE]')
             profitable = False
 
-        print('/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-        print('[For {} w/ ${:.3f}]:'.format(self.symbol,
-                                            self.quote_order_size))
-        print(exchanges_str, end='')
         if spreads:  # only print if profitable
+            print('/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+            print('[For {} w/ ${:.3f}]:'.format(self.symbol,
+                                                self.quote_order_size))
+            print(exchanges_str, end='')
             print(
-                colorGood('applied speedup of {}% (found {} profitable pairs ****)'.format(self.speedup, len(spreads))).rjust(90))
+                colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.speedup, len(spreads))).rjust(90))
             for i in range(len(spreads)-1, -1, -1):
                 item = spreads[i]
-                print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(
+                print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%])'.format(
                     colorGood('[PROFITABLE {}]'.format(i+1)),
                     colorProfit(item['no_fees']),
                     colorProfit(
@@ -274,23 +276,28 @@ class Bouncer:
                         item['sell'].name),
                     colorHigh(
                         '{:.3f}'.format(item['sell_price'])),
-                    colorProfit((item['sell_price']-item['buy_price']))))
+                    colorProfit(item['speedup'])))
         else:
-            print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(msg,
-                                                                                                                          colorProfit(
-                                                                                                                              no_fees),
-                                                                                                                          colorProfit(
-                                                                                                                              spread),
-                                                                                                                          colorLow(
-                                                                                                                              buy.name),
-                                                                                                                          colorLow(
-                                                                                                                              '{:.3f}'.format(low)),
-                                                                                                                          colorHigh(
-                                                                                                                              sell.name),
-                                                                                                                          colorHigh(
-                                                                                                                              '{:.3f}'.format(high)),
-                                                                                                                          colorProfit((high-low))))
-
+            '''
+            print('/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+            print('[For {} w/ ${:.3f}]:'.format(self.symbol,
+                                                self.quote_order_size))
+            print(exchanges_str, end='')
+            print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
+                                                                                                                            colorProfit(
+                                                                                                                                no_fees),
+                                                                                                                            colorProfit(
+                                                                                                                                spread),
+                                                                                                                            colorLow(
+                                                                                                                                buy.name),
+                                                                                                                            colorLow(
+                                                                                                                                '{:.3f}'.format(low)),
+                                                                                                                            colorHigh(
+                                                                                                                                sell.name),
+                                                                                                                            colorHigh(
+                                                                                                                                '{:.3f}'.format(high)),
+                                                                                                                            colorProfit((high-low))))
+                                                                                                                            '''
             pass
         # check last row
         seq_profitable = False
