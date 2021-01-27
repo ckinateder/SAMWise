@@ -35,17 +35,25 @@ def setupExchanges():
             private = getpass('Paste private key: ').strip()
             password_req_str = input(
                 'Does {} require a password? (Y/n): '.format(exchstr))
-            print(public)
-            print(private)
 
             if 'y' in password_req_str.lower():
                 password_req = True
             else:
                 password_req = False
 
+            password_req_str = input(
+                'Does {} require a uid? (Y/n): '.format(exchstr))
+
+            if 'y' in password_req_str.lower():
+                uid_req = True
+            else:
+                uid_req = False
+
             exchange_class = getattr(ccxt, exchstr)
 
-            if password_req:
+            if password_req and uid_req:
+                uid = input(
+                    'Enter uid for {}: '.format(exchstr)).strip()
                 password = getpass(
                     'Enter password for {}: '.format(exchstr)).strip()
 
@@ -53,6 +61,25 @@ def setupExchanges():
                     'apiKey': public,
                     'secret': private,
                     'password': password,
+                    'uid': uid
+                })
+            elif password_req:
+                password = getpass(
+                    'Enter password for {}: '.format(exchstr)).strip()
+
+                current = exchange_class({
+                    'apiKey': public,
+                    'secret': private,
+                    'password': password,
+                })
+            elif uid_req:
+                uid = input(
+                    'Enter uid for {}: '.format(exchstr)).strip()
+
+                current = exchange_class({
+                    'apiKey': public,
+                    'secret': private,
+                    'uid': uid,
                 })
             else:
                 current = exchange_class({
@@ -72,12 +99,14 @@ def setupExchanges():
                 if password_req:
                     with open(keypath+exchstr+'_password', 'w+') as passw:
                         passw.write(password)
-
+                if uid_req:
+                    with open(keypath+exchstr+'_uid', 'w+') as uidw:
+                        uidw.write(uid)
                 print(colorGood('Saved keys to files'))
 
-            except ccxt.AuthenticationError:
+            except ccxt.AuthenticationError as e:
                 print(
-                    colorBad('Invalid credentials for {} ... moving on.').format(exchstr))
+                    colorBad('Invalid credentials for {} ... moving on. ({})').format(exchstr, e))
 
             more = input('Add another exchange? (Y/n): ')
             if 'y' in more.lower():
@@ -130,7 +159,28 @@ def loadExchanges(all_ex):
 
                 exchange_class = getattr(ccxt, exchstr)
 
-                if path.exists(keypath+exchstr+'_password'):
+                if path.exists(keypath+exchstr+'_password') and path.exists(keypath+exchstr+'_uid'):
+                    password = open(keypath+exchstr +
+                                    '_password').read().strip()
+                    uid = open(keypath+exchstr +
+                               '_uid').read().strip()
+
+                    current = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                        'password': password,
+                        'uid': uid,
+                    })
+                elif path.exists(keypath+exchstr+'_uid'):
+                    uid = open(keypath+exchstr +
+                               '_uid').read().strip()
+
+                    current = exchange_class({
+                        'apiKey': public,
+                        'secret': private,
+                        'uid': uid,
+                    })
+                elif path.exists(keypath+exchstr+'_password'):
                     password = open(keypath+exchstr +
                                     '_password').read().strip()
 

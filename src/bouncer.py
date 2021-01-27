@@ -465,7 +465,8 @@ class Bouncer:
             self.trades.loc[len(self.trades)] = new_row
             self.trades.to_csv(path_or_buf=self.trades_filename)
 
-            self.blockTrades(5)
+            # self.blockTrades(5)
+            print(colorEh('Trades initiated... disabling arbitrage until completed.'))
             # perform calculations for logging
         except ccxt.ExchangeNotAvailable:
             print(colorBad('Exchange not available.'))
@@ -473,7 +474,7 @@ class Bouncer:
         # recalculate
         self.updateNet()
 
-        print('Balances fetched')
+        #print('Balances fetched')
         self.updateBalances(loud=False)
 
         return 'Done'
@@ -488,7 +489,7 @@ class Bouncer:
 
             # add and subtract from mock balances here
 
-            if spreads and self.active and not error:
+            if spreads and self.active and not error and not self.anyOpen():
                 # get balances
                 self.updateBalances(loud=False)
 
