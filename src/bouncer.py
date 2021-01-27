@@ -403,7 +403,6 @@ class Bouncer:
         self.updateBalances(loud=False)
 
         for exchange in responses:
-            ask = responses[exchange]['ask']*.999
             # sell remaining
             remaining = float(
                 self.balances[exchange][self.section][self.base_coin])
@@ -411,8 +410,8 @@ class Bouncer:
                 try:
                     print('Selling off {:.6f} {} on {}'.format(
                         remaining, self.base_coin, exchange.name))
-                    exchange.create_limit_sell_order(
-                        self.symbol, remaining, ask)
+                    exchange.create_market_sell_order(
+                        self.symbol, remaining)
                 except Exception as e:
                     print(
                         '* Error in selling off {:.6f} {} on {}: {}'.format(remaining, self.base_coin, exchange.name, e))
