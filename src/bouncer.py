@@ -155,12 +155,6 @@ class Bouncer:
                 # calculate speedup
                 buy_price = test_buy[1]['bid']  # *(1+(self.max_speedup/100))
                 sell_price = test_sell[1]['ask']  # *(1-(self.max_speedup/100))
-                actual_speedup = 0
-                inc = .001
-                while sell_price-buy_price > self.threshold+inc and actual_speedup < self.max_speedup-inc:
-                    actual_speedup += inc
-                    buy_price = test_buy[1]['bid']*(1+(actual_speedup/100))
-                    sell_price = test_sell[1]['ask']*(1-(actual_speedup/100))
 
                 if test_buy != test_sell:
                     test_spread = (self.quote_order_size /
@@ -168,6 +162,23 @@ class Bouncer:
                     test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
                                 test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
                     spread_w_fee = test_spread-test_fee
+
+                    actual_speedup = 0
+                    inc = .001
+                    while spread_w_fee > self.threshold+inc and actual_speedup < self.max_speedup-inc:
+                        actual_speedup += inc
+                        buy_price = test_buy[1]['bid'] * \
+                            (1+(actual_speedup/200))
+                        sell_price = test_sell[1]['ask'] * \
+                            (1-(actual_speedup/200))
+                        # recalculate
+                        test_spread = (self.quote_order_size /
+                                       sell_price)*(sell_price-buy_price)
+                        test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
+                                    test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
+                        spread_w_fee = spread_w_fee = test_spread-test_fee
+
+                    # print(actual_speedup)
                     spreads[spread_w_fee] = {
                         'buy': test_buy[0],
                         'buy_bid': test_buy[1]['bid'],

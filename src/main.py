@@ -266,12 +266,13 @@ def configure():
     globals()['active'] = True
     # check for commandline override
     if len(sys.argv) > 1:
-        exchanges = loadExchanges(getAvailableExchanges())
+        exchanges = loadExchanges(
+            ['binanceus', 'kraken', 'coinbasepro', 'bittrex'])
         if sys.argv[1] == 'test_usd':
             commons = getCommons(exchanges)
             for e in commons:
                 currencies.append(
-                    Bouncer(e, 100, exchanges))
+                    Bouncer(e, 25, exchanges))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
@@ -291,7 +292,7 @@ def configure():
         if 'all' in whichones:
             actuals = availables
         elif whichones == '':
-            actuals = availables  # ['binanceus', 'kraken', 'coinbasepro']
+            actuals = ['binanceus', 'kraken', 'coinbasepro', 'bittrex']
         else:
             actuals = [x.strip(' ')
                        for x in whichones.split(',')]  # remove whitespace
