@@ -21,7 +21,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, active=False, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, active=False, threshold=0.009, logging=True, loud=True):
         '''
         Create the class.
         '''
@@ -51,7 +51,7 @@ class Bouncer:
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
         self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
-        self.threshold = 0.01  # for trades
+        self.threshold = threshold  # for trades
         exchanges_str = ''
 
         # set up file for logging
