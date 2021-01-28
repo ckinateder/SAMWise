@@ -272,7 +272,7 @@ def configure():
             commons = getCommons(exchanges)
             for e in commons:
                 currencies.append(
-                    Bouncer(e, 25, exchanges))
+                    Bouncer(e, 25, exchanges, threshold=0.001))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
@@ -302,6 +302,15 @@ def configure():
         # check for scanning
         scan = input(
             ('Would you like to run in scanner mode? (Y/n): '))
+        commons = getCommons(exchanges)
+
+        curr = 'list'
+        while 'list' in curr.lower():
+            curr = input((
+                'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): ')).upper()
+            if 'list' in curr.lower():
+                print(colorEh(commons))
+
         if 'y' in scan.lower():
             globals()['active'] = False
             login = input('Would you like to disable logging to file? (Y/n): ')
@@ -315,13 +324,6 @@ def configure():
                 inip = True
             else:
                 inip = False
-        commons = getCommons(exchanges)
-        curr = 'list'
-        while 'list' in curr.lower():
-            curr = input((
-                'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): ')).upper()
-            if 'list' in curr.lower():
-                print(colorEh(commons))
 
         invest = ''
         while type(invest) == str:
@@ -335,10 +337,22 @@ def configure():
                 else:
                     print(colorBad('Enter a number.'))
 
+        threshold = ''
+        while type(threshold) == str:
+            threshold = input((
+                'Threshold? ')+' $')
+            try:
+                threshold = float(threshold)
+            except:
+                if threshold == '':
+                    threshold = 0.01  # default
+                else:
+                    print(colorBad('Enter a number.'))
+
         speedup = ''
         while type(speedup) == str:
             speedup = input(
-                'Max speedup? (-100 to 100%) ')
+                'Max speedup? (0 to 100%) ')
             try:
                 speedup = float(speedup)
             except:
@@ -352,10 +366,10 @@ def configure():
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['active'], log))
+                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['active'], threshold, log))
         else:
             currencies.append(
-                Bouncer(curr, invest, exchanges, inip, speedup, globals()['active'], log))
+                Bouncer(curr, invest, exchanges, inip, speedup, globals()['active'], threshold, log))
 
 
 # run main
