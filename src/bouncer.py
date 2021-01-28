@@ -166,7 +166,7 @@ class Bouncer:
                     actual_speedup = 0
                     inc = .001
                     ran = False
-                    while spread_w_fee > self.threshold+inc and actual_speedup < self.max_speedup-inc:
+                    while spread_w_fee > self.threshold+inc and actual_speedup < self.max_speedup:
                         buy_price = test_buy[1]['bid'] * \
                             (1+(actual_speedup/200))
                         sell_price = test_sell[1]['ask'] * \
