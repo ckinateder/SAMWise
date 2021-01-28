@@ -165,6 +165,7 @@ class Bouncer:
 
                     actual_speedup = 0
                     inc = .001
+                    ran = False
                     while spread_w_fee > self.threshold+inc and actual_speedup < self.max_speedup-inc:
                         buy_price = test_buy[1]['bid'] * \
                             (1+(actual_speedup/200))
@@ -177,8 +178,9 @@ class Bouncer:
                                     test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
                         spread_w_fee = spread_w_fee = test_spread-test_fee
                         actual_speedup += inc
-
-                    actual_speedup -= inc  # set after
+                        ran = True
+                    if ran:
+                        actual_speedup -= inc  # set after
                     # print(actual_speedup)
                     spreads[spread_w_fee] = {
                         'buy': test_buy[0],
