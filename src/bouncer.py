@@ -197,8 +197,8 @@ class Bouncer:
                         'speedup': actual_speedup  # a percent
                     }
 
-        spreads = sorted(spreads.values(), key=lambda x: getitem(
-            x, 'spread_w_fees'))  # as a list
+        spreads = sorted(spreads.values(), key=lambda x: (getitem(
+            x, 'speedup'), getitem(x, 'spread_w_fees')))  # as a list
         # pprint(spreads)
         # get last in list, sorted from low to high spread_w_fees
         '''
@@ -435,6 +435,7 @@ class Bouncer:
             else:
                 print(
                     'No need to sell, no balance in {} on {}'.format(self.base_coin, exchange.name))
+        '''
         self.blockTrades(5)
         print('Final balances:')
         base, quote = self.updateBalances(loud=False)
@@ -443,6 +444,8 @@ class Bouncer:
         self.updateNet()
         print('Net: {}%'.format(colorProfit(self.net)))
         print('Done!\n')
+        '''
+        print(colorEh('Trades sumbitted ... exiting.'))
 
     def blockTrades(self, timewait):
         print(colorEh('Trades initiated ... blocking to completion'))
