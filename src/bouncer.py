@@ -125,9 +125,24 @@ class Bouncer:
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
 
+    def calculateLiquidity(self, numberone, numbertwo):
+        l = 'unknown'
+        try:
+            buy = float(numberone)
+            sell = float(numbertwo)
+            l = buy+sell
+        except:
+            l = 'unknown'
+        return l
+
     def getSpread(self, responses=None):
-        # get tickers for the watched symbols and return exchanges and spread
+        '''
+        Get tickers for the watched symbols and return exchanges and spread
+        '''
+        #
         if responses == None:
+            t_formatted = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
+            timestamp = time.time()
             responses = self.getWatched()
         # not necessary to sort but it helps
         responses = OrderedDict(sorted(responses.items(),
@@ -149,14 +164,22 @@ class Bouncer:
 
         # make ordered dict of spreads COUNTING fees
 
-        spreads = dict()
+        spreads = dict()  # OrderedDict()
         for test_buy in response_items:
             for test_sell in response_items:
-                # calculate speedup
-                buy_price = test_buy[1]['bid']  # *(1+(self.max_speedup/100))
-                sell_price = test_sell[1]['ask']  # *(1-(self.max_speedup/100))
-
                 if test_buy != test_sell:
+                    # *(1+(self.max_speedup/100))
+                    buy_price = test_buy[1]['bid']
+                    # *(1-(self.max_speedup/100))
+                    sell_price = test_sell[1]['ask']
+
+                    buy_volume = test_buy[1]['baseVolume']
+                    sell_volume = test_sell[1]['baseVolume']
+
+                    liquidity = self.calculateLiquidity(
+                        buy_volume, sell_volume)  # change
+
+                    # calculate speedup
                     test_spread = (self.quote_order_size /
                                    sell_price)*(sell_price-buy_price)
                     test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
@@ -187,14 +210,21 @@ class Bouncer:
                         'buy_bid': test_buy[1]['bid'],
                         'buy_ask': test_buy[1]['ask'],
                         'buy_price': buy_price,
+                        'buy_volume': buy_volume,
+                        'fees': test_fee,
+                        'liquidity': liquidity,
+                        'no_fees': test_spread,
+                        'quote_order_size': self.quote_order_size,
                         'sell': test_sell[0],
                         'sell_bid': test_sell[1]['bid'],
                         'sell_ask': test_sell[1]['ask'],
                         'sell_price': sell_price,
-                        'fees': test_fee,
-                        'no_fees': test_spread,
+                        'sell_volume': sell_volume,
                         'spread_w_fees': spread_w_fee,
-                        'speedup': actual_speedup  # a percent
+                        'speedup': actual_speedup,  # a percent
+                        'symbol': self.symbol,
+                        'time': t_formatted,
+                        'timestamp': timestamp,
                     }
 
         spreads = sorted(spreads.values(), key=lambda x: (getitem(
@@ -205,17 +235,24 @@ class Bouncer:
         sample from spreads:
         {
             'buy': ccxt.binanceus(),
-            'buy_ask': 104.42,
-            'buy_bid': 104.01,
-            'buy_price': 104.01,
-            'fees': 0.25096,
-            'no_fees': 19.99230769230769,
+            'buy_ask': 103.28,
+            'buy_bid': 103.1,
+            'buy_price': 108.25499999999992,
+            'buy_volume': 2487.07952,
+            'fees': 0.06273,
+            'liquidity': 0,
+            'no_fees': 3.0860323886639955,
+            'quote_order_size': 25.0,
             'sell': ccxt.bittrex(),
             'sell_ask': 130.0,
             'sell_bid': 100.0,
-            'sell_price': 130.0,
-            'spread_w_fees': 19.74134769230769,
-            'speedup': 2
+            'sell_price': 123.50000000000007,
+            'sell_volume': None,
+            'speedup': 9.999999999999897,
+            'spread_w_fees': 3.0233023886639954,
+            'symbol': 'DASH/USD',
+            'time': '01-28-2021_14-35-26',
+            'timestamp': 1611862526.2960699
         }
         '''
         most_profitable = spreads[-1]
@@ -501,8 +538,7 @@ class Bouncer:
         Calculate spread and buy on low and sell on high.
         '''
         try:
-            markets = self.getWatched()
-            spreads, error = self.getSpread(markets)
+            spreads, error = self.getSpread()
 
             # add and subtract from mock balances here
 
