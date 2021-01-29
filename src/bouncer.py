@@ -318,7 +318,7 @@ class Bouncer:
         if spreads:  # only print if profitable
             print('/'+'-'*(WIDTH-26) +
                   colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {} w/ ${:.3f}]:'.format(colorSymbol(self.symbol),
+            print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                 self.quote_order_size))
             print(exchanges_str, end='')
             print(colorGood('*'), end='')
@@ -345,7 +345,7 @@ class Bouncer:
             if self.loud:
                 print(
                     '/'+'-'*(WIDTH-26)+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-                print('[For {} w/ ${:.3f}]:'.format(colorSymbol(self.symbol),
+                print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                     self.quote_order_size))
                 print(exchanges_str, end='')
                 print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
