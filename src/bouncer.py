@@ -1,11 +1,9 @@
 import logging
-import multiprocessing
 import sys
 import time
 from datetime import datetime
-from os import path, listdir
-from getpass import getpass
-import operator
+from os import path
+from math import log, floor
 
 from collections import OrderedDict
 from operator import getitem
@@ -19,9 +17,11 @@ from crayon import *
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
 
+WIDTH = 100
+
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, active=False, threshold=0.009, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, threshold=0.009, logging=True, loud=True):
         '''
         Create the class.
         '''
@@ -43,7 +43,7 @@ class Bouncer:
                 'Symbol \'{}\' not supported by all platforms. Exiting ...'.format(symbol))
             sys.exit(0)
 
-        self.active = active
+        self.trading = trading
         self.start_time = time.time()
         self.base_coin = symbol.split('/')[0]
         self.quote_coin = symbol.split('/')[1]
@@ -68,7 +68,7 @@ class Bouncer:
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
 
-        if active:
+        if trading:
             print(colorGood('Created Bouncer investing ${} on {} with max {}% speedup and threshold ${}.\nActive on {}.').format(
                 self.quote_order_size, self.symbol, self.max_speedup, self.threshold, exchanges_str))
         else:
@@ -92,7 +92,7 @@ class Bouncer:
         self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
             loud=False)
 
-        if active:
+        if trading:
             print(colorClock('Starting base amount [{:.8f} {}, {:.4f} {}]').format(
                 self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
             print()
@@ -135,6 +135,15 @@ class Bouncer:
             l = 'unknown'
         return l
 
+    def shorten(self, liquid):
+        if liquid == 'unknown':
+            return liquid
+        else:
+            units = ['', 'K', 'M', 'G', 'T', 'P']
+            k = 1000.0
+            magnitude = int(floor(log(liquid, k)))
+            return '%.2f%s' % (liquid / k**magnitude, units[magnitude])
+
     def getSpread(self, responses=None):
         '''
         Get tickers for the watched symbols and return exchanges and spread
@@ -173,8 +182,8 @@ class Bouncer:
                     # *(1-(self.max_speedup/100))
                     sell_price = test_sell[1]['ask']
 
-                    buy_volume = test_buy[1]['baseVolume']
-                    sell_volume = test_sell[1]['baseVolume']
+                    buy_volume = test_buy[1]['quoteVolume']
+                    sell_volume = test_sell[1]['quoteVolume']
 
                     liquidity = self.calculateLiquidity(
                         buy_volume, sell_volume)  # change
@@ -307,18 +316,20 @@ class Bouncer:
             profitable = False
 
         if spreads:  # only print if profitable
-            print('/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {} w/ ${:.3f}]:'.format(self.symbol,
+            print('/'+'-'*(WIDTH-26) +
+                  colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+            print('[For {} w/ ${:.3f}]:'.format(colorSymbol(self.symbol),
                                                 self.quote_order_size))
             print(exchanges_str, end='')
+            print(colorGood('*'), end='')
             print(
-                colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(90))
+                colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+9))
             for i in range(len(spreads)-1, -1, -1):
                 item = spreads[i]
-                print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%])'.format(
-                    colorGood('[PROFITABLE {}]'.format(i+1)),
-                    colorProfit(item['no_fees']),
-                    colorProfit(
+                print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])'.format(
+                    colorGood('[PROFITABLE #{}]'.format(len(spreads)-(i))),
+                    colorThreshold(item['no_fees']),
+                    colorThreshold(
                         item['spread_w_fees']),
                     colorLow(
                         item['buy'].name),
@@ -328,18 +339,19 @@ class Bouncer:
                         item['sell'].name),
                     colorHigh(
                         '{:.3f}'.format(item['sell_price'])),
-                    colorProfit(item['speedup'])))
+                    colorThreshold(item['speedup']),
+                    colorThreshold(self.shorten(item['liquidity']))))
         else:
             if self.loud:
                 print(
-                    '/'+'-'*55+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-                print('[For {} w/ ${:.3f}]:'.format(self.symbol,
+                    '/'+'-'*(WIDTH-26)+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+                print('[For {} w/ ${:.3f}]:'.format(colorSymbol(self.symbol),
                                                     self.quote_order_size))
                 print(exchanges_str, end='')
                 print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
-                                                                                                                              colorProfit(
+                                                                                                                              colorThreshold(
                     no_fees),
-                    colorProfit(
+                    colorThreshold(
                     spread),
                     colorLow(
                     buy.name),
@@ -349,7 +361,7 @@ class Bouncer:
                     sell.name),
                     colorHigh(
                     '{:.3f}'.format(high)),
-                    colorProfit((high-low))))
+                    colorThreshold((high-low))))
 
         # check last row
         seq_profitable = False
@@ -375,7 +387,20 @@ class Bouncer:
         Log balances to file and total base and quote amounts.
         '''
         for exchange in self.exchanges:
-            self.balances[exchange] = exchange.fetch_balance()
+            try:
+                self.balances[exchange] = exchange.fetch_balance()
+                # pprint(self.balances[exchange])
+            except Exception as e:
+                if self.trading:
+                    print(colorBad(
+                        'Balances for {} could not be fetched - setting trading to false.'.format(exchange.name)))
+                    self.trading = False
+                else:
+                    print(colorBad(
+                        'Balances for {} could not be fetched.'.format(exchange.name)))
+                self.balances[exchange] = {}
+                self.balances[exchange][self.section] = {}
+
         if loud:
             for exchange in self.exchanges:
                 print(
@@ -479,7 +504,7 @@ class Bouncer:
         print('Sums: [{:.8f} {}, {:.3f} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
-        print('Net: {}%'.format(colorProfit(self.net)))
+        print('Net: {}%'.format(colorThreshold(self.net)))
         print('Done!\n')
         '''
         print(colorEh('Trades sumbitted ... exiting.'))
@@ -528,7 +553,7 @@ class Bouncer:
         # recalculate
         self.updateNet()
 
-        #print('Balances fetched')
+        # print('Balances fetched')
         self.updateBalances(loud=False)
 
         return 'Done'
@@ -542,7 +567,7 @@ class Bouncer:
 
             # add and subtract from mock balances here
 
-            if spreads and self.active and not error and not self.anyOpen():
+            if spreads and self.trading and not error and not self.anyOpen():
                 # get balances
                 self.updateBalances(loud=False)
 

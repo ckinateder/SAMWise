@@ -9,7 +9,7 @@ try:
     dynamic_input = True
 except:
     dynamic_input = False
-from bouncer import Bouncer
+from bouncer import Bouncer, WIDTH
 from crayon import *
 
 __author__ = 'Calvin Kinateder'
@@ -251,7 +251,7 @@ def on_release(key):
 
 def kill():
     print('\nQuitting\n')
-    if globals()['active']:
+    if globals()['trading']:
         todo = input('Cleanup balances? (Y/n) ')
         if 'y' in todo.lower():
             for i in currencies:
@@ -263,11 +263,11 @@ def configure():
     # check for adding exchanges
     inip = False
     log = True
-    globals()['active'] = True
+    globals()['trading'] = True
     # check for commandline override
     if len(sys.argv) > 1:
         exchanges = loadExchanges(
-            ['binanceus', 'kraken', 'coinbasepro', 'bittrex'])
+            ['binanceus', 'coinbasepro', 'bittrex', 'kraken'])
         if sys.argv[1] == 'test_usd':
             commons = getCommons(exchanges)
             for e in commons:
@@ -292,7 +292,7 @@ def configure():
         if 'all' in whichones:
             actuals = availables
         elif whichones == '':
-            actuals = ['binanceus', 'kraken', 'coinbasepro', 'bittrex']
+            actuals = ['binanceus', 'coinbasepro', 'bittrex', 'kraken']
         else:
             actuals = [x.strip(' ')
                        for x in whichones.split(',')]  # remove whitespace
@@ -312,7 +312,7 @@ def configure():
                 print(colorEh(commons))
 
         if 'y' in scan.lower():
-            globals()['active'] = False
+            globals()['trading'] = False
             login = input('Would you like to disable logging to file? (Y/n): ')
             if 'y' in login.lower():
                 log = False
@@ -366,28 +366,25 @@ def configure():
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['active'], threshold, log))
+                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['trading'], threshold, log))
         else:
             currencies.append(
-                Bouncer(curr, invest, exchanges, inip, speedup, globals()['active'], threshold, log))
+                Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], threshold, log))
 
 
 # run main
 if __name__ == '__main__':
-    WIDTH = 80  # of console
     # welcome
     print()
     print('Welcome to SAMWise!'.center(WIDTH))
     print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
-    with open('img/banner.txt') as banner:
-        print(banner.read(), end='')
     print('Created by Calvin Kinateder, 2021'.center(WIDTH))
     print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
     if dynamic_input:
         print('Press \'q\' or ESC to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
     else:
         print('CTRL C to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
-    print(('-'*80)+'\n')
+    print(('-'*WIDTH)+'\n')
 
     # attach key listener
     # ...or, in a non-blocking fashion:
