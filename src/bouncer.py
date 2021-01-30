@@ -174,6 +174,7 @@ class Bouncer:
         # make ordered dict of spreads COUNTING fees
 
         spreads = dict()  # OrderedDict()
+        got_zero = False
         for test_buy in response_items:
             for test_sell in response_items:
                 if test_buy != test_sell:
@@ -181,206 +182,210 @@ class Bouncer:
                     buy_price = test_buy[1]['bid']
                     # *(1-(self.max_speedup/100))
                     sell_price = test_sell[1]['ask']
+                    if buy_price != 0 and sell_price != 0:
+                        buy_volume = test_buy[1]['quoteVolume']
+                        sell_volume = test_sell[1]['quoteVolume']
 
-                    buy_volume = test_buy[1]['quoteVolume']
-                    sell_volume = test_sell[1]['quoteVolume']
+                        liquidity = self.calculateLiquidity(
+                            buy_volume, sell_volume)  # change
 
-                    liquidity = self.calculateLiquidity(
-                        buy_volume, sell_volume)  # change
-
-                    # calculate speedup
-                    test_spread = (self.quote_order_size /
-                                   sell_price)*(sell_price-buy_price)
-                    test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
-                                test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
-                    spread_w_fee = test_spread-test_fee
-
-                    actual_speedup = 0
-                    inc = .001
-                    ran = False
-                    while spread_w_fee > self.threshold+inc and actual_speedup <= self.max_speedup:
-                        buy_price = test_buy[1]['bid'] * \
-                            (1+(actual_speedup/200))
-                        sell_price = test_sell[1]['ask'] * \
-                            (1-(actual_speedup/200))
-                        # recalculate
+                        # calculate speedup
                         test_spread = (self.quote_order_size /
                                        sell_price)*(sell_price-buy_price)
                         test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
                                     test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
-                        spread_w_fee = spread_w_fee = test_spread-test_fee
-                        actual_speedup += inc
-                        ran = True
-                    if ran:
-                        actual_speedup -= inc  # set after
-                    # print(actual_speedup)
-                    spreads[spread_w_fee] = {
-                        'buy': test_buy[0],
-                        'buy_bid': test_buy[1]['bid'],
-                        'buy_ask': test_buy[1]['ask'],
-                        'buy_price': buy_price,
-                        'buy_volume': buy_volume,
-                        'fees': test_fee,
-                        'liquidity': liquidity,
-                        'no_fees': test_spread,
-                        'quote_order_size': self.quote_order_size,
-                        'sell': test_sell[0],
-                        'sell_bid': test_sell[1]['bid'],
-                        'sell_ask': test_sell[1]['ask'],
-                        'sell_price': sell_price,
-                        'sell_volume': sell_volume,
-                        'spread_w_fees': spread_w_fee,
-                        'speedup': actual_speedup,  # a percent
-                        'symbol': self.symbol,
-                        'time': t_formatted,
-                        'timestamp': timestamp,
-                    }
+                        spread_w_fee = test_spread-test_fee
 
-        spreads = sorted(spreads.values(), key=lambda x: (getitem(
-            x, 'speedup'), getitem(x, 'spread_w_fees')))  # as a list
-        # pprint(spreads)
-        # get last in list, sorted from low to high spread_w_fees
-        '''
-        sample from spreads:
-        {
-            'buy': ccxt.binanceus(),
-            'buy_ask': 103.28,
-            'buy_bid': 103.1,
-            'buy_price': 108.25499999999992,
-            'buy_volume': 2487.07952,
-            'fees': 0.06273,
-            'liquidity': 0,
-            'no_fees': 3.0860323886639955,
-            'quote_order_size': 25.0,
-            'sell': ccxt.bittrex(),
-            'sell_ask': 130.0,
-            'sell_bid': 100.0,
-            'sell_price': 123.50000000000007,
-            'sell_volume': None,
-            'speedup': 9.999999999999897,
-            'spread_w_fees': 3.0233023886639954,
-            'symbol': 'DASH/USD',
-            'time': '01-28-2021_14-35-26',
-            'timestamp': 1611862526.2960699
-        }
-        '''
-        most_profitable = spreads[-1]
-        buy = most_profitable['buy']
-        sell = most_profitable['sell']
+                        actual_speedup = 0
+                        inc = .001
+                        ran = False
+                        while spread_w_fee > self.threshold+inc and actual_speedup <= self.max_speedup:
+                            buy_price = test_buy[1]['bid'] * \
+                                (1+(actual_speedup/200))
+                            sell_price = test_sell[1]['ask'] * \
+                                (1-(actual_speedup/200))
+                            # recalculate
+                            test_spread = (self.quote_order_size /
+                                           sell_price)*(sell_price-buy_price)
+                            test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
+                                        test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
+                            spread_w_fee = spread_w_fee = test_spread-test_fee
+                            actual_speedup += inc
+                            ran = True
+                        if ran:
+                            actual_speedup -= inc  # set after
+                        # print(actual_speedup)
+                        spreads[spread_w_fee] = {
+                            'buy': test_buy[0],
+                            'buy_bid': test_buy[1]['bid'],
+                            'buy_ask': test_buy[1]['ask'],
+                            'buy_price': buy_price,
+                            'buy_volume': buy_volume,
+                            'fees': test_fee,
+                            'liquidity': liquidity,
+                            'no_fees': test_spread,
+                            'quote_order_size': self.quote_order_size,
+                            'sell': test_sell[0],
+                            'sell_bid': test_sell[1]['bid'],
+                            'sell_ask': test_sell[1]['ask'],
+                            'sell_price': sell_price,
+                            'sell_volume': sell_volume,
+                            'spread_w_fees': spread_w_fee,
+                            'speedup': actual_speedup,  # a percent
+                            'symbol': self.symbol,
+                            'time': t_formatted,
+                            'timestamp': timestamp,
+                        }
+                    else:
+                        got_zero = True
+        if not got_zero:
+            spreads = sorted(spreads.values(), key=lambda x: (getitem(
+                x, 'speedup'), getitem(x, 'spread_w_fees')))  # as a list
+            # pprint(spreads)
+            # get last in list, sorted from low to high spread_w_fees
+            '''
+            sample from spreads:
+            {
+                'buy': ccxt.binanceus(),
+                'buy_ask': 103.28,
+                'buy_bid': 103.1,
+                'buy_price': 108.25499999999992,
+                'buy_volume': 2487.07952,
+                'fees': 0.06273,
+                'liquidity': 0,
+                'no_fees': 3.0860323886639955,
+                'quote_order_size': 25.0,
+                'sell': ccxt.bittrex(),
+                'sell_ask': 130.0,
+                'sell_bid': 100.0,
+                'sell_price': 123.50000000000007,
+                'sell_volume': None,
+                'speedup': 9.999999999999897,
+                'spread_w_fees': 3.0233023886639954,
+                'symbol': 'DASH/USD',
+                'time': '01-28-2021_14-35-26',
+                'timestamp': 1611862526.2960699
+            }
+            '''
+            most_profitable = spreads[-1]
+            buy = most_profitable['buy']
+            sell = most_profitable['sell']
 
-        low = most_profitable['buy_price']  # will remove soon
-        high = most_profitable['sell_price']  # ditto
-        fees = most_profitable['fees']
-        no_fees = most_profitable['no_fees']
-        spread = most_profitable['spread_w_fees']
+            low = most_profitable['buy_price']  # will remove soon
+            high = most_profitable['sell_price']  # ditto
+            fees = most_profitable['fees']
+            no_fees = most_profitable['no_fees']
+            spread = most_profitable['spread_w_fees']
 
-        # find buy and sell and log
-        exchanges_str = ''
-        for i in range(0, len(responses)):
-            ask = response_items[i][1]['ask']
-            bid = response_items[i][1]['bid']
-            exchange = response_items[i][0]
-            if exchange == buy:
-                fee = exchange.calculateFee(
-                    self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                # logstr = colorLow('\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
-                #    exchange.name, ask, self.quote_order_size, fee))
-                logstr = colorLow('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
-                    exchange.name, ask, bid))
-            elif exchange == sell:
-                fee = exchange.calculateFee(
-                    self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                # logstr = colorHigh('\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
-                #    exchange.name, ask, self.quote_order_size, fee))
-                logstr = colorHigh('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
-                    exchange.name, ask, bid))
+            # find buy and sell and log
+            exchanges_str = ''
+            for i in range(0, len(responses)):
+                ask = response_items[i][1]['ask']
+                bid = response_items[i][1]['bid']
+                exchange = response_items[i][0]
+                if exchange == buy:
+                    fee = exchange.calculateFee(
+                        self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                    # logstr = colorLow('\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
+                    #    exchange.name, ask, self.quote_order_size, fee))
+                    logstr = colorLow('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
+                        exchange.name, ask, bid))
+                elif exchange == sell:
+                    fee = exchange.calculateFee(
+                        self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                    # logstr = colorHigh('\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
+                    #    exchange.name, ask, self.quote_order_size, fee))
+                    logstr = colorHigh('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
+                        exchange.name, ask, bid))
+                else:
+                    fee = exchange.calculateFee(
+                        self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                    # logstr = '\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
+                    #    exchange.name, ask, self.quote_order_size, fee)
+                    logstr = ('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
+                        exchange.name, ask, bid))
+                exchanges_str += logstr+'\n'
+
+            # remove all values less than threshold
+            for i in range(0, len(spreads)):
+                if spreads[i]['spread_w_fees'] <= self.threshold:
+                    spreads[i] = None
+            spreads[:] = [x for x in spreads if x]
+
+            # if empty, not profitable
+            if spreads:
+                profitable = True
             else:
-                fee = exchange.calculateFee(
-                    self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                # logstr = '\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
-                #    exchange.name, ask, self.quote_order_size, fee)
-                logstr = ('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
-                    exchange.name, ask, bid))
-            exchanges_str += logstr+'\n'
+                profitable = False
 
-        # remove all values less than threshold
-        for i in range(0, len(spreads)):
-            if spreads[i]['spread_w_fees'] <= self.threshold:
-                spreads[i] = None
-        spreads[:] = [x for x in spreads if x]
-
-        # if empty, not profitable
-        if spreads:
-            profitable = True
-        else:
-            profitable = False
-
-        if spreads:  # only print if profitable
-            print('/'+'-'*(WIDTH-26) +
-                  colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
-            print('[For {} w/ ${:.3f}]:'.format((self.symbol),
-                                                self.quote_order_size))
-            print(exchanges_str, end='')
-            print(colorGood('*'), end='')
-            print(
-                colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+9))
-            for i in range(len(spreads)-1, -1, -1):
-                item = spreads[i]
-                print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])'.format(
-                    colorGood('[PROFITABLE #{}]'.format(len(spreads)-(i))),
-                    colorThreshold(item['no_fees']),
-                    colorThreshold(
-                        item['spread_w_fees']),
-                    colorLow(
-                        item['buy'].name),
-                    colorLow(
-                        '{:.3f}'.format(item['buy_price'])),
-                    colorHigh(
-                        item['sell'].name),
-                    colorHigh(
-                        '{:.3f}'.format(item['sell_price'])),
-                    colorThreshold(item['speedup']),
-                    colorThreshold(self.shorten(item['liquidity']))))
-        else:
-            if self.loud:
-                print(
-                    '/'+'-'*(WIDTH-26)+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+            if spreads:  # only print if profitable
+                print('/'+'-'*(WIDTH-26) +
+                      colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
                 print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                     self.quote_order_size))
                 print(exchanges_str, end='')
-                print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
-                                                                                                                              colorThreshold(
-                    no_fees),
-                    colorThreshold(
-                    spread),
-                    colorLow(
-                    buy.name),
-                    colorLow(
-                    '{:.3f}'.format(low)),
-                    colorHigh(
-                    sell.name),
-                    colorHigh(
-                    '{:.3f}'.format(high)),
-                    colorThreshold((high-low))))
-
-        # check last row
-        seq_profitable = False
-        # not implementing yet
-        all_prices = spreads
-
-        new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
-                   high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable, all_prices]
-        self.pro_frame.loc[len(self.pro_frame)] = new_row
-
-        if logging:
-            if path.exists(self.pro_filename):  # if file exists, append
-                self.pro_frame.iloc[[-1]].to_csv(
-                    path_or_buf=self.pro_filename, mode='a', header=False, index=False)
+                print(colorGood('*'), end='')
+                print(
+                    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+9))
+                for i in range(len(spreads)-1, -1, -1):
+                    item = spreads[i]
+                    print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])'.format(
+                        colorGood('[PROFITABLE #{}]'.format(len(spreads)-(i))),
+                        colorThreshold(item['no_fees']),
+                        colorThreshold(
+                            item['spread_w_fees']),
+                        colorLow(
+                            item['buy'].name),
+                        colorLow(
+                            '{:.3f}'.format(item['buy_price'])),
+                        colorHigh(
+                            item['sell'].name),
+                        colorHigh(
+                            '{:.3f}'.format(item['sell_price'])),
+                        colorThreshold(item['speedup']),
+                        colorThreshold(self.shorten(item['liquidity']))))
             else:
-                self.pro_frame.to_csv(
-                    path_or_buf=self.pro_filename, index=False)
+                if self.loud:
+                    print(
+                        '/'+'-'*(WIDTH-26)+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+                    print('[For {} w/ ${:.3f}]:'.format((self.symbol),
+                                                        self.quote_order_size))
+                    print(exchanges_str, end='')
+                    print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
+                                                                                                                                  colorThreshold(
+                        no_fees),
+                        colorThreshold(
+                        spread),
+                        colorLow(
+                        buy.name),
+                        colorLow(
+                        '{:.3f}'.format(low)),
+                        colorHigh(
+                        sell.name),
+                        colorHigh(
+                        '{:.3f}'.format(high)),
+                        colorThreshold((high-low))))
 
-        return spreads, False
+            # check last row
+            seq_profitable = False
+            # not implementing yet
+            all_prices = spreads
+
+            new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
+                       high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable, all_prices]
+            self.pro_frame.loc[len(self.pro_frame)] = new_row
+
+            if logging:
+                if path.exists(self.pro_filename):  # if file exists, append
+                    self.pro_frame.iloc[[-1]].to_csv(
+                        path_or_buf=self.pro_filename, mode='a', header=False, index=False)
+                else:
+                    self.pro_frame.to_csv(
+                        path_or_buf=self.pro_filename, index=False)
+
+            return spreads, False
+        else:
+            return None, True
 
     def updateBalances(self, loud=True):
         '''
@@ -594,6 +599,9 @@ class Bouncer:
                         elif base_balance < self.quote_order_size/high:
                             print(colorBad('* Insufficient balance (missing {:.4f} {} on {})'.format(
                                 self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
+            elif error:
+                print(
+                    colorBad('* Error in symbol {} - price returned 0.').format(self.symbol))
 
         except Exception as e:
             print(colorBad('Error in call ... trying again in 10 ({})').format(e))

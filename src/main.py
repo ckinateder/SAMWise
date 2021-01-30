@@ -222,7 +222,8 @@ def getCommons(exchanges):
 
     for item in alls:
         # Important - only allows usd
-        if alls.count(item) == len(exchanges) and 'USD' in item and not 'XRP' in item:
+        # and not 'XRP' in item:
+        if alls.count(item) == len(exchanges) and 'USD' in item:
             out.append(item)
     out = list(set(out))
     return out
