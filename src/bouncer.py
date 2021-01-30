@@ -186,6 +186,8 @@ class Bouncer:
                     # *(1-(self.max_speedup/100))
                     sell_price = test_sell[1]['ask']
                     if buy_price != 0 and sell_price != 0:
+                        buy_volume = test_buy[1]['quoteVolume']
+                        sell_volume = test_sell[1]['quoteVolume']
                         liquidity = self.calculateLiquidity(
                             test_buy, test_sell)  # change
 
