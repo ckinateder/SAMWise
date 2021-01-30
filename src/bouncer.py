@@ -133,7 +133,7 @@ class Bouncer:
             buy_price = test_buy[1]['bid']
             # *(1-(self.max_speedup/100))
             sell_price = test_sell[1]['ask']
-            l = sell_price-buy_price
+            l = (sell_price-buy_price)/buy_price*100
         except:
             l = 'unknown'
         return l
@@ -345,7 +345,7 @@ class Bouncer:
                         colorHigh(
                             '{:.3f}'.format(item['sell_price'])),
                         colorThreshold(item['speedup']),
-                        colorThreshold(item['liquidity'], 3, 0)))
+                        colorThreshold(item['liquidity'], dig=3, threshold=1, rev=True)))
             else:
                 if self.loud:
                     print(

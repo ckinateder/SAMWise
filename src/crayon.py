@@ -25,19 +25,27 @@ def colorClock(strr):
     return colored(text=strr, color='grey', on_color='on_yellow')
 
 
-def colorThreshold(number, dig=3, threshold=0):
+def colorThreshold(number, dig=3, threshold=0, rev=False):
     '''
     Color code a number.
     '''
     if type(number) == float:
         number = round(number, dig)
         try:
-            if number > threshold:
-                form = colorGood(number)
-            elif number < threshold:
-                form = colorBad(number)
-            else:
-                form = colorEh(number)
+            if not rev:
+                if number > threshold:
+                    form = colorGood(number)
+                elif number < threshold:
+                    form = colorBad(number)
+                else:
+                    form = colorEh(number)
+            elif rev:
+                if number < threshold:
+                    form = colorGood(number)
+                elif number > threshold:
+                    form = colorBad(number)
+                else:
+                    form = colorEh(number)
         except:
             print('Couldn\'t colorize')
         return form
