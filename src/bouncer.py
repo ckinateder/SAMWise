@@ -125,12 +125,15 @@ class Bouncer:
         #    ', '.join(all_responses.keys()), time.time()-before))
         return all_responses
 
-    def calculateLiquidity(self, numberone, numbertwo):
+    def calculateLiquidity(self, test_buy, test_sell):
         l = 'unknown'
         try:
-            buy = float(numberone)
-            sell = float(numbertwo)
-            l = buy+sell
+            buy_volume = test_buy[1]['quoteVolume']
+            sell_volume = test_sell[1]['quoteVolume']
+            buy_price = test_buy[1]['bid']
+            # *(1-(self.max_speedup/100))
+            sell_price = test_sell[1]['ask']
+            l = sell_price-buy_price
         except:
             l = 'unknown'
         return l
@@ -183,11 +186,8 @@ class Bouncer:
                     # *(1-(self.max_speedup/100))
                     sell_price = test_sell[1]['ask']
                     if buy_price != 0 and sell_price != 0:
-                        buy_volume = test_buy[1]['quoteVolume']
-                        sell_volume = test_sell[1]['quoteVolume']
-
                         liquidity = self.calculateLiquidity(
-                            buy_volume, sell_volume)  # change
+                            test_buy, test_sell)  # change
 
                         # calculate speedup
                         test_spread = (self.quote_order_size /
