@@ -364,7 +364,7 @@ class Bouncer:
                         sell.name),
                         colorHigh(
                         '{:.3f}'.format(high)),
-                        colorThreshold((high-low))))
+                        colorThreshold((high-low), 3, self.threshold)))
 
             # check last row
             seq_profitable = False
