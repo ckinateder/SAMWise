@@ -345,7 +345,7 @@ class Bouncer:
                         colorHigh(
                             '{:.3f}'.format(item['sell_price'])),
                         colorThreshold(item['speedup']),
-                        colorThreshold(item['liquidity'], dig=3, threshold=1, rev=True)))
+                        colorThreshold(item['liquidity'], dig=3, threshold=1)))
             else:
                 if self.loud:
                     print(

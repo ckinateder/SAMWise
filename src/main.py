@@ -274,7 +274,7 @@ def configure():
             commons = getCommons(exchanges)
             for e in commons:
                 currencies.append(
-                    Bouncer(e, 25, exchanges, threshold=0.01))
+                    Bouncer(e, 100, exchanges, threshold=0.01))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
