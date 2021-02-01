@@ -155,6 +155,16 @@ class Bouncer:
             magnitude = int(floor(log(liquid, k)))
             return '%.2f%s' % (liquid / k**magnitude, units[magnitude])
 
+    def findFlipFlop(self, spreadlist):
+        flops = []
+        flops_bool = False
+        for item in spreadlist:
+            for compared in spreadlist:
+                if item['buy'] == compared['sell'] and item['sell'] == compared['buy']:
+                    flops_bool = True
+                    flops.append([item, compared])
+        return flops_bool, flops
+
     def getSpread(self, responses=None):
         '''
         Get tickers for the watched symbols and return exchanges and spread
@@ -165,6 +175,7 @@ class Bouncer:
             timestamp = time.time()
             responses = self.getWatched()
         # not necessary to sort but it helps
+        # pprint(responses)
         responses = OrderedDict(sorted(responses.items(),
                                        key=lambda x: getitem(x[1], 'ask')))
         response_items = list(responses.items())
@@ -189,9 +200,7 @@ class Bouncer:
         for test_buy in response_items:
             for test_sell in response_items:
                 if test_buy != test_sell:
-                    # *(1+(self.max_speedup/100))
                     buy_price = test_buy[1]['bid']
-                    # *(1-(self.max_speedup/100))
                     sell_price = test_sell[1]['ask']
                     if buy_price != 0 and sell_price != 0:
                         buy_volume = test_buy[1]['quoteVolume']
@@ -220,7 +229,7 @@ class Bouncer:
                             test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
                                         test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
                             spread_w_fee = spread_w_fee = test_spread-test_fee
-                            actual_speedup += inc
+                            actual_speedup = round(actual_speedup + inc, 3)
                             ran = True
                         if ran:
                             actual_speedup -= inc  # set after
@@ -330,15 +339,23 @@ class Bouncer:
             else:
                 profitable = False
 
+            flip_flop, flop_pairs = self.findFlipFlop(spreads)
+
             if spreads:  # only print if profitable
                 print('/'+'-'*(WIDTH-26) +
                       colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
                 print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                     self.quote_order_size))
                 print(exchanges_str, end='')
-                print(colorGood('*'), end='')
-                print(
-                    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+9))
+                if flip_flop:
+                    print(colorGood('** [FF #{} & #{}]'.format(len(spreads)-spreads.index(
+                        flop_pairs[0][0]), len(spreads)-spreads.index(flop_pairs[0][1]))), end='')
+                    print(
+                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH-5))
+                else:
+                    print(colorGood('*'), end='')
+                    print(
+                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+9))
                 for i in range(len(spreads)-1, -1, -1):
                     item = spreads[i]
                     print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])'.format(
