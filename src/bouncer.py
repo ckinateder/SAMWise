@@ -378,7 +378,7 @@ class Bouncer:
                         '{:.3f}'.format(high)),
                         colorThreshold((high-low), 3, self.threshold)))
 
-            if logging:
+            if logging and profitable:
                 self.saveDict(spreads)
 
             return spreads, False
