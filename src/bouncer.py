@@ -230,6 +230,7 @@ class Bouncer:
                             'symbol': self.symbol,
                             'profitable': spread_w_fee >= self.threshold,
                             'spread_w_fees': spread_w_fee,
+                            'fees': test_fee,
                             'buy_price': buy_price,
                             'sell_price': sell_price,
                             'buy': test_buy[0],
@@ -243,7 +244,6 @@ class Bouncer:
                             'sell_ask': test_sell[1]['ask'],
                             'sell_volume': sell_volume,
                             'liquidity': liquidity,
-                            'fees': test_fee,
                             'no_fees': test_spread,  # a percent
                             'timestamp': timestamp,
                         }
@@ -318,9 +318,6 @@ class Bouncer:
                         exchange.name, ask, bid))
                 exchanges_str += logstr+'\n'
 
-            if logging:
-                self.saveDict(spreads)
-
             # remove all values less than threshold
             for i in range(0, len(spreads)):
                 if spreads[i]['spread_w_fees'] <= self.threshold:
@@ -380,6 +377,9 @@ class Bouncer:
                         colorHigh(
                         '{:.3f}'.format(high)),
                         colorThreshold((high-low), 3, self.threshold)))
+
+            if logging:
+                self.saveDict(spreads)
 
             return spreads, False
         else:
