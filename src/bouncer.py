@@ -1,5 +1,6 @@
 import logging
 import sys
+import csv
 import time
 from datetime import datetime
 from os import path
@@ -54,11 +55,6 @@ class Bouncer:
         self.threshold = threshold  # for trades
         exchanges_str = ''
 
-        # set up file for logging
-        self.pro_headers = ['Date', 'Symbol', 'Investment', 'High', 'Low', 'Adjusted Spread',
-                            'Adj. Spread after fees', 'Fees', 'Profitable', 'Sell exchange', 'Buy exchange', 'Seq Profitable', 'All Prices']
-        self.pro_frame = pd.DataFrame(columns=self.pro_headers)
-
         # set up trades file
         self.trades_headers = ['Date', 'Symbol',
                                'Side', 'Price', 'Exchange', 'Net Gain (%)']
@@ -96,6 +92,18 @@ class Bouncer:
             print(colorClock('Starting base amount [{:.8f} {}, {:.4f} {}]').format(
                 self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
             print()
+
+    def saveDict(self, toCSV):
+        '''
+        takes a list of dictionaries and saves it to a csv
+        '''
+        keys = toCSV[0].keys()
+        did_exist = path.isfile(self.pro_filename)
+        with open(self.pro_filename, 'a+', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            if not did_exist:
+                dict_writer.writeheader()  # only write if not exists
+            dict_writer.writerows(toCSV)
 
     def getCommons(self):
         alls = list()
@@ -218,24 +226,25 @@ class Bouncer:
                             actual_speedup -= inc  # set after
                         # print(actual_speedup)
                         spreads[spread_w_fee] = {
+                            'time': t_formatted,
+                            'symbol': self.symbol,
+                            'profitable': spread_w_fee >= self.threshold,
+                            'spread_w_fees': spread_w_fee,
+                            'speedup': actual_speedup,
+                            'quote_order_size': self.quote_order_size,
                             'buy': test_buy[0],
+                            'sell': test_sell[0],
+                            'buy_price': buy_price,
+                            'sell_price': sell_price,
                             'buy_bid': test_buy[1]['bid'],
                             'buy_ask': test_buy[1]['ask'],
-                            'buy_price': buy_price,
                             'buy_volume': buy_volume,
-                            'fees': test_fee,
-                            'liquidity': liquidity,
-                            'no_fees': test_spread,
-                            'quote_order_size': self.quote_order_size,
-                            'sell': test_sell[0],
                             'sell_bid': test_sell[1]['bid'],
                             'sell_ask': test_sell[1]['ask'],
-                            'sell_price': sell_price,
                             'sell_volume': sell_volume,
-                            'spread_w_fees': spread_w_fee,
-                            'speedup': actual_speedup,  # a percent
-                            'symbol': self.symbol,
-                            'time': t_formatted,
+                            'liquidity': liquidity,
+                            'fees': test_fee,
+                            'no_fees': test_spread,  # a percent
                             'timestamp': timestamp,
                         }
                     else:
@@ -248,25 +257,26 @@ class Bouncer:
             '''
             sample from spreads:
             {
-                'buy': ccxt.binanceus(),
-                'buy_ask': 103.28,
-                'buy_bid': 103.1,
-                'buy_price': 108.25499999999992,
-                'buy_volume': 2487.07952,
-                'fees': 0.06273,
-                'liquidity': 0,
-                'no_fees': 3.0860323886639955,
-                'quote_order_size': 25.0,
-                'sell': ccxt.bittrex(),
-                'sell_ask': 130.0,
-                'sell_bid': 100.0,
-                'sell_price': 123.50000000000007,
-                'sell_volume': None,
-                'speedup': 9.999999999999897,
-                'spread_w_fees': 3.0233023886639954,
-                'symbol': 'DASH/USD',
-                'time': '01-28-2021_14-35-26',
-                'timestamp': 1611862526.2960699
+                'buy': ccxt.bittrex(),
+                'buy_ask': 1.30599,
+                'buy_bid': 1.24303,
+                'buy_price': 1.2676792848999983,
+                'buy_volume': None,
+                'fees': 0.35,
+                'liquidity': 4.422258513471112,
+                'no_fees': 0.36009720681011115,
+                'profitable': True,
+                'quote_order_size': 100,
+                'sell': ccxt.binanceus(),
+                'sell_ask': 1.298,
+                'sell_bid': 1.293,
+                'sell_price': 1.2722606600000022,
+                'sell_volume': 142404.2786,
+                'speedup': 3.9659999999996742,
+                'spread_w_fees': 0.01009720681011117,
+                'symbol': 'KNC/USD',
+                'time': '02-01-2021_00-20-52',
+                'timestamp': 1612156852.032166
             }
             '''
             most_profitable = spreads[-1]
@@ -307,6 +317,9 @@ class Bouncer:
                     logstr = ('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
                         exchange.name, ask, bid))
                 exchanges_str += logstr+'\n'
+
+            if logging:
+                self.saveDict(spreads)
 
             # remove all values less than threshold
             for i in range(0, len(spreads)):
@@ -367,23 +380,6 @@ class Bouncer:
                         colorHigh(
                         '{:.3f}'.format(high)),
                         colorThreshold((high-low), 3, self.threshold)))
-
-            # check last row
-            seq_profitable = False
-            # not implementing yet
-            all_prices = spreads
-
-            new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S"), self.symbol, self.quote_order_size,
-                       high, low, spread, spread-fees, fees, profitable, sell.name, buy.name, seq_profitable, all_prices]
-            self.pro_frame.loc[len(self.pro_frame)] = new_row
-
-            if logging:
-                if path.exists(self.pro_filename):  # if file exists, append
-                    self.pro_frame.iloc[[-1]].to_csv(
-                        path_or_buf=self.pro_filename, mode='a', header=False, index=False)
-                else:
-                    self.pro_frame.to_csv(
-                        path_or_buf=self.pro_filename, index=False)
 
             return spreads, False
         else:

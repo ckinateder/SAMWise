@@ -1,5 +1,6 @@
 import sys
 import time
+import re
 from getpass import getpass
 from os import listdir, path
 
@@ -296,7 +297,7 @@ def configure():
         elif whichones == '':
             actuals = ['binanceus', 'coinbasepro', 'bittrex', 'kraken']
         else:
-            actuals = [x.strip(' ')
+            actuals = [re.sub('[\W_]+', '', x)
                        for x in whichones.split(',')]  # remove whitespace
         # create exchanges
         exchanges = loadExchanges(actuals)
@@ -359,7 +360,7 @@ def configure():
                 speedup = float(speedup)
             except:
                 if speedup == '':
-                    speedup = 0  # default
+                    speedup = 10  # default
                 else:
                     print(colorBad('Enter a number.'))
 
