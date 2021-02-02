@@ -22,7 +22,7 @@ WIDTH = 100
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, threshold=0.009, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.009, min_speedup=0, logging=True, loud=True):
         '''
         Create the class.
         '''
@@ -33,6 +33,7 @@ class Bouncer:
         self.precision = ':.3f'
         # speedup is used to narrow the price gap to enable trades to finish faster.
         self.max_speedup = speedup
+        self.min_speedup = min_speedup
         self.exchanges = exchanges
         self.loud = loud
         self.logging = True  # log to file?
@@ -52,7 +53,7 @@ class Bouncer:
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
         self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
             self.base_coin+'-'+self.quote_coin + '_trades.csv'
-        self.threshold = threshold  # for trades
+        self.margin = margin  # for trades
         exchanges_str = ''
 
         # set up trades file
@@ -65,15 +66,15 @@ class Bouncer:
         exchanges_str += 'and '+self.exchanges[-1].name
 
         if trading:
-            print(colorGood('Created Bouncer investing ${} on {} with max {}% speedup and threshold ${}.\nActive on {}.').format(
-                self.quote_order_size, self.symbol, self.max_speedup, self.threshold, exchanges_str))
+            print(colorGood('Created Bouncer investing ${} on {} with speedup {}% to {}% and margin ${}.\nActive on {}.').format(
+                self.quote_order_size, self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
         else:
             if logging:
-                print(colorEh('Created Bouncer scanning for {} with max {}% speedup and threshold ${}.').format(
-                    self.symbol, self.max_speedup, self.threshold))
+                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${}.').format(
+                    self.symbol, self.min_speedup, self.max_speedup, self.margin))
             else:
-                print(colorEh('Created Bouncer scanning for {} with max {}% speedup and threshold ${}. Logging disabled.').format(
-                    self.symbol, self.max_speedup, self.threshold))
+                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled.').format(
+                    self.symbol, self.min_speedup, self.max_speedup, self.margin))
 
         # init balances
         self.balances = dict()
@@ -218,7 +219,7 @@ class Bouncer:
                         actual_speedup = 0
                         inc = .001
                         ran = False
-                        while spread_w_fee > self.threshold+inc and actual_speedup <= self.max_speedup:
+                        while spread_w_fee > self.margin+inc and actual_speedup <= self.max_speedup:
                             buy_price = test_buy[1]['bid'] * \
                                 (1+(actual_speedup/200))
                             sell_price = test_sell[1]['ask'] * \
@@ -228,7 +229,7 @@ class Bouncer:
                                            sell_price)*(sell_price-buy_price)
                             test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
                                         test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
-                            spread_w_fee = spread_w_fee = test_spread-test_fee
+                            spread_w_fee = test_spread-test_fee
                             actual_speedup = round(actual_speedup + inc, 3)
                             ran = True
                         if ran:
@@ -237,7 +238,7 @@ class Bouncer:
                         spreads[spread_w_fee] = {
                             'time': t_formatted,
                             'symbol': self.symbol,
-                            'profitable': spread_w_fee >= self.threshold,
+                            'profitable': spread_w_fee >= self.margin,
                             'spread_w_fees': spread_w_fee,
                             'fees': test_fee,
                             'buy_price': buy_price,
@@ -327,9 +328,9 @@ class Bouncer:
                         exchange.name, ask, bid))
                 exchanges_str += logstr+'\n'
 
-            # remove all values less than threshold
+            # remove all values less than margin
             for i in range(0, len(spreads)):
-                if spreads[i]['spread_w_fees'] <= self.threshold:
+                if spreads[i]['spread_w_fees'] <= self.margin:
                     spreads[i] = None
             spreads[:] = [x for x in spreads if x]
 
@@ -393,7 +394,7 @@ class Bouncer:
                         sell.name),
                         colorHigh(
                         '{:.3f}'.format(high)),
-                        colorThreshold((high-low), 3, self.threshold)))
+                        colorThreshold((high-low), 3, self.margin)))
 
             if logging and profitable:
                 self.saveDict(spreads)
@@ -593,7 +594,7 @@ class Bouncer:
 
                 action_taken = False
                 for pair in spreads:
-                    if not action_taken:
+                    if not action_taken and pair['speedup'] >= self.min_speedup:
                         buy_ex = pair['buy']
                         sell_ex = pair['sell']
                         low = pair['buy_price']
@@ -614,6 +615,9 @@ class Bouncer:
                         elif base_balance < self.quote_order_size/high:
                             print(colorBad('* Insufficient balance (missing {:.4f} {} on {})'.format(
                                 self.quote_order_size/high-base_balance, self.base_coin, sell_ex.name)))
+                    elif pair['speedup'] < self.min_speedup:
+                        print(colorBad('Speedup too low ({} < {}) to place order ...'.format(
+                            pair['speedup'], self.min_speedup)))
             elif error:
                 print(
                     colorBad('* Error in symbol {} - price returned 0.').format(self.symbol))

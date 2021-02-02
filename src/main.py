@@ -275,7 +275,7 @@ def configure():
             commons = getCommons(exchanges)
             for e in commons:
                 currencies.append(
-                    Bouncer(e, 100, exchanges, threshold=0.01))
+                    Bouncer(e, 100, exchanges, margin=0.01))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
@@ -340,15 +340,15 @@ def configure():
                 else:
                     print(colorBad('Enter a number.'))
 
-        threshold = ''
-        while type(threshold) == str:
-            threshold = input((
-                'Threshold? ')+' $')
+        margin = ''
+        while type(margin) == str:
+            margin = input((
+                'Minimum profit margin? ')+' $')
             try:
-                threshold = float(threshold)
+                margin = float(margin)
             except:
-                if threshold == '':
-                    threshold = 0.01  # default
+                if margin == '':
+                    margin = 0.01  # default
                 else:
                     print(colorBad('Enter a number.'))
 
@@ -364,15 +364,28 @@ def configure():
                 else:
                     print(colorBad('Enter a number.'))
 
+        min_speedup = ''
+        while type(min_speedup) == str:
+            if speedup > 0:
+                min_speedup = input(
+                    'Min speedup? (0 to {}%) '.format(speedup))
+                try:
+                    min_speedup = float(min_speedup)
+                except:
+                    if min_speedup == '':
+                        min_speedup = 0  # default
+                    else:
+                        print(colorBad('Enter a number.'))
+
         if curr == '':
             curr = 'all'
         if 'all' in curr.lower():
             for sym in commons:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['trading'], threshold, log))
+                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
         else:
             currencies.append(
-                Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], threshold, log))
+                Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
 
 
 # run main
