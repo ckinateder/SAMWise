@@ -308,22 +308,16 @@ class Bouncer:
                 if exchange == buy:
                     fee = exchange.calculateFee(
                         self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                    # logstr = colorLow('\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
-                    #    exchange.name, ask, self.quote_order_size, fee))
                     logstr = colorLow('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
                         exchange.name, ask, bid))
                 elif exchange == sell:
                     fee = exchange.calculateFee(
                         self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                    # logstr = colorHigh('\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
-                    #    exchange.name, ask, self.quote_order_size, fee))
                     logstr = colorHigh('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
                         exchange.name, ask, bid))
                 else:
                     fee = exchange.calculateFee(
                         self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
-                    # logstr = '\t{}: ${:.3f} (fees on ${:.3f} order: ${:.3f})'.format(
-                    #    exchange.name, ask, self.quote_order_size, fee)
                     logstr = ('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
                         exchange.name, ask, bid))
                 exchanges_str += logstr+'\n'
@@ -372,7 +366,8 @@ class Bouncer:
                             item['sell'].name),
                         colorHigh(
                             '{:.3f}'.format(item['sell_price'])),
-                        colorThreshold(item['speedup']),
+                        colorThreshold(item['speedup'],
+                                       threshold=self.min_speedup),
                         colorThreshold(item['liquidity'], dig=3, threshold=1)))
             else:
                 if self.loud:
