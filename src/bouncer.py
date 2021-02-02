@@ -22,7 +22,7 @@ WIDTH = 100
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.009, min_speedup=0, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.009, min_speedup=1, logging=True, loud=True):
         '''
         Create the class.
         '''

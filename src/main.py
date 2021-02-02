@@ -275,11 +275,11 @@ def configure():
             commons = getCommons(exchanges)
             for e in commons:
                 currencies.append(
-                    Bouncer(e, 100, exchanges, margin=0.01))
+                    Bouncer(e, 100, exchanges, margin=0.01, min_speedup=1))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
-                    Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges))
+                    Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, margin=0.01, min_speedup=2))
     else:
         add = input(('Would you like to add new exhanges? (Y/n): '))
         if 'y' in add.lower():
