@@ -26,13 +26,15 @@ def human_format(number):
 
 def getTableOfAll():
     availables = getAvailableExchanges()
+    availables.remove('bittrex')
     exchanges = loadExchanges(availables)
     index = list()
 
     for i in exchanges:
         x = list(i.load_markets().keys())
         for j in x:
-            index.append(j)
+            if 'USD' in j:
+                index.append(j)
 
     index = list(set(index))
 

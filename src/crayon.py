@@ -1,4 +1,20 @@
 from termcolor import colored
+from string import Template
+
+
+class DeltaTemplate(Template):
+    delimiter = "%"
+
+
+def strfdelta(tdelta, fmt):
+    d = {"D": tdelta.days}
+    hours, rem = divmod(tdelta.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    d["H"] = '{:02d}'.format(hours)
+    d["M"] = '{:02d}'.format(minutes)
+    d["S"] = '{:02d}'.format(seconds)
+    t = DeltaTemplate(fmt)
+    return t.substitute(**d)
 
 
 def colorGood(strr):
@@ -23,6 +39,10 @@ def colorLow(strr):
 
 def colorClock(strr):
     return colored(text=strr, color='grey', on_color='on_yellow')
+
+
+def colorUptime(strr):
+    return colored(text=strr, color='grey', on_color='on_cyan')
 
 
 def colorThreshold(number, dig=3, threshold=0, rev=False):

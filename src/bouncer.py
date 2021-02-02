@@ -2,7 +2,7 @@ import logging
 import sys
 import csv
 import time
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from os import path
 from math import log, floor
 
@@ -51,7 +51,7 @@ class Bouncer:
 
         # initialize
         self.trading = trading
-        self.start_time = time.time()
+        self.start_time = datetime.now()
         self.base_coin = symbol.split('/')[0]
         self.quote_coin = symbol.split('/')[1]
         self.quote_order_size = quote_order_size
@@ -360,8 +360,11 @@ class Bouncer:
                 indicator = colorGood('*')*2
 
             if spreads:  # only print if profitable
-                print('/'+'-'*(WIDTH-26) +
-                      colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+                uptime_str = colorUptime(strfdelta(
+                    datetime.now()-self.start_time, '%H:%M:%S'))
+                clock_str = colorClock(
+                    datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+                print('/'+'-'*(WIDTH-37) + uptime_str + '--' + clock_str)
                 print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                     self.quote_order_size))
                 print(exchanges_str, end='')

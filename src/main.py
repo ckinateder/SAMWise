@@ -21,6 +21,7 @@ __email__ = 'calvinkinateder@gmail.com'
 KILL = False
 currencies = list()
 keypath = 'keys/'
+QUOTE = 'USD'
 
 
 def setupExchanges():
@@ -224,7 +225,7 @@ def getCommons(exchanges):
     for item in alls:
         # Important - only allows usd
         # and not 'XRP' in item:
-        if alls.count(item) == len(exchanges) and 'USD' in item:
+        if alls.count(item) == len(exchanges) and QUOTE in item:
             out.append(item)
     out = list(set(out))
     return out
@@ -282,7 +283,7 @@ def configure():
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
-                    Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, margin=0.01, min_speedup=2))
+                    Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, margin=0.01, min_speedup=.1))
     else:
         add = input(('Would you like to add new exhanges? (Y/n): '))
         if 'y' in add.lower():
