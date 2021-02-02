@@ -22,7 +22,7 @@ WIDTH = 100
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.009, min_speedup=1, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.01, min_speedup=1, logging=True, loud=True):
         '''
         Create the class.
         '''
@@ -45,6 +45,11 @@ class Bouncer:
                 'Symbol \'{}\' not supported by all platforms. Exiting ...'.format(symbol))
             sys.exit(0)
 
+        # initialize for indicators
+        self.sell = None
+        self.buy = None
+
+        # initialize
         self.trading = trading
         self.start_time = time.time()
         self.base_coin = symbol.split('/')[0]
@@ -65,7 +70,7 @@ class Bouncer:
             exchanges_str += self.exchanges[i].name+', '
         exchanges_str += 'and '+self.exchanges[-1].name
 
-        if trading:
+        if self.trading:
             print(colorGood('Created Bouncer investing ${} on {} with speedup {}% to {}% and margin ${}.\nActive on {}.').format(
                 self.quote_order_size, self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
         else:
@@ -262,6 +267,8 @@ class Bouncer:
         if not got_zero:
             spreads = sorted(spreads.values(), key=lambda x: (getitem(
                 x, 'speedup'), getitem(x, 'spread_w_fees')))  # as a list
+
+            spreads.reverse()
             # pprint(spreads)
             # get last in list, sorted from low to high spread_w_fees
             '''
@@ -289,7 +296,7 @@ class Bouncer:
                 'timestamp': 1612156852.032166
             }
             '''
-            most_profitable = spreads[-1]
+            most_profitable = spreads[0]
             buy = most_profitable['buy']
             sell = most_profitable['sell']
 
@@ -336,6 +343,22 @@ class Bouncer:
 
             flip_flop, flop_pairs = self.findFlipFlop(spreads)
 
+            # indicates whether there are any open trades
+            # format ** [buy, sell]
+            if self.sell and self.buy:
+                if self.anyOpen(self.buy) and self.anyOpen(self.sell):
+                    indicator = colorEh('*')*2
+                elif self.anyOpen(self.buy) and not self.anyOpen(self.sell):
+                    indicator = colorEh('*')+colorGood('*')
+                elif not self.anyOpen(self.buy) and self.anyOpen(self.sell):
+                    indicator = colorGood('*')+colorEh('*')
+                else:
+                    indicator = colorGood('*')*2
+            elif self.anyOpen():  # cant find the order but knows theres open orders
+                indicator = colorEh('*')*2
+            else:  # all good
+                indicator = colorGood('*')*2
+
             if spreads:  # only print if profitable
                 print('/'+'-'*(WIDTH-26) +
                       colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
@@ -343,18 +366,18 @@ class Bouncer:
                                                     self.quote_order_size))
                 print(exchanges_str, end='')
                 if flip_flop:
-                    print(colorGood('** [FF #{} & #{}]'.format(len(spreads)-spreads.index(
+                    print('{}'.format(indicator)+colorGood(' [FF #{} & #{}]'.format(len(spreads)-spreads.index(
                         flop_pairs[0][0]), len(spreads)-spreads.index(flop_pairs[0][1]))), end='')
                     print(
                         colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH-5))
                 else:
-                    print(colorGood('*'), end='')
+                    print(indicator, end='')
                     print(
-                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+9))
-                for i in range(len(spreads)-1, -1, -1):
+                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+8))
+                for i in range(len(spreads)):
                     item = spreads[i]
                     print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])'.format(
-                        colorGood('[PROFITABLE #{}]'.format(len(spreads)-(i))),
+                        colorGood('[PASSED #{}]'.format(i+1)),
                         colorThreshold(item['no_fees']),
                         colorThreshold(
                             item['spread_w_fees']),
@@ -376,7 +399,8 @@ class Bouncer:
                     print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                         self.quote_order_size))
                     print(exchanges_str, end='')
-                    print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[NOT PROFITABLE]'),
+                    print(indicator)
+                    print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[FAILED]'),
                                                                                                                                   colorThreshold(
                         no_fees),
                         colorThreshold(
@@ -544,6 +568,7 @@ class Bouncer:
             # creating processes
             print('Creating buy order on {} for {:.6f} {} at ${}'.format(
                 buy_ex, amt, self.symbol, low))
+            self.buy = buy_ex
             buy_ex.create_limit_buy_order(
                 self.symbol, amt, low)
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
@@ -553,6 +578,7 @@ class Bouncer:
 
             print('Creating sell order on {} for {:.6f} {} at ${}'.format(
                 sell_ex, amt, self.symbol, high))
+            self.sell = sell_ex
             sell_ex.create_limit_sell_order(
                 self.symbol, amt, high)
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
@@ -598,6 +624,8 @@ class Bouncer:
                         quote_balance = self.balances[buy_ex][self.section][self.quote_coin]
                         base_balance = self.balances[sell_ex][self.section][self.base_coin]
                         if quote_balance >= self.quote_order_size and base_balance >= self.quote_order_size/high:  # balances are good for original
+                            print(colorGood('Executing option {} ...'.format(
+                                spreads.index(pair)+1)))
                             self.handleTransaction(
                                 buy_ex, sell_ex, low, high)
                             action_taken = True

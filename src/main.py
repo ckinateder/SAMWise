@@ -276,6 +276,9 @@ def configure():
             for e in commons:
                 currencies.append(
                     Bouncer(e, 100, exchanges, margin=0.01, min_speedup=1))
+        elif sys.argv[1] == 'ATOM/USD':
+            currencies.append(
+                Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=.1))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
