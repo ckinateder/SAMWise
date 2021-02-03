@@ -85,6 +85,25 @@ def colorThreshold(number, dig=3, threshold=0, rev=False):
         return colorEh(number)
 
 
+def colorLiquidity(number, threshold=0):
+    '''
+    Color code a number.
+    '''
+    if type(number) == float:
+        try:
+            if number > threshold:
+                form = colorGood(humanFormat(number))
+            elif number < threshold:
+                form = colorBad(humanFormat(number))
+            else:
+                form = colorEh(humanFormat(number))
+        except:
+            print('Couldn\'t colorize')
+        return form
+    else:
+        return colorEh(number)
+
+
 def colorSymbol(strr):
     pair = strr.split('/')
     # return colored(pair[0], 'blue', 'on_white')+colored('/', 'white', 'on_grey')+colored(pair[1], 'white', 'on_blue')

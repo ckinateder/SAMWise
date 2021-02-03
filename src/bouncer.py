@@ -26,6 +26,7 @@ class Bouncer:
         '''
         Create the class.
         '''
+        self.start_time = datetime.now()
 
         # mark which balance section to look at
         self.section = 'total'
@@ -35,15 +36,27 @@ class Bouncer:
         self.max_speedup = speedup
         self.min_speedup = min_speedup
         self.exchanges = exchanges
+
         self.loud = loud
         self.logging = True  # log to file?
         # check if symbol supported by all
         if symbol in self.getCommons():
             self.symbol = symbol
+            self.base_coin = symbol.split('/')[0]
+            self.quote_coin = symbol.split('/')[1]
         else:
             print(
                 'Symbol \'{}\' not supported by all platforms. Exiting ...'.format(symbol))
             sys.exit(0)
+
+        # find currency name
+        count = 0
+        self.currency_name = None
+        while count < len(self.exchanges) and not self.currency_name:
+            if self.base_coin in self.exchanges[count].currencies:
+                if 'name' in self.exchanges[count].currencies[self.base_coin]:
+                    self.currency_name = self.exchanges[count].currencies[self.base_coin]['name']
+            count += 1
 
         # initialize for indicators
         self.sell = None
@@ -52,9 +65,6 @@ class Bouncer:
         # initialize
         self.trading = trading
         self.trade_count = 0
-        self.start_time = datetime.now()
-        self.base_coin = symbol.split('/')[0]
-        self.quote_coin = symbol.split('/')[1]
         self.quote_order_size = quote_order_size
         self.pro_filename = 'logs/'+self.base_coin+'-'+self.quote_coin+'.csv'
         self.trades_filename = 'logs/trades/'+datetime.now().strftime("%m-%d-%Y_%H-%M") + '_' + \
@@ -76,10 +86,10 @@ class Bouncer:
                 self.quote_order_size, self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
         else:
             if logging:
-                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${} - [active on {}]').format(
+                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${} - [active on {}]').format(
                     self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
             else:
-                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [active on {}]').format(
+                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [active on {}]').format(
                     self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
 
         # init balances
@@ -156,7 +166,7 @@ class Bouncer:
             l1 = (buy_volume*buy_close)/(buy_high-buy_low)
             l2 = (sell_volume*sell_close)/(sell_high-sell_low)
             #l = f'b{l1:.3f}  s{l2:.3f}'
-            l = humanFormat(.5*l1+.5*l2)
+            l = .5*l1+.5*l2
         except:
             l = 'unknown'
         return l
@@ -375,14 +385,17 @@ class Bouncer:
             if spreads:
                 print('/'+'-'*(WIDTH-41) + colorTrades('{0:02d}'.format(
                     self.trade_count)) + '--' + uptime_str + '--' + clock_str)
-                print('[For {} w/ ${:.3f}]:'.format((self.symbol),
-                                                    self.quote_order_size))
+                currency_str = ''
+                if self.currency_name:
+                    currency_str = f'({self.currency_name})'
+                print('[For {} w/ ${:.3f} {}]:'.format((self.symbol),
+                                                       self.quote_order_size, currency_str))
                 print(exchanges_str, end='')
                 if flip_flop:
-                    print('{}'.format(indicator)+colorGood(' [FF #{} & #{}]'.format(len(spreads)-spreads.index(
-                        flop_pairs[0][0]), len(spreads)-spreads.index(flop_pairs[0][1]))), end='')
+                    print('{}'.format(indicator)+colorGood(' [FF #{} & #{}]'.format(spreads.index(
+                        flop_pairs[0][0])+1, spreads.index(flop_pairs[0][1])+1)), end='')
                     print(
-                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH-5))
+                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH-6))
                 else:
                     print(indicator, end='')
                     print(
@@ -404,13 +417,16 @@ class Bouncer:
                             '{:.3f}'.format(item['sell_price'])),
                         colorThreshold(item['speedup'],
                                        threshold=self.min_speedup),
-                        colorThreshold(item['liquidity'], dig=3, threshold=1)))
+                        colorLiquidity(item['liquidity'], threshold=1)))
             else:
                 if self.loud:
                     print('/'+'-'*(WIDTH-41) + colorTrades('{0:02d}'.format(
                         self.trade_count)) + '--' + uptime_str + '--' + clock_str)
-                    print('[For {} w/ ${:.3f}]:'.format((self.symbol),
-                                                        self.quote_order_size))
+                    currency_str = ''
+                    if self.currency_name:
+                        currency_str = f'({self.currency_name})'
+                    print('[For {} w/ ${:.3f} {}]:'.format((self.symbol),
+                                                           self.quote_order_size, currency_str))
                     print(exchanges_str, end='')
                     print(indicator)
                     print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[FAILED]'),
