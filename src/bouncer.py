@@ -147,10 +147,16 @@ class Bouncer:
         try:
             buy_volume = test_buy[1]['quoteVolume']
             sell_volume = test_sell[1]['quoteVolume']
-            buy_price = test_buy[1]['bid']
-            # *(1-(self.max_speedup/100))
-            sell_price = test_sell[1]['ask']
-            l = (sell_price-buy_price)/buy_price*100
+            buy_close = test_buy[1]['close']
+            sell_close = test_sell[1]['close']
+            buy_high = test_buy[1]['high']
+            buy_low = test_buy[1]['low']
+            sell_high = test_sell[1]['high']
+            sell_low = test_sell[1]['low']
+            l1 = (buy_volume*buy_close)/(buy_high-buy_low)
+            l2 = (sell_volume*sell_close)/(sell_high-sell_low)
+            #l = f'b{l1:.3f}  s{l2:.3f}'
+            l = humanFormat(.5*l1+.5*l2)
         except:
             l = 'unknown'
         return l

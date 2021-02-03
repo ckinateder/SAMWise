@@ -1,5 +1,6 @@
 from termcolor import colored
 from string import Template
+from math import floor, log
 
 
 class DeltaTemplate(Template):
@@ -15,6 +16,13 @@ def strfdelta(tdelta, fmt):
     d["S"] = '{:02d}'.format(seconds)
     t = DeltaTemplate(fmt)
     return t.substitute(**d)
+
+
+def humanFormat(number):
+    units = ['', 'K', 'M', 'G', 'T', 'P']
+    k = 1000.0
+    magnitude = int(floor(log(number, k)))
+    return '%.2f%s' % (number / k**magnitude, units[magnitude])
 
 
 def colorGood(strr):
