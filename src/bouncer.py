@@ -51,6 +51,7 @@ class Bouncer:
 
         # initialize
         self.trading = trading
+        self.trade_count = 0
         self.start_time = datetime.now()
         self.base_coin = symbol.split('/')[0]
         self.quote_coin = symbol.split('/')[1]
@@ -364,7 +365,8 @@ class Bouncer:
                     datetime.now()-self.start_time, '%H:%M:%S'))
                 clock_str = colorClock(
                     datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
-                print('/'+'-'*(WIDTH-37) + uptime_str + '--' + clock_str)
+                print('/'+'-'*(WIDTH-41) + colorTrades('{0:02d}'.format(
+                    self.trade_count)) + '--' + uptime_str + '--' + clock_str)
                 print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                     self.quote_order_size))
                 print(exchanges_str, end='')
@@ -376,7 +378,7 @@ class Bouncer:
                 else:
                     print(indicator, end='')
                     print(
-                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+8))
+                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH+7))
                 for i in range(len(spreads)):
                     item = spreads[i]
                     print('{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])'.format(
@@ -496,6 +498,7 @@ class Bouncer:
                         exchange, self.quote_order_size/price, self.symbol))
                     exchange.create_market_buy_order(
                         self.symbol, self.quote_order_size/price)
+                    self.trade_count += 1
                     new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
                                self.symbol, 'buy', price, exchange.name, self.net]
                     self.trades.loc[len(self.trades)] = new_row
@@ -574,6 +577,7 @@ class Bouncer:
             self.buy = buy_ex
             buy_ex.create_limit_buy_order(
                 self.symbol, amt, low)
+            self.trade_count += 1
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
                        self.symbol, 'buy', low, buy_ex.name, self.net]
             self.trades.loc[len(self.trades)] = new_row
@@ -584,6 +588,7 @@ class Bouncer:
             self.sell = sell_ex
             sell_ex.create_limit_sell_order(
                 self.symbol, amt, high)
+            self.trade_count += 1
             new_row = [datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
                        self.symbol, 'sell', high, sell_ex.name, self.net]
             self.trades.loc[len(self.trades)] = new_row

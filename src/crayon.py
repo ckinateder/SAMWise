@@ -45,6 +45,10 @@ def colorUptime(strr):
     return colored(text=strr, color='grey', on_color='on_cyan')
 
 
+def colorTrades(strr):
+    return colored(text=strr, color='grey', on_color='on_magenta')
+
+
 def colorThreshold(number, dig=3, threshold=0, rev=False):
     '''
     Color code a number.
