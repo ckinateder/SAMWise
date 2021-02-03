@@ -72,15 +72,15 @@ class Bouncer:
         exchanges_str += 'and '+self.exchanges[-1].name
 
         if self.trading:
-            print(colorGood('Created Bouncer investing ${} on {} with speedup {}% to {}% and margin ${}.\nActive on {}.').format(
+            print(colorGood('Created Bouncer investing ${} on {} with speedup {}% to {}% and margin ${} - [active on {}]').format(
                 self.quote_order_size, self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
         else:
             if logging:
-                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${}.').format(
-                    self.symbol, self.min_speedup, self.max_speedup, self.margin))
+                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${} - [active on {}]').format(
+                    self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
             else:
-                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled.').format(
-                    self.symbol, self.min_speedup, self.max_speedup, self.margin))
+                print(colorEh('Created Bouncer scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [active on {}]').format(
+                    self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
 
         # init balances
         self.balances = dict()
@@ -91,13 +91,15 @@ class Bouncer:
             print('Initializing balances with ${} worth of {} in each account.'.format(
                 self.quote_order_size, self.base_coin))
             self.inititalizeBalances()
-
-        self.start_total_base_amount, self.start_total_quote_order_size = self.updateBalances(
-            loud=False)
-
-        if trading:
+        if self.trading:
+            self.start_total_base_amount, self.start_total_quote_amount = self.updateBalances(
+                loud=False)
+        else:
+            self.start_total_base_amount = 0
+            self.start_total_quote_amount = 0
+        if self.trading:
             print(colorClock('Starting base amount [{:.8f} {}, {:.4f} {}]').format(
-                self.start_total_base_amount, self.base_coin, self.start_total_quote_order_size, self.quote_coin))
+                self.start_total_base_amount, self.base_coin, self.start_total_quote_amount, self.quote_coin))
             print()
 
     def saveDict(self, toCSV):
@@ -360,11 +362,11 @@ class Bouncer:
             else:  # all good
                 indicator = colorGood('*')*2
 
-            if spreads:  # only print if profitable
-                uptime_str = colorUptime(strfdelta(
-                    datetime.now()-self.start_time, '%H:%M:%S'))
-                clock_str = colorClock(
-                    datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+            uptime_str = colorUptime(strfdelta(
+                datetime.now()-self.start_time, '%H:%M:%S'))
+            clock_str = colorClock(
+                datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+            if spreads:
                 print('/'+'-'*(WIDTH-41) + colorTrades('{0:02d}'.format(
                     self.trade_count)) + '--' + uptime_str + '--' + clock_str)
                 print('[For {} w/ ${:.3f}]:'.format((self.symbol),
@@ -399,8 +401,8 @@ class Bouncer:
                         colorThreshold(item['liquidity'], dig=3, threshold=1)))
             else:
                 if self.loud:
-                    print(
-                        '/'+'-'*(WIDTH-26)+colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f")))
+                    print('/'+'-'*(WIDTH-41) + colorTrades('{0:02d}'.format(
+                        self.trade_count)) + '--' + uptime_str + '--' + clock_str)
                     print('[For {} w/ ${:.3f}]:'.format((self.symbol),
                                                         self.quote_order_size))
                     print(exchanges_str, end='')
@@ -477,7 +479,7 @@ class Bouncer:
         Returns self.net as a percent and updates.
         '''
         base, quote = self.updateBalances(loud)
-        if self.start_total_base_amount == 0 or self.start_total_quote_order_size == 0:
+        if self.start_total_base_amount == 0 or self.start_total_quote_amount == 0:
             self.net = 0
         else:
             self.net = 0

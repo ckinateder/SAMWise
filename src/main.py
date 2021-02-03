@@ -1,16 +1,18 @@
+import re
 import sys
 import time
-import re
 from getpass import getpass
 from os import listdir, path
+from pprint import pprint
 
 import ccxt
+
 try:
     from pynput import keyboard
     dynamic_input = True
 except:
     dynamic_input = False
-from bouncer import Bouncer, WIDTH
+from bouncer import WIDTH, Bouncer
 from crayon import *
 
 __author__ = 'Calvin Kinateder'
@@ -231,6 +233,31 @@ def getCommons(exchanges):
     return out
 
 
+def getDynamicCommons(exchanges, minnum=3):
+    alls = list()
+    for i in exchanges:
+        x = list(i.load_markets().keys())
+        for j in x:
+            if QUOTE in j:
+                alls.append(j)
+    alls = list(set(alls))
+
+    compatibles = {}
+    for exchange in exchanges:
+        possibles = list(exchange.load_markets().keys())
+        for symbol in alls:
+            if symbol in possibles:
+                if symbol in compatibles:
+                    compatibles[symbol].append(exchange)
+                else:  # initialize
+                    compatibles[symbol] = [exchange]
+    multiples = {}
+    for key in compatibles:
+        if len(compatibles[key]) >= minnum:
+            multiples[key] = compatibles[key]
+    return multiples
+
+
 def on_press(key):
     try:
         pass
@@ -270,13 +297,12 @@ def configure():
     globals()['trading'] = True
     # check for commandline override
     if len(sys.argv) > 1:
-        exchanges = loadExchanges(
-            ['binanceus', 'coinbasepro', 'bittrex', 'kraken'])
+        exchanges = loadExchanges(getAvailableExchanges())
         if sys.argv[1] == 'test_usd':
-            commons = getCommons(exchanges)
-            for e in commons:
+            dynamics = getDynamicCommons(exchanges)
+            for e in dynamics:
                 currencies.append(
-                    Bouncer(e, 100, exchanges, margin=0.01, min_speedup=1))
+                    Bouncer(e, 100, dynamics[e], margin=0.01, min_speedup=1))
         elif sys.argv[1] == 'ATOM/USD':
             currencies.append(
                 Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=.1))
@@ -317,6 +343,8 @@ def configure():
                 'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): ')).upper()
             if 'list' in curr.lower():
                 print(colorEh(commons))
+            elif curr == '':
+                curr = 'all'
 
         if 'y' in scan.lower():
             globals()['trading'] = False
@@ -381,12 +409,11 @@ def configure():
                     else:
                         print(colorBad('Enter a number.'))
 
-        if curr == '':
-            curr = 'all'
         if 'all' in curr.lower():
-            for sym in commons:
+            dynamics = getDynamicCommons(exchanges)
+            for sym in dynamics:
                 currencies.append(
-                    Bouncer(sym, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
+                    Bouncer(sym, invest, dynamics[sym], inip, speedup, globals()['trading'], margin, min_speedup, log))
         else:
             currencies.append(
                 Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
