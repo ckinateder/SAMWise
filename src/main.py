@@ -238,7 +238,7 @@ def getDynamicCommons(exchanges, minnum=3):
     for i in exchanges:
         x = list(i.load_markets().keys())
         for j in x:
-            if QUOTE in j:
+            if QUOTE in j or 'BTC' in j or 'ETH' in j:
                 alls.append(j)
     alls = list(set(alls))
 
@@ -302,7 +302,7 @@ def configure():
             dynamics = getDynamicCommons(exchanges)
             for e in dynamics:
                 currencies.append(
-                    Bouncer(e, 100, dynamics[e], margin=0.01, min_speedup=1))
+                    Bouncer(e, 280, dynamics[e], margin=0.009, min_speedup=1, loud=False))
         elif sys.argv[1] == 'ATOM/USD':
             currencies.append(
                 Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=.1))

@@ -82,14 +82,14 @@ class Bouncer:
         exchanges_str += 'and '+self.exchanges[-1].name
 
         if self.trading:
-            print(colorGood('Created Bouncer investing ${} on {} with speedup {}% to {}% and margin ${} - [active on {}]').format(
+            print(colorGood('Created Bouncer investing ${} on {} with speedup {}% to {}% and margin ${} - [{}]').format(
                 self.quote_order_size, self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
         else:
             if logging:
-                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${} - [active on {}]').format(
+                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${} - [{}]').format(
                     self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
             else:
-                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [active on {}]').format(
+                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [{}]').format(
                     self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
 
         # init balances
@@ -429,20 +429,24 @@ class Bouncer:
                                                            self.quote_order_size, currency_str))
                     print(exchanges_str, end='')
                     print(indicator)
-                    print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(colorBad('[FAILED]'),
+                    if spread > 0 and spread <= self.margin:
+                        msg = colorEh('[FAILED]')
+                    else:
+                        msg = colorBad('[FAILED]')
+                    print('{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])'.format(msg,
                                                                                                                                   colorThreshold(
-                        no_fees),
-                        colorThreshold(
-                        spread),
-                        colorLow(
-                        buy.name),
-                        colorLow(
-                        '{:.3f}'.format(low)),
-                        colorHigh(
-                        sell.name),
-                        colorHigh(
-                        '{:.3f}'.format(high)),
-                        colorThreshold((high-low), 3, self.margin)))
+                                                                                                                                      no_fees),
+                                                                                                                                  colorThreshold(
+                                                                                                                                      spread),
+                                                                                                                                  colorLow(
+                                                                                                                                      buy.name),
+                                                                                                                                  colorLow(
+                                                                                                                                      '{:.3f}'.format(low)),
+                                                                                                                                  colorHigh(
+                                                                                                                                      sell.name),
+                                                                                                                                  colorHigh(
+                                                                                                                                      '{:.3f}'.format(high)),
+                                                                                                                                  colorThreshold((high-low), 3, self.margin)))
 
             if logging and profitable:
                 self.saveDict(spreads)
