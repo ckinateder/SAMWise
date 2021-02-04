@@ -86,10 +86,10 @@ class Bouncer:
                 self.quote_order_size, self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
         else:
             if logging:
-                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${} - [{}]').format(
+                print(colorGood('Scanning for {} with speedup {}% to {}% and margin ${} - [{}]').format(
                     self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
             else:
-                print(colorEh('Scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [{}]').format(
+                print(colorGood('Scanning for {} with speedup {}% to {}% and margin ${}. Logging disabled - [{}]').format(
                     self.symbol, self.min_speedup, self.max_speedup, self.margin, exchanges_str))
 
         # init balances
@@ -201,8 +201,13 @@ class Bouncer:
             responses = self.getWatched()
         # not necessary to sort but it helps
         # pprint(responses)
-        responses = OrderedDict(sorted(responses.items(),
-                                       key=lambda x: getitem(x[1], 'ask')))
+        got_zero = False
+        try:
+            responses = OrderedDict(sorted(responses.items(),
+                                           key=lambda x: getitem(x[1], 'ask')))
+        except TypeError:
+            response_items = []
+            got_zero = True
         response_items = list(responses.items())
 
         # set high and low
@@ -221,7 +226,6 @@ class Bouncer:
         # make ordered dict of spreads COUNTING fees
 
         spreads = dict()  # OrderedDict()
-        got_zero = False
         for test_buy in response_items:
             for test_sell in response_items:
                 if test_buy != test_sell:

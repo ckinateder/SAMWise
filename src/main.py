@@ -238,7 +238,7 @@ def getDynamicCommons(exchanges, minnum=3):
     for i in exchanges:
         x = list(i.load_markets().keys())
         for j in x:
-            if QUOTE in j or 'BTC' in j or 'ETH' in j:
+            if QUOTE in j:  # or 'BTC' in j or 'ETH' in j:
                 alls.append(j)
     alls = list(set(alls))
 
@@ -282,12 +282,14 @@ def on_release(key):
 
 def kill():
     print('\nQuitting\n')
-    if globals()['trading']:
-        todo = input('Cleanup balances? (Y/n) ')
-        if 'y' in todo.lower():
-            for i in currencies:
-                i.cleanup()
-    sys.exit(0)
+    should = input('Are you sure you want to quit? (Y/n) ')
+    if 'y' in should.lower():
+        if globals()['trading']:
+            todo = input('Cleanup balances? (Y/n) ')
+            if 'y' in todo.lower():
+                for i in currencies:
+                    i.cleanup()
+        sys.exit(0)
 
 
 def configure():
@@ -300,6 +302,7 @@ def configure():
         exchanges = loadExchanges(getAvailableExchanges())
         if sys.argv[1] == 'test_usd':
             dynamics = getDynamicCommons(exchanges)
+            print(colorEh('Creating for: {}'.format(list(dynamics.keys()))))
             for e in dynamics:
                 currencies.append(
                     Bouncer(e, 280, dynamics[e], margin=0.009, min_speedup=1, loud=False))
