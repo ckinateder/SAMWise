@@ -165,7 +165,7 @@ class Bouncer:
             sell_low = test_sell[1]['low']
             l1 = (buy_volume*buy_close)/(buy_high-buy_low)
             l2 = (sell_volume*sell_close)/(sell_high-sell_low)
-            #l = f'b{l1:.3f}  s{l2:.3f}'
+            # l = f'b{l1:.3f}  s{l2:.3f}'
             l = .5*l1+.5*l2
         except:
             l = 'unknown'
@@ -188,6 +188,7 @@ class Bouncer:
                 if item['buy'] == compared['sell'] and item['sell'] == compared['buy']:
                     flops_bool = True
                     flops.append([item, compared])
+        # print(flops)
         return flops_bool, flops
 
     def getSpread(self, responses=None):
@@ -228,65 +229,64 @@ class Bouncer:
         spreads = dict()  # OrderedDict()
         for test_buy in response_items:
             for test_sell in response_items:
-                if test_buy != test_sell:
-                    buy_price = test_buy[1]['bid']
-                    sell_price = test_sell[1]['ask']
-                    if buy_price != 0 and sell_price != 0:
-                        buy_volume = test_buy[1]['quoteVolume']
-                        sell_volume = test_sell[1]['quoteVolume']
-                        liquidity = self.calculateLiquidity(
-                            test_buy, test_sell)  # change
+                buy_price = test_buy[1]['bid']
+                sell_price = test_sell[1]['ask']
+                if buy_price != 0 and sell_price != 0:
+                    buy_volume = test_buy[1]['quoteVolume']
+                    sell_volume = test_sell[1]['quoteVolume']
+                    liquidity = self.calculateLiquidity(
+                        test_buy, test_sell)  # change
 
-                        # calculate speedup
+                    # calculate speedup
+                    test_spread = (self.quote_order_size /
+                                   sell_price)*(sell_price-buy_price)
+                    test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
+                                test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
+                    spread_w_fee = test_spread-test_fee
+
+                    actual_speedup = 0
+                    inc = .001
+                    ran = False
+                    while spread_w_fee > self.margin+inc and actual_speedup <= self.max_speedup:
+                        buy_price = test_buy[1]['bid'] * \
+                            (1+(actual_speedup/200))
+                        sell_price = test_sell[1]['ask'] * \
+                            (1-(actual_speedup/200))
+                        # recalculate
                         test_spread = (self.quote_order_size /
                                        sell_price)*(sell_price-buy_price)
                         test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
                                     test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
                         spread_w_fee = test_spread-test_fee
-
-                        actual_speedup = 0
-                        inc = .001
-                        ran = False
-                        while spread_w_fee > self.margin+inc and actual_speedup <= self.max_speedup:
-                            buy_price = test_buy[1]['bid'] * \
-                                (1+(actual_speedup/200))
-                            sell_price = test_sell[1]['ask'] * \
-                                (1-(actual_speedup/200))
-                            # recalculate
-                            test_spread = (self.quote_order_size /
-                                           sell_price)*(sell_price-buy_price)
-                            test_fee = (test_buy[0].calculateFee(self.symbol, 'limit', 'buy', self.quote_order_size/buy_price, buy_price, takerOrMaker='taker', params={})['cost'] +
-                                        test_sell[0].calculateFee(self.symbol, 'limit', 'sell', self.quote_order_size/sell_price, sell_price, takerOrMaker='taker', params={})['cost'])
-                            spread_w_fee = test_spread-test_fee
-                            actual_speedup = round(actual_speedup + inc, 3)
-                            ran = True
-                        if ran:
-                            actual_speedup -= inc  # set after
-                        # print(actual_speedup)
-                        spreads[spread_w_fee] = {
-                            'time': t_formatted,
-                            'symbol': self.symbol,
-                            'profitable': spread_w_fee >= self.margin,
-                            'spread_w_fees': spread_w_fee,
-                            'fees': test_fee,
-                            'buy_price': buy_price,
-                            'sell_price': sell_price,
-                            'buy': test_buy[0],
-                            'sell': test_sell[0],
-                            'quote_order_size': self.quote_order_size,
-                            'speedup': actual_speedup,
-                            'buy_bid': test_buy[1]['bid'],
-                            'buy_ask': test_buy[1]['ask'],
-                            'buy_volume': buy_volume,
-                            'sell_bid': test_sell[1]['bid'],
-                            'sell_ask': test_sell[1]['ask'],
-                            'sell_volume': sell_volume,
-                            'liquidity': liquidity,
-                            'no_fees': test_spread,  # a percent
-                            'timestamp': timestamp,
-                        }
-                    else:
-                        got_zero = True
+                        actual_speedup = round(actual_speedup + inc, 3)
+                        ran = True
+                    if ran:
+                        actual_speedup -= inc  # set after
+                    # print(actual_speedup)
+                    spreads[spread_w_fee] = {
+                        'time': t_formatted,
+                        'symbol': self.symbol,
+                        'profitable': spread_w_fee >= self.margin,
+                        'spread_w_fees': spread_w_fee,
+                        'fees': test_fee,
+                        'buy_price': buy_price,
+                        'sell_price': sell_price,
+                        'buy': test_buy[0],
+                        'sell': test_sell[0],
+                        'quote_order_size': self.quote_order_size,
+                        'speedup': actual_speedup,
+                        'buy_bid': test_buy[1]['bid'],
+                        'buy_ask': test_buy[1]['ask'],
+                        'buy_volume': buy_volume,
+                        'sell_bid': test_sell[1]['bid'],
+                        'sell_ask': test_sell[1]['ask'],
+                        'sell_volume': sell_volume,
+                        'liquidity': liquidity,
+                        'no_fees': test_spread,  # a percent
+                        'timestamp': timestamp,
+                    }
+                else:
+                    got_zero = True
         if not got_zero:
             spreads = sorted(spreads.values(), key=lambda x: (getitem(
                 x, 'speedup'), getitem(x, 'spread_w_fees')))  # as a list
@@ -345,6 +345,11 @@ class Bouncer:
                         self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
                     logstr = colorHigh('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
                         exchange.name, ask, bid))
+                elif exchange == sell and exchange == buy:
+                    fee = exchange.calculateFee(
+                        self.symbol, 'limit', 'sell', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
+                    logstr = colorEh('\t{}: ${:.3f} ask, ${:.3f} bid'.format(
+                        exchange.name, ask, bid))
                 else:
                     fee = exchange.calculateFee(
                         self.symbol, 'limit', 'buy', self.quote_order_size/ask, ask, takerOrMaker='taker', params={})['cost']
@@ -396,10 +401,33 @@ class Bouncer:
                                                        self.quote_order_size, currency_str))
                 print(exchanges_str, end='')
                 if flip_flop:
-                    print('{}'.format(indicator)+colorGood(' [FF #{} & #{}]'.format(spreads.index(
-                        flop_pairs[0][0])+1, spreads.index(flop_pairs[0][1])+1)), end='')
-                    print(
-                        colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))).rjust(WIDTH-6))
+                    msg_str = '{}'.format(indicator)
+                    intermediate = ' [FF'
+                    already = []
+                    # iterate through flop pairs
+                    for ff in flop_pairs:
+                        # check if already done
+                        already_done = False
+                        for x in already:
+                            if ff[0] == x[1]:
+                                already_done = True
+                        if ff[0] == ff[1]:
+                            intermediate += ' #{},'.format(
+                                spreads.index(ff[0])+1, spreads.index(ff[1])+1)
+                            # print(len(msg_str))
+                            #print(msg_str, end=' '*41)
+                            # print(
+                            #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(WIDTH-2))
+                        elif not already_done:
+                            already.append(ff)
+                            intermediate += (' #{} & #{},'.format(spreads.index(
+                                ff[0])+1, spreads.index(ff[1])+1))
+                            # print(len(msg_str))
+                            #print(msg_str, end=' '*35)
+                            # print(
+                            #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(WIDTH-6))
+                    intermediate = intermediate[:-1]+']'
+                    print(msg_str+colorGood(intermediate))
                 else:
                     print(indicator, end='')
                     print(

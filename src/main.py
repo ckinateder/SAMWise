@@ -277,9 +277,6 @@ def on_release(key):
         if key.char == 'q':
             globals()['KILL'] = True
 
-    if key == keyboard.Key.esc:
-        globals()['KILL'] = True
-
 
 def kill():
     print('\nQuitting\n')
@@ -292,6 +289,8 @@ def kill():
                 for i in currencies:
                     i.cleanup()
         sys.exit(0)
+
+    globals()['KILL'] = False
 
 
 def configure():
@@ -308,10 +307,10 @@ def configure():
                 list(dynamics.keys()), len(dynamics))))
             for e in dynamics:
                 currencies.append(
-                    Bouncer(e, 280, dynamics[e], margin=0.01, min_speedup=1, loud=False))
+                    Bouncer(e, 100, dynamics[e], margin=0.01, min_speedup=.2, speedup=2, loud=False))
         elif sys.argv[1] == 'ATOM/USD':
             currencies.append(
-                Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=.1))
+                Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=0.1))
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
@@ -425,6 +424,7 @@ def configure():
         else:
             currencies.append(
                 Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
+    pync.notify('Configured', title='SAMWise')
 
 
 # run main
