@@ -22,12 +22,24 @@ WIDTH = 100
 
 
 class Bouncer:
-    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.01, min_speedup=1, logging=True, loud=True):
+    def __init__(self, symbol, quote_order_size, exchanges, initializeq=False, speedup=10, trading=False, margin=0.01, min_speedup=1, logging=True, loud=True, id=None):
         '''
         Create the class.
+        Params:
+            symbol: market pair to run on
+            quote_order_size: how much each trade should be worth
+            exchanges: exchanges it should run on
+            initializeq: initialize balances or not
+            speedup: max percentage value of how tight the margin may be squeezed
+            trading: determines if acting or scanning
+            margin: min trade profit
+            min_speedup: min percentage value of how tight the margin may be squeezed
+            logging: log to file or not
+            loud: print all pairs or just profitable
+            id: optional, number assigned to object
         '''
         self.start_time = datetime.now()
-
+        self.id = id
         # mark which balance section to look at
         self.section = 'total'
         # precision to display quotes

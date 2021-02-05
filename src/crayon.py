@@ -3,6 +3,14 @@ from string import Template
 from math import floor, log
 
 
+def stringitizeL(l):
+    out = ''
+    for i in range(len(l)):
+        out += l[i]+', '
+    out += 'and '+l[-1]
+    return out
+
+
 class DeltaTemplate(Template):
     delimiter = "%"
 

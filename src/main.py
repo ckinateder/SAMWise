@@ -6,7 +6,11 @@ from os import listdir, path
 from pprint import pprint
 
 import ccxt
-import pync
+try:
+    import pync
+    notifications = True
+except:
+    notifications = False
 
 try:
     from pynput import keyboard
@@ -25,6 +29,22 @@ KILL = False
 currencies = list()
 keypath = 'keys/'
 QUOTE = 'USD'
+
+
+def notify(message):
+    '''
+    Send a notification to the notification center on macos
+    '''
+    if notifications:
+        pync.notify(message, title='SAMWise')
+
+
+def stringitizeExc(l):
+    out = ''
+    for i in range(len(l)):
+        out += l[i].name+', '
+    out += 'and '+l[-1].name
+    return out
 
 
 def setupExchanges():
@@ -122,7 +142,7 @@ def setupExchanges():
         else:
             print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
 
-    print(colorGood('Done! Added exchanges {}.').format(exchanges))
+    print(colorGood('Done! Added exchanges {}.'.format(stringitizeExc(exchanges))))
     return exchanges
 
 
@@ -155,7 +175,7 @@ def loadExchanges(all_ex):
     '''
     Create exchanges objects for all existing ones
     '''
-    print('Creating exchange objects for {}.'.format(all_ex))
+    print('Creating exchange objects for {}.'.format(stringitizeL(all_ex)))
     exchanges = list()
     # create objs
     for exchstr in all_ex:
@@ -213,11 +233,15 @@ def loadExchanges(all_ex):
         else:
             print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
 
-    print(colorGood('Done! Added exchanges {}.').format(exchanges))
+    print(colorGood('Done! Added exchanges {}.'.format(stringitizeExc(exchanges))))
+    notify('Loaded exchanges {}'.format(stringitizeExc(exchanges)))
     return exchanges
 
 
 def getCommons(exchanges):
+    '''
+    Get all symbols in common with EVERY given exchange.
+    '''
     alls = list()
     for i in exchanges:
         x = list(i.load_markets().keys())
@@ -235,6 +259,9 @@ def getCommons(exchanges):
 
 
 def getDynamicCommons(exchanges, minnum=3):
+    '''
+    Get all symbols in common with 3 or more of the given exchanges.
+    '''
     alls = list()
     for i in exchanges:
         x = list(i.load_markets().keys())
@@ -259,28 +286,21 @@ def getDynamicCommons(exchanges, minnum=3):
     return multiples
 
 
-def on_press(key):
-    try:
-        pass
-        # print('alphanumeric key {0} pressed'.format(
-        #    key.char))
-    except AttributeError:
-        pass
-        # print('special key {0} pressed'.format(
-        #   key))
-
-
 def on_release(key):
-    # print('{0} released'.format(
-    # key))
+    '''
+    Key release handler
+    '''
     if hasattr(key, 'char'):
         if key.char == 'q':
             globals()['KILL'] = True
 
 
 def kill():
+    '''
+    kill the program
+    '''
     print('\nQuitting\n')
-    pync.notify('Quitting', title='SAMWise')
+    notify('Quitting')
     should = input('Are you sure you want to quit? (Y/n) ')
     if 'y' in should.lower():
         if globals()['trading']:
@@ -294,7 +314,9 @@ def kill():
 
 
 def configure():
-    # check for adding exchanges
+    '''
+    Configure options for starting the program.
+    '''
     inip = False
     log = True
     globals()['trading'] = True
@@ -304,7 +326,7 @@ def configure():
         if sys.argv[1] == 'test_usd':
             dynamics = getDynamicCommons(exchanges)
             print(colorEh('Creating for: {} ({} pairs)'.format(
-                list(dynamics.keys()), len(dynamics))))
+                stringitizeL(list(dynamics.keys())), len(dynamics))))
             for e in dynamics:
                 currencies.append(
                     Bouncer(e, 100, dynamics[e], margin=0.01, min_speedup=.2, speedup=2, loud=False))
@@ -347,7 +369,7 @@ def configure():
             curr = input((
                 'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): ')).upper()
             if 'list' in curr.lower():
-                print(colorEh(commons))
+                print(colorEh(stringitizeL(commons)))
             elif curr == '':
                 curr = 'all'
 
@@ -424,7 +446,7 @@ def configure():
         else:
             currencies.append(
                 Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
-    pync.notify('Configured', title='SAMWise')
+    notify('Configured')
 
 
 # run main
@@ -445,7 +467,6 @@ if __name__ == '__main__':
     # ...or, in a non-blocking fashion:
     if dynamic_input:
         listener = keyboard.Listener(
-            on_press=on_press,
             on_release=on_release)
         listener.start()
 
