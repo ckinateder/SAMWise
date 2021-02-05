@@ -6,70 +6,73 @@ from os import listdir, path
 from pprint import pprint
 
 import ccxt
+
 try:
     import pync
+
     notifications = True
 except:
     notifications = False
 
 try:
     from pynput import keyboard
+
     dynamic_input = True
 except:
     dynamic_input = False
 from bouncer import WIDTH, Bouncer
 from crayon import *
 
-__author__ = 'Calvin Kinateder'
-__email__ = 'calvinkinateder@gmail.com'
+__author__ = "Calvin Kinateder"
+__email__ = "calvinkinateder@gmail.com"
 
 
 # initialize vars
 KILL = False
 currencies = list()
-keypath = 'keys/'
-QUOTE = 'USD'
+keypath = "keys/"
+QUOTE = "USD"
 
 
 def notify(message):
-    '''
+    """
     Send a notification to the notification center on macos
-    '''
+    """
     if notifications:
-        pync.notify(message, title='SAMWise')
+        pync.notify(message, title="SAMWise")
 
 
 def stringitizeExc(l):
-    out = ''
-    for i in range(len(l)):
-        out += l[i].name+', '
-    out += 'and '+l[-1].name
+    out = ""
+    for i in range(len(l) - 1):
+        out += l[i].name + ", "
+    out += "and " + l[-1].name
     return out
 
 
 def setupExchanges():
-    '''
+    """
     Sets up all exchanges from the CLI. (for first time)
-    '''
+    """
     exchanges = list()
     moreToAdd = True
     while moreToAdd:
-        exchstr = input('Enter name of exchange to add: ')
+        exchstr = input("Enter name of exchange to add: ")
         if exchstr in ccxt.exchanges:
-            public = input('Paste public key: ').strip()
-            private = getpass('Paste private key: ').strip()
+            public = input("Paste public key: ").strip()
+            private = getpass("Paste private key: ").strip()
             password_req_str = input(
-                'Does {} require a password? (Y/n): '.format(exchstr))
+                "Does {} require a password? (Y/n): ".format(exchstr)
+            )
 
-            if 'y' in password_req_str.lower():
+            if "y" in password_req_str.lower():
                 password_req = True
             else:
                 password_req = False
 
-            password_req_str = input(
-                'Does {} require a uid? (Y/n): '.format(exchstr))
+            password_req_str = input("Does {} require a uid? (Y/n): ".format(exchstr))
 
-            if 'y' in password_req_str.lower():
+            if "y" in password_req_str.lower():
                 uid_req = True
             else:
                 uid_req = False
@@ -77,171 +80,192 @@ def setupExchanges():
             exchange_class = getattr(ccxt, exchstr)
 
             if password_req and uid_req:
-                uid = input(
-                    'Enter uid for {}: '.format(exchstr)).strip()
-                password = getpass(
-                    'Enter password for {}: '.format(exchstr)).strip()
+                uid = input("Enter uid for {}: ".format(exchstr)).strip()
+                password = getpass("Enter password for {}: ".format(exchstr)).strip()
 
-                current = exchange_class({
-                    'apiKey': public,
-                    'secret': private,
-                    'password': password,
-                    'uid': uid
-                })
+                current = exchange_class(
+                    {
+                        "apiKey": public,
+                        "secret": private,
+                        "password": password,
+                        "uid": uid,
+                    }
+                )
             elif password_req:
-                password = getpass(
-                    'Enter password for {}: '.format(exchstr)).strip()
+                password = getpass("Enter password for {}: ".format(exchstr)).strip()
 
-                current = exchange_class({
-                    'apiKey': public,
-                    'secret': private,
-                    'password': password,
-                })
+                current = exchange_class(
+                    {
+                        "apiKey": public,
+                        "secret": private,
+                        "password": password,
+                    }
+                )
             elif uid_req:
-                uid = input(
-                    'Enter uid for {}: '.format(exchstr)).strip()
+                uid = input("Enter uid for {}: ".format(exchstr)).strip()
 
-                current = exchange_class({
-                    'apiKey': public,
-                    'secret': private,
-                    'uid': uid,
-                })
+                current = exchange_class(
+                    {
+                        "apiKey": public,
+                        "secret": private,
+                        "uid": uid,
+                    }
+                )
             else:
-                current = exchange_class({
-                    'apiKey': public,
-                    'secret': private,
-                })
+                current = exchange_class(
+                    {
+                        "apiKey": public,
+                        "secret": private,
+                    }
+                )
 
             try:
                 current.fetch_balance()
-                print(colorGood('Exchange {} added successfully!').format(exchstr))
+                print(colorGood("Exchange {} added successfully :)").format(exchstr))
                 exchanges.append(current)
                 # only write if works
-                with open(keypath+exchstr+'_public', 'w+') as pub:
+                with open(keypath + exchstr + "_public", "w+") as pub:
                     pub.write(public)
-                with open(keypath+exchstr+'_private', 'w+') as priv:
+                with open(keypath + exchstr + "_private", "w+") as priv:
                     priv.write(private)
                 if password_req:
-                    with open(keypath+exchstr+'_password', 'w+') as passw:
+                    with open(keypath + exchstr + "_password", "w+") as passw:
                         passw.write(password)
                 if uid_req:
-                    with open(keypath+exchstr+'_uid', 'w+') as uidw:
+                    with open(keypath + exchstr + "_uid", "w+") as uidw:
                         uidw.write(uid)
-                print(colorGood('Saved keys to files'))
+                print(colorGood("Saved keys to files"))
 
             except ccxt.AuthenticationError as e:
                 print(
-                    colorBad('Invalid credentials for {} ... moving on. ({})').format(exchstr, e))
+                    colorBad("Invalid credentials for {} ... moving on. ({})").format(
+                        exchstr, e
+                    )
+                )
 
-            more = input('Add another exchange? (Y/n): ')
-            if 'y' in more.lower():
+            more = input("Add another exchange? (Y/n): ")
+            if "y" in more.lower():
                 moreToAdd = True
                 print()
             else:
                 moreToAdd = False
         else:
-            print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
+            print(colorBad("Sorry, {} is not supported yet :(").format(exchstr))
 
-    print(colorGood('Done! Added exchanges {}.'.format(stringitizeExc(exchanges))))
+    print(colorGood("Done! Added exchanges {}.".format(stringitizeExc(exchanges))))
     return exchanges
 
 
 def getAvailableExchanges():
-    '''
+    """
     Get all existing exchanges
-    '''
+    """
     exchanges = list()
     # find exchanges from file structure
     file_list = listdir(keypath)
-    for i in range(0, len(file_list)-2):
+    for i in range(0, len(file_list) - 2):
         x = file_list[i]
-        if '.DS_Store' in x or '.gitkeep' in x:
+        if ".DS_Store" in x or ".gitkeep" in x:
             file_list.remove(x)
     for i in range(0, len(file_list)):
         x = file_list[i]
-        if '_public' in x:
-            file_list[i] = x.replace('_public', '')
-        elif '_private' in x:
-            file_list[i] = x.replace('_private', '')
-        elif '_password' in x:
-            file_list[i] = x.replace('_password', '')
-        elif '_uid' in x:
-            file_list[i] = x.replace('_uid', '')
+        if "_public" in x:
+            file_list[i] = x.replace("_public", "")
+        elif "_private" in x:
+            file_list[i] = x.replace("_private", "")
+        elif "_password" in x:
+            file_list[i] = x.replace("_password", "")
+        elif "_uid" in x:
+            file_list[i] = x.replace("_uid", "")
     all_ex = list(set(file_list))
     return all_ex
 
 
 def loadExchanges(all_ex):
-    '''
+    """
     Create exchanges objects for all existing ones
-    '''
-    print('Creating exchange objects for {}.'.format(stringitizeL(all_ex)))
+    """
+    print("Creating exchange objects for {}.".format(stringitizeL(all_ex)))
     exchanges = list()
     # create objs
     for exchstr in all_ex:
         if exchstr in ccxt.exchanges:  # j to be safe
             try:
-                public = open(keypath+exchstr+'_public').read().strip()
-                private = open(keypath+exchstr+'_private').read().strip()
+                public = open(keypath + exchstr + "_public").read().strip()
+                private = open(keypath + exchstr + "_private").read().strip()
 
                 exchange_class = getattr(ccxt, exchstr)
 
-                if path.exists(keypath+exchstr+'_password') and path.exists(keypath+exchstr+'_uid'):
-                    password = open(keypath+exchstr +
-                                    '_password').read().strip()
-                    uid = open(keypath+exchstr +
-                               '_uid').read().strip()
+                if path.exists(keypath + exchstr + "_password") and path.exists(
+                    keypath + exchstr + "_uid"
+                ):
+                    password = open(keypath + exchstr + "_password").read().strip()
+                    uid = open(keypath + exchstr + "_uid").read().strip()
 
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                        'password': password,
-                        'uid': uid,
-                    })
-                elif path.exists(keypath+exchstr+'_uid'):
-                    uid = open(keypath+exchstr +
-                               '_uid').read().strip()
+                    current = exchange_class(
+                        {
+                            "apiKey": public,
+                            "secret": private,
+                            "password": password,
+                            "uid": uid,
+                        }
+                    )
+                elif path.exists(keypath + exchstr + "_uid"):
+                    uid = open(keypath + exchstr + "_uid").read().strip()
 
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                        'uid': uid,
-                    })
-                elif path.exists(keypath+exchstr+'_password'):
-                    password = open(keypath+exchstr +
-                                    '_password').read().strip()
+                    current = exchange_class(
+                        {
+                            "apiKey": public,
+                            "secret": private,
+                            "uid": uid,
+                        }
+                    )
+                elif path.exists(keypath + exchstr + "_password"):
+                    password = open(keypath + exchstr + "_password").read().strip()
 
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                        'password': password,
-                    })
+                    current = exchange_class(
+                        {
+                            "apiKey": public,
+                            "secret": private,
+                            "password": password,
+                        }
+                    )
                 else:
-                    current = exchange_class({
-                        'apiKey': public,
-                        'secret': private,
-                    })
+                    current = exchange_class(
+                        {
+                            "apiKey": public,
+                            "secret": private,
+                        }
+                    )
                 current.fetch_balance()
-                print(colorGood('Exchange {} added successfully!').format(exchstr))
+                print(colorGood("Exchange {} added successfully!").format(exchstr))
                 exchanges.append(current)
             except ccxt.AuthenticationError:
                 print(
-                    colorBad('Invalid credentials for {} ... moving on.').format(exchstr))
+                    colorBad("Invalid credentials for {} ... moving on.").format(
+                        exchstr
+                    )
+                )
             except FileNotFoundError:
-                print(colorBad(
-                    'Keys for {} not found in {} ... moving on.'.format(exchstr, keypath)))
+                print(
+                    colorBad(
+                        "Keys for {} not found in {} ... moving on.".format(
+                            exchstr, keypath
+                        )
+                    )
+                )
         else:
-            print(colorBad('Sorry, {} is not supported yet :(').format(exchstr))
+            print(colorBad("Sorry, {} is not supported yet :(").format(exchstr))
 
-    print(colorGood('Done! Added exchanges {}.'.format(stringitizeExc(exchanges))))
-    notify('Loaded exchanges {}'.format(stringitizeExc(exchanges)))
+    print(colorGood("Done! Added exchanges {}.".format(stringitizeExc(exchanges))))
+    notify("Loaded exchanges {}".format(stringitizeExc(exchanges)))
     return exchanges
 
 
 def getCommons(exchanges):
-    '''
+    """
     Get all symbols in common with EVERY given exchange.
-    '''
+    """
     alls = list()
     for i in exchanges:
         x = list(i.load_markets().keys())
@@ -259,9 +283,9 @@ def getCommons(exchanges):
 
 
 def getDynamicCommons(exchanges, minnum=3):
-    '''
+    """
     Get all symbols in common with 3 or more of the given exchanges.
-    '''
+    """
     alls = list()
     for i in exchanges:
         x = list(i.load_markets().keys())
@@ -279,6 +303,7 @@ def getDynamicCommons(exchanges, minnum=3):
                     compatibles[symbol].append(exchange)
                 else:  # initialize
                     compatibles[symbol] = [exchange]
+
     multiples = {}
     for key in compatibles:
         if len(compatibles[key]) >= minnum:
@@ -287,187 +312,246 @@ def getDynamicCommons(exchanges, minnum=3):
 
 
 def on_release(key):
-    '''
+    """
     Key release handler
-    '''
-    if hasattr(key, 'char'):
-        if key.char == 'q':
-            globals()['KILL'] = True
+    """
+    if hasattr(key, "char"):
+        if key.char == "q":
+            globals()["KILL"] = True
 
 
 def kill():
-    '''
+    """
     kill the program
-    '''
-    print('\nQuitting\n')
-    notify('Quitting')
-    should = input('Are you sure you want to quit? (Y/n) ')
-    if 'y' in should.lower():
-        if globals()['trading']:
-            todo = input('Cleanup balances? (Y/n) ')
-            if 'y' in todo.lower():
+    """
+    print("\nQuitting\n")
+    notify("Quitting")
+    should = input("Are you sure you want to quit? (Y/n) ")
+    if "y" in should.lower():
+        if globals()["trading"]:
+            todo = input("Cleanup balances? (Y/n) ")
+            if "y" in todo.lower():
                 for i in currencies:
                     i.cleanup()
         sys.exit(0)
 
-    globals()['KILL'] = False
+    globals()["KILL"] = False
 
 
 def configure():
-    '''
+    """
     Configure options for starting the program.
-    '''
+    """
     inip = False
     log = True
-    globals()['trading'] = True
+    globals()["trading"] = True
     # check for commandline override
     if len(sys.argv) > 1:
         exchanges = loadExchanges(getAvailableExchanges())
-        if sys.argv[1] == 'test_usd':
+        if sys.argv[1] == "test_usd":
             dynamics = getDynamicCommons(exchanges)
-            print(colorEh('Creating for: {} ({} pairs)'.format(
-                stringitizeL(list(dynamics.keys())), len(dynamics))))
+            print(
+                colorEh(
+                    "Creating for: {} ({} pairs)".format(
+                        stringitizeL(list(dynamics.keys())), len(dynamics)
+                    )
+                )
+            )
             for e in dynamics:
                 currencies.append(
-                    Bouncer(e, 100, dynamics[e], margin=0.01, min_speedup=.2, speedup=2, loud=False))
-        elif sys.argv[1] == 'ATOM/USD':
-            currencies.append(
-                Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=0.1))
+                    Bouncer(
+                        e,
+                        100,
+                        dynamics[e],
+                        margin=0.01,
+                        min_speedup=0.2,
+                        speedup=2,
+                        loud=False,
+                        position=list(dynamics.keys()).index(e) / len(dynamics) * 100,
+                    )
+                )
         else:
             for i in range(1, len(sys.argv), 2):
                 currencies.append(
-                    Bouncer(sys.argv[i], float(sys.argv[i+1]), exchanges, margin=0.01, min_speedup=.1))
+                    Bouncer(
+                        sys.argv[i],
+                        float(sys.argv[i + 1]),
+                        exchanges,
+                        margin=0.01,
+                        min_speedup=0.1,
+                    )
+                )
     else:
-        add = input(('Would you like to add new exhanges? (Y/n): '))
-        if 'y' in add.lower():
+        add = input(("Would you like to add new exhanges? (Y/n): "))
+        if "y" in add.lower():
             exchanges = setupExchanges()
         # get availables
         availables = getAvailableExchanges()
 
-        available_str = '\n'
+        available_str = "\n"
         for i in range(0, len(availables)):
-            available_str += '\t{}: {}\n'.format(i, availables[i])
+            available_str += "\t{}: {}\n".format(i, availables[i])
         whichones = input(
-            'Which exchanges would you like to run on? (enter a comma separated list or \'all\') {{available: {}}}: '.format(availables))
-        if 'all' in whichones:
+            "Which exchanges would you like to run on? (enter a comma separated list or 'all') {{available: {}}}: ".format(
+                availables
+            )
+        )
+        if "all" in whichones:
             actuals = availables
-        elif whichones == '':
-            actuals = ['binanceus', 'coinbasepro', 'bittrex', 'kraken']
+        elif whichones == "":
+            actuals = ["binanceus", "coinbasepro", "bittrex", "kraken"]
         else:
-            actuals = [re.sub('[\W_]+', '', x)
-                       for x in whichones.split(',')]  # remove whitespace
+            actuals = [
+                re.sub("[\W_]+", "", x) for x in whichones.split(",")
+            ]  # remove whitespace
         # create exchanges
         exchanges = loadExchanges(actuals)
 
         # check for scanning
-        scan = input(
-            ('Would you like to run in scanner mode? (Y/n): '))
+        scan = input(("Would you like to run in scanner mode? (Y/n): "))
         commons = getCommons(exchanges)
 
-        curr = 'list'
-        while 'list' in curr.lower():
-            curr = input((
-                'Which crypto ticker would you like to run on?\n  (\'list\' for available tickers or \'all\' to run on each): ')).upper()
-            if 'list' in curr.lower():
+        curr = "list"
+        while "list" in curr.lower():
+            curr = input(
+                (
+                    "Which crypto ticker would you like to run on?\n  ('list' for available tickers or 'all' to run on each): "
+                )
+            ).upper()
+            if "list" in curr.lower():
                 print(colorEh(stringitizeL(commons)))
-            elif curr == '':
-                curr = 'all'
+            elif curr == "":
+                curr = "all"
 
-        if 'y' in scan.lower():
-            globals()['trading'] = False
-            login = input('Would you like to disable logging to file? (Y/n): ')
-            if 'y' in login.lower():
+        if "y" in scan.lower():
+            globals()["trading"] = False
+            login = input("Would you like to disable logging to file? (Y/n): ")
+            if "y" in login.lower():
                 log = False
         else:
             # check for initialization
             ini = input(
-                ('Would you like to initalize the exchanges with crypto? (Y/n): '))
-            if 'y' in ini.lower():
+                ("Would you like to initalize the exchanges with crypto? (Y/n): ")
+            )
+            if "y" in ini.lower():
                 inip = True
             else:
                 inip = False
 
-        invest = ''
+        invest = ""
         while type(invest) == str:
-            invest = input((
-                'How much would you like each transaction to be worth in dollars?')+' $')
+            invest = input(
+                ("How much would you like each transaction to be worth in dollars?")
+                + " $"
+            )
             try:
                 invest = float(invest)
             except:
-                if invest == '':
+                if invest == "":
                     invest = 100  # default
                 else:
-                    print(colorBad('Enter a number.'))
+                    print(colorBad("Enter a number."))
 
-        margin = ''
+        margin = ""
         while type(margin) == str:
-            margin = input((
-                'Minimum profit margin? ')+' $')
+            margin = input(("Minimum profit margin? ") + " $")
             try:
                 margin = float(margin)
             except:
-                if margin == '':
+                if margin == "":
                     margin = 0.01  # default
                 else:
-                    print(colorBad('Enter a number.'))
+                    print(colorBad("Enter a number."))
 
-        speedup = ''
+        speedup = ""
         while type(speedup) == str:
-            speedup = input(
-                'Max speedup? (0 to 100%) ')
+            speedup = input("Max speedup? (0 to 100%) ")
             try:
                 speedup = float(speedup)
             except:
-                if speedup == '':
+                if speedup == "":
                     speedup = 10  # default
                 else:
-                    print(colorBad('Enter a number.'))
+                    print(colorBad("Enter a number."))
 
-        min_speedup = ''
+        min_speedup = ""
         while type(min_speedup) == str:
             if speedup > 0:
-                min_speedup = input(
-                    'Min speedup? (0 to {}%) '.format(speedup))
+                min_speedup = input("Min speedup? (0 to {}%) ".format(speedup))
                 try:
                     min_speedup = float(min_speedup)
                 except:
-                    if min_speedup == '':
+                    if min_speedup == "":
                         min_speedup = 0  # default
                     else:
-                        print(colorBad('Enter a number.'))
+                        print(colorBad("Enter a number."))
 
-        if 'all' in curr.lower():
+        if "all" in curr.lower():
             dynamics = getDynamicCommons(exchanges)
-            print(colorEh('Creating for: {} ({} pairs)'.format(
-                list(dynamics.keys()), len(dynamics))))
+            print(
+                colorEh(
+                    "Creating for: {} ({} pairs)".format(
+                        list(dynamics.keys()), len(dynamics)
+                    )
+                )
+            )
             for sym in dynamics:
                 currencies.append(
-                    Bouncer(sym, invest, dynamics[sym], inip, speedup, globals()['trading'], margin, min_speedup, log))
+                    Bouncer(
+                        sym,
+                        invest,
+                        dynamics[sym],
+                        inip,
+                        speedup,
+                        globals()["trading"],
+                        margin,
+                        min_speedup,
+                        log,
+                    )
+                )
         else:
             currencies.append(
-                Bouncer(curr, invest, exchanges, inip, speedup, globals()['trading'], margin, min_speedup, log))
-    notify('Configured')
+                Bouncer(
+                    curr,
+                    invest,
+                    exchanges,
+                    inip,
+                    speedup,
+                    globals()["trading"],
+                    margin,
+                    min_speedup,
+                    log,
+                )
+            )
+    notify("Configured")
 
 
 # run main
-if __name__ == '__main__':
+if __name__ == "__main__":
     # welcome
     print()
-    print('Welcome to SAMWise!'.center(WIDTH))
-    print('(Spatial Arbitrage Method Wizard)'.center(WIDTH))
-    print('Created by Calvin Kinateder, 2021'.center(WIDTH))
-    print('calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/'.center(WIDTH))
+    print("Welcome to SAMWise!".center(WIDTH))
+    print("(Spatial Arbitrage Method Wizard)".center(WIDTH))
+    print("Created by Calvin Kinateder, 2021".center(WIDTH))
+    print(
+        "calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/".center(WIDTH)
+    )
     if dynamic_input:
-        print('Press \'q\' or ESC to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
+        print(
+            "Press 'q' or ESC to quit. Note: '$' is used to symbolize quote coin.".center(
+                WIDTH
+            )
+        )
     else:
-        print('CTRL C to quit. Note: \'$\' is used to symbolize quote coin.'.center(WIDTH))
-    print(('-'*WIDTH)+'\n')
+        print(
+            "CTRL C to quit. Note: '$' is used to symbolize quote coin.".center(WIDTH)
+        )
+    print(("-" * WIDTH) + "\n")
 
     # attach key listener
     # ...or, in a non-blocking fashion:
     if dynamic_input:
-        listener = keyboard.Listener(
-            on_release=on_release)
+        listener = keyboard.Listener(on_release=on_release)
         listener.start()
 
     configure()
@@ -478,6 +562,6 @@ if __name__ == '__main__':
                 i.arbitrate()
                 if KILL:
                     kill()
-            time.sleep(3/len(currencies))
+            time.sleep(3 / len(currencies))
         except KeyboardInterrupt:
             kill()
