@@ -26,7 +26,7 @@ def human_format(number):
 
 def getTableOfAll():
     availables = getAvailableExchanges()
-    availables.remove('bittrex')
+    # availables.remove('bittrex')
     exchanges = loadExchanges(availables)
     index = list()
 

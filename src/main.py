@@ -6,6 +6,7 @@ from os import listdir, path
 from pprint import pprint
 
 import ccxt
+import pync
 
 try:
     from pynput import keyboard
@@ -282,6 +283,7 @@ def on_release(key):
 
 def kill():
     print('\nQuitting\n')
+    pync.notify('Quitting', title='SAMWise')
     should = input('Are you sure you want to quit? (Y/n) ')
     if 'y' in should.lower():
         if globals()['trading']:
@@ -302,10 +304,11 @@ def configure():
         exchanges = loadExchanges(getAvailableExchanges())
         if sys.argv[1] == 'test_usd':
             dynamics = getDynamicCommons(exchanges)
-            print(colorEh('Creating for: {}'.format(list(dynamics.keys()))))
+            print(colorEh('Creating for: {} ({} pairs)'.format(
+                list(dynamics.keys()), len(dynamics))))
             for e in dynamics:
                 currencies.append(
-                    Bouncer(e, 280, dynamics[e], margin=0.009, min_speedup=1, loud=False))
+                    Bouncer(e, 280, dynamics[e], margin=0.01, min_speedup=1, loud=False))
         elif sys.argv[1] == 'ATOM/USD':
             currencies.append(
                 Bouncer(symbol=sys.argv[1], quote_order_size=float(sys.argv[2]), exchanges=exchanges, initializeq=False, speedup=20, trading=True, margin=0.01, min_speedup=.1))
@@ -414,6 +417,8 @@ def configure():
 
         if 'all' in curr.lower():
             dynamics = getDynamicCommons(exchanges)
+            print(colorEh('Creating for: {} ({} pairs)'.format(
+                list(dynamics.keys()), len(dynamics))))
             for sym in dynamics:
                 currencies.append(
                     Bouncer(sym, invest, dynamics[sym], inip, speedup, globals()['trading'], margin, min_speedup, log))
