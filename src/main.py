@@ -8,20 +8,13 @@ from pprint import pprint
 import ccxt
 
 try:
-    import pync
-
-    notifications = True
-except:
-    notifications = False
-
-try:
     from pynput import keyboard
 
     dynamic_input = True
 except:
     dynamic_input = False
 from bouncer import WIDTH, Bouncer
-from crayon import *
+from helper import *
 
 __author__ = "Calvin Kinateder"
 __email__ = "calvinkinateder@gmail.com"
@@ -32,14 +25,6 @@ KILL = False
 currencies = list()
 keypath = "keys/"
 QUOTE = "USD"
-
-
-def notify(message):
-    """
-    Send a notification to the notification center on macos
-    """
-    if notifications:
-        pync.notify(message, title="SAMWise")
 
 
 def stringitizeExc(l):
@@ -334,7 +319,7 @@ def kill():
                 for i in currencies:
                     i.cleanup()
         sys.exit(0)
-
+    notify("Resuming")
     globals()["KILL"] = False
 
 
@@ -343,7 +328,6 @@ def configure():
     Configure options for starting the program.
     """
     inip = False
-    log = True
     globals()["trading"] = True
     # check for commandline override
     if len(sys.argv) > 1:
@@ -361,11 +345,11 @@ def configure():
                 currencies.append(
                     Bouncer(
                         e,
-                        100,
+                        float(sys.argv[2]),
                         dynamics[e],
                         margin=0.01,
                         min_speedup=0.2,
-                        speedup=2,
+                        speedup=72,
                         loud=False,
                         position=list(dynamics.keys()).index(e) / len(dynamics) * 100,
                     )
@@ -425,9 +409,6 @@ def configure():
 
         if "y" in scan.lower():
             globals()["trading"] = False
-            login = input("Would you like to disable logging to file? (Y/n): ")
-            if "y" in login.lower():
-                log = False
         else:
             # check for initialization
             ini = input(
@@ -506,7 +487,6 @@ def configure():
                         globals()["trading"],
                         margin,
                         min_speedup,
-                        log,
                     )
                 )
         else:
@@ -520,7 +500,6 @@ def configure():
                     globals()["trading"],
                     margin,
                     min_speedup,
-                    log,
                 )
             )
     notify("Configured")

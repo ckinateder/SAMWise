@@ -2,6 +2,13 @@ from termcolor import colored
 from string import Template
 from math import floor, log
 
+try:
+    import pync
+
+    notifications = True
+except:
+    notifications = False
+
 
 def stringitizeL(l):
     out = ""
@@ -26,6 +33,14 @@ def strfdelta(tdelta, fmt):
     return t.substitute(**d)
 
 
+def notify(message):
+    """
+    Send a notification to the notification center on macos
+    """
+    if notifications:
+        pync.notify(message, title="SAMWise")
+
+
 def humanFormat(number):
     units = ["", "K", "M", "G", "T", "P"]
     k = 1000.0
@@ -34,23 +49,38 @@ def humanFormat(number):
 
 
 def colorGood(strr):
-    return colored(strr, "green")
+    if not type(strr) == str:
+        return colored(f"{strr:,}", "green")
+    else:
+        return colored(strr, "green")
 
 
 def colorEh(strr):
-    return colored(strr, "yellow")
+    if not type(strr) == str:
+        return colored(f"{strr:,}", "yellow")
+    else:
+        return colored(strr, "yellow")
 
 
 def colorBad(strr):
-    return colored(strr, "red")
+    if not type(strr) == str:
+        return colored(f"{strr:,}", "red")
+    else:
+        return colored(strr, "red")
 
 
 def colorHigh(strr):
-    return colored(strr, "cyan")
+    if not type(strr) == str:
+        return colored(f"{strr:,}", "cyan")
+    else:
+        return colored(strr, "cyan")
 
 
 def colorLow(strr):
-    return colored(strr, "magenta")
+    if not type(strr) == str:
+        return colored(f"{strr:,}", "magenta")
+    else:
+        return colored(strr, "magenta")
 
 
 def colorClock(strr):
@@ -67,6 +97,10 @@ def colorTrades(strr):
 
 def colorPerc(strr):
     return colored(text=strr, color="grey", on_color="on_white")
+
+
+def colorProg(strr):
+    return colored(text=strr, color="white", on_color="on_grey")
 
 
 def colorThreshold(number, dig=3, threshold=0, rev=False):
