@@ -406,7 +406,11 @@ class Bouncer:
         if not got_zero:
             spreads = sorted(
                 spreads.values(),
-                key=lambda x: (getitem(x, "speedup"), getitem(x, "spread_w_fees")),
+                key=lambda x: (
+                    getitem(x, "speedup"),
+                    getitem(x, "spread_w_fees"),
+                    getitem(x, "liquidity"),
+                ),
             )  # as a list
 
             spreads.reverse()
