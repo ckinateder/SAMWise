@@ -157,10 +157,12 @@ class Hive:
         out = list(set(out))
         return out
 
-    def getDynamicCommons(self, exchanges, minnum=3):
+    def getDynamicCommons(self, exchanges=None, minnum=3):
         """
         Get all symbols in common with 3 or more of the given exchanges.
         """
+        if not exchanges:
+            exchanges = self.getAvailableExchanges()
         alls = list()
         for i in exchanges:
             x = list(i.load_markets().keys())

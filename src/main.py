@@ -330,6 +330,7 @@ def configure():
     """
     Configure options for starting the program.
     """
+    start_time = time.time()
     inip = False
     globals()["trading"] = True
     # check for commandline override
@@ -530,7 +531,8 @@ def configure():
                         min_speedup,
                     )
                 )
-    notify("Configured")
+    end_time = time.time() - start_time
+    notify("Configured in {:.2f} s".format(end_time))
 
 
 # run main

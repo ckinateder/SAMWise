@@ -46,6 +46,7 @@ class Scanner:
             position: optional, number assigned to object
         """
         self.start_time = datetime.now()
+        self.uptime = self.start_time - datetime.now()  # really not necessary
         self.position = position
         # precision to display quotes
         # speedup is used to narrow the price gap to enable trades to finish faster.
@@ -53,6 +54,7 @@ class Scanner:
         self.min_speedup = min_speedup
         self.exchanges = exchanges
 
+        self.notifying = False
         self.loud = loud
         # check if symbol supported by all
         if symbol in self.getCommons():
@@ -134,6 +136,13 @@ class Scanner:
                 dict_writer.writeheader()  # only write if not exists
             dict_writer.writerows(toCSV)
 
+    def updateUptime(self):
+        """
+        Updates the uptime and returns a formatted string.
+        """
+        self.uptime = datetime.now() - self.start_time
+        return strfdelta(self.uptime, "%H:%M:%S")
+
     def getCommons(self):
         alls = list()
         for i in self.exchanges:
@@ -195,7 +204,8 @@ class Scanner:
 
     def getSpread(self, responses=None):
         """
-        Get tickers for the watched symbols and return exchanges and spread
+        Get tickers for the watched symbols and return exchanges and spread.
+        returns: spreads, [error True or False]
         """
         try:
             #
@@ -391,15 +401,6 @@ class Scanner:
                     bid = response_items[i][1]["bid"]
                     exchange = response_items[i][0]
                     if exchange == buy:
-                        fee = exchange.calculateFee(
-                            self.symbol,
-                            "limit",
-                            "buy",
-                            self.quote_order_size / ask,
-                            ask,
-                            takerOrMaker="taker",
-                            params={},
-                        )["cost"]
                         logstr = colorLow(
                             "\t{}: ${} ask, ${} bid".format(
                                 exchange.name,
@@ -408,15 +409,6 @@ class Scanner:
                             )
                         )
                     elif exchange == sell:
-                        fee = exchange.calculateFee(
-                            self.symbol,
-                            "limit",
-                            "sell",
-                            self.quote_order_size / ask,
-                            ask,
-                            takerOrMaker="taker",
-                            params={},
-                        )["cost"]
                         logstr = colorHigh(
                             "\t{}: ${} ask, ${} bid".format(
                                 exchange.name,
@@ -425,15 +417,6 @@ class Scanner:
                             )
                         )
                     elif exchange == sell and exchange == buy:
-                        fee = exchange.calculateFee(
-                            self.symbol,
-                            "limit",
-                            "sell",
-                            self.quote_order_size / ask,
-                            ask,
-                            takerOrMaker="taker",
-                            params={},
-                        )["cost"]
                         logstr = colorEh(
                             "\t{}: ${} ask, ${} bid".format(
                                 exchange.name,
@@ -442,15 +425,6 @@ class Scanner:
                             )
                         )
                     else:
-                        fee = exchange.calculateFee(
-                            self.symbol,
-                            "limit",
-                            "buy",
-                            self.quote_order_size / ask,
-                            ask,
-                            takerOrMaker="taker",
-                            params={},
-                        )["cost"]
                         logstr = "\t{}: ${} ask, ${} bid".format(
                             exchange.name,
                             round(ask, self.precision),
@@ -468,7 +442,8 @@ class Scanner:
                 # if empty, not profitable
                 if spreads:
                     profitable = True
-                    notify(f"Profitable on {self.symbol}")
+                    if self.notifying:
+                        notify(f"Profitable on {self.symbol}")
                 else:
                     profitable = False
 
@@ -481,9 +456,7 @@ class Scanner:
                 if self.currency_name:
                     currency_str = f" ({self.currency_name})"
 
-                uptime_str = colorUptime(
-                    strfdelta(datetime.now() - self.start_time, "%H:%M:%S")
-                )
+                uptime_str = colorUptime(self.updateUptime())
                 clock_str = colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
 
                 total_header_str = (
@@ -595,11 +568,12 @@ class Scanner:
                 if profitable:
                     self.saveDict(spreads)
 
-                return spreads, False
+                return spreads, False, flip_flop
             else:
-                return None, True
+                return None, True, False
         except Exception as e:
             print(colorBad("Error getting spread for {} ({})".format(self.symbol, e)))
+        return None, True, False
 
     def switch(self, new_symbol):
         self.symbol = new_symbol
