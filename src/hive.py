@@ -162,7 +162,7 @@ class Hive:
         Get all symbols in common with 3 or more of the given exchanges.
         """
         if not exchanges:
-            exchanges = self.getAvailableExchanges()
+            exchanges = self.loadExchanges(self.getAvailableExchanges())
         alls = list()
         for i in exchanges:
             x = list(i.load_markets().keys())
