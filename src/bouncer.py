@@ -1,19 +1,19 @@
+import csv
 import logging
 import sys
-import csv
 import time
-from datetime import date, datetime, timedelta
-from os import path
-from math import log, floor
-
 from collections import OrderedDict
+from datetime import date, datetime, timedelta
+from math import floor, log
 from operator import getitem
+from os import path
+from pprint import pformat, pprint
 
 import ccxt
 import pandas as pd
-from pprint import pformat, pprint
 
 from helper import *
+from scanner import Scanner
 
 __author__ = "Calvin Kinateder"
 __email__ = "calvinkinateder@gmail.com"
@@ -21,7 +21,7 @@ __email__ = "calvinkinateder@gmail.com"
 WIDTH = 100
 
 
-class Bouncer:
+class Bouncer(Scanner):
     def __init__(
         self,
         symbol,
@@ -29,14 +29,13 @@ class Bouncer:
         exchanges,
         initializeq=False,
         speedup=10,
-        trading=False,
         margin=0.01,
         min_speedup=1,
         loud=True,
         position=None,
     ):
         """
-        Create the class.
+        Create the class, extends Hive.
         Params:
             symbol: market pair to run on
             quote_order_size: how much each trade should be worth
@@ -49,51 +48,16 @@ class Bouncer:
             loud: print all pairs or just profitable
             position: optional, number assigned to object
         """
-        self.start_time = datetime.now()
-        self.position = position
-        # mark which balance section to look at
-        self.section = "total"
-        # precision to display quotes
-        self.precision = ":.3f"
-        # speedup is used to narrow the price gap to enable trades to finish faster.
-        self.max_speedup = speedup
-        self.min_speedup = min_speedup
-        self.exchanges = exchanges
-
-        self.loud = loud
-        # check if symbol supported by all
-        if symbol in self.getCommons():
-            self.symbol = symbol
-            self.base_coin = symbol.split("/")[0]
-            self.quote_coin = symbol.split("/")[1]
-        else:
-            print(
-                "Symbol '{}' not supported by all platforms. Exiting ...".format(symbol)
-            )
-            sys.exit(0)
-
-        # find currency name
-        count = 0
-        self.currency_name = None
-        while count < len(self.exchanges) and not self.currency_name:
-            if self.base_coin in self.exchanges[count].currencies:
-                if "name" in self.exchanges[count].currencies[self.base_coin]:
-                    self.currency_name = self.exchanges[count].currencies[
-                        self.base_coin
-                    ]["name"]
-            count += 1
-
-        # initialize for indicators
-        self.sell = None
-        self.buy = None
-
-        # initialize
-        self.cycles = 0  # counts cycles
-        self.profit_cycles = 0  # counts profitable cycles
-        self.trading = trading
-        self.trade_count = 0
-        self.quote_order_size = quote_order_size
-        self.pro_filename = "logs/" + self.base_coin + "-" + self.quote_coin + ".csv"
+        super().__init__(
+            symbol=symbol,
+            quote_order_size=quote_order_size,
+            exchanges=exchanges,
+            speedup=speedup,
+            margin=margin,
+            min_speedup=min_speedup,
+            loud=loud,
+            position=position,
+        )
         self.trades_filename = (
             "logs/trades/"
             + datetime.now().strftime("%m-%d-%Y_%H-%M")
@@ -105,7 +69,7 @@ class Bouncer:
         )
         self.margin = margin  # for trades
         exchanges_str = ""
-
+        self.trading = True
         # set up trades file
         self.trades_headers = [
             "Date",
@@ -116,45 +80,32 @@ class Bouncer:
             "Net Gain (%)",
         ]
         self.trades = pd.DataFrame(columns=self.trades_headers)
-
+        self.trade_count = 0
         for i in range(0, len(self.exchanges) - 1):
             exchanges_str += self.exchanges[i].name + ", "
         exchanges_str += "and " + self.exchanges[-1].name
         self.ireq = (
             len(exchanges) * self.quote_order_size * 2
         )  # how much invested total
-        if self.trading:
-            print(
-                colorGood(
-                    "Spending ${:,.0f} for ${}: playing with {:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
-                ).format(
-                    self.quote_order_size,
-                    self.symbol,
-                    self.ireq,
-                    self.min_speedup,
-                    self.max_speedup,
-                    self.margin,
-                    exchanges_str,
-                )
+
+        print(
+            colorGood(
+                "Spending ${:,.0f} for ${}: playing with {:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
+            ).format(
+                self.quote_order_size,
+                self.symbol,
+                self.ireq,
+                self.min_speedup,
+                self.max_speedup,
+                self.margin,
+                exchanges_str,
             )
-        else:
-            print(
-                colorGood(
-                    "Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
-                ).format(
-                    self.symbol,
-                    self.ireq,
-                    self.min_speedup,
-                    self.max_speedup,
-                    self.margin,
-                    exchanges_str,
-                )
-            )
+        )
 
         # init balances
         self.balances = dict()
         self.net = 0
-
+        self.section = "total"
         # initialize balances
         if initializeq:
             print(
@@ -163,103 +114,20 @@ class Bouncer:
                 )
             )
             self.inititalizeBalances()
-        if self.trading:
-            (
+        (
+            self.start_total_base_amount,
+            self.start_total_quote_amount,
+        ) = self.updateBalances(loud=False)
+
+        print(
+            colorClock("Starting base amount [{:.8f} {}, {:.4f} {}]").format(
                 self.start_total_base_amount,
+                self.base_coin,
                 self.start_total_quote_amount,
-            ) = self.updateBalances(loud=False)
-        else:
-            self.start_total_base_amount = 0
-            self.start_total_quote_amount = 0
-        if self.trading:
-            print(
-                colorClock("Starting base amount [{:.8f} {}, {:.4f} {}]").format(
-                    self.start_total_base_amount,
-                    self.base_coin,
-                    self.start_total_quote_amount,
-                    self.quote_coin,
-                )
+                self.quote_coin,
             )
-            print()
-
-    def saveDict(self, toCSV):
-        """
-        takes a list of dictionaries and saves it to a csv
-        """
-        keys = toCSV[0].keys()
-        did_exist = path.isfile(self.pro_filename)
-        with open(self.pro_filename, "a+", newline="") as output_file:
-            dict_writer = csv.DictWriter(output_file, keys)
-            if not did_exist:
-                dict_writer.writeheader()  # only write if not exists
-            dict_writer.writerows(toCSV)
-
-    def getCommons(self):
-        alls = list()
-        for i in self.exchanges:
-            x = list(i.load_markets().keys())
-            for j in x:
-                alls.append(j)
-        out = list()
-
-        for item in alls:
-            if alls.count(item) == len(self.exchanges):
-                out.append(item)
-        out = set(out)
-        # for i in out:
-        #    if 'USD' in i:
-        #       print(i, '1', end=' ')
-        return out
-
-    def getWatched(self):
-        """
-        Get responses for each exchange for self.symbol.
-        """
-        all_responses = dict()
-        for exchange in self.exchanges:
-            all_responses[exchange] = exchange.fetch_ticker(self.symbol)
-        # print('Recived from {} in {self.precison} s'.format(
-        #    ', '.join(all_responses.keys()), time.time()-before))
-        return all_responses
-
-    def calculateLiquidity(self, test_buy, test_sell):
-        l = "unknown"
-        try:
-            buy_volume = test_buy[1]["quoteVolume"]
-            sell_volume = test_sell[1]["quoteVolume"]
-            buy_close = test_buy[1]["close"]
-            sell_close = test_sell[1]["close"]
-            buy_high = test_buy[1]["high"]
-            buy_low = test_buy[1]["low"]
-            sell_high = test_sell[1]["high"]
-            sell_low = test_sell[1]["low"]
-            l1 = (buy_volume * buy_close) / (buy_high - buy_low)
-            l2 = (sell_volume * sell_close) / (sell_high - sell_low)
-            # l = f'b{l1:.3f}  s{l2:.3f}'
-            l = 0.5 * l1 + 0.5 * l2
-        except:
-            l = "unknown"
-        return l
-
-    def shorten(self, liquid):
-        if liquid == "unknown":
-            return liquid
-        else:
-            units = ["", "K", "M", "G", "T", "P"]
-            k = 1000.0
-            magnitude = int(floor(log(liquid, k)))
-            return "%.2f%s" % (liquid / k ** magnitude, units[magnitude])
-
-    def findFlipFlop(self, spreadlist):
-        flops = []
-        flops_bool = False
-        for item in spreadlist:
-            for compared in spreadlist:
-                if item["buy"] == compared["sell"] and item["sell"] == compared["buy"]:
-                    flops_bool = True
-                    flops.append([item, compared])
-        # print(flops)
-        return flops_bool, flops
+        )
+        print()
 
     def getSpread(self, responses=None):
         """
@@ -468,7 +336,11 @@ class Bouncer:
                         params={},
                     )["cost"]
                     logstr = colorLow(
-                        "\t{}: ${:.3f} ask, ${:.3f} bid".format(exchange.name, ask, bid)
+                        "\t{}: ${} ask, ${} bid".format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
                     )
                 elif exchange == sell:
                     fee = exchange.calculateFee(
@@ -481,7 +353,11 @@ class Bouncer:
                         params={},
                     )["cost"]
                     logstr = colorHigh(
-                        "\t{}: ${:.3f} ask, ${:.3f} bid".format(exchange.name, ask, bid)
+                        "\t{}: ${} ask, ${} bid".format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
                     )
                 elif exchange == sell and exchange == buy:
                     fee = exchange.calculateFee(
@@ -494,7 +370,11 @@ class Bouncer:
                         params={},
                     )["cost"]
                     logstr = colorEh(
-                        "\t{}: ${:.3f} ask, ${:.3f} bid".format(exchange.name, ask, bid)
+                        "\t{}: ${} ask, ${} bid".format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
                     )
                 else:
                     fee = exchange.calculateFee(
@@ -506,9 +386,12 @@ class Bouncer:
                         takerOrMaker="taker",
                         params={},
                     )["cost"]
-                    logstr = "\t{}: ${:.3f} ask, ${:.3f} bid".format(
-                        exchange.name, ask, bid
+                    logstr = "\t{}: ${} ask, ${} bid".format(
+                        exchange.name,
+                        round(ask, self.precision),
+                        round(bid, self.precision),
                     )
+
                 exchanges_str += logstr + "\n"
 
             # remove all values less than margin
@@ -559,12 +442,12 @@ class Bouncer:
 
             # indicates whether there are any open trades
             # format ** [buy, sell]
-            if self.sell and self.buy:
-                if self.anyOpen(self.buy) and self.anyOpen(self.sell):
+            if self.selling and self.buying:
+                if self.anyOpen(self.buying) and self.anyOpen(self.selling):
                     indicator = colorEh("*") * 2
-                elif self.anyOpen(self.buy) and not self.anyOpen(self.sell):
+                elif self.anyOpen(self.buying) and not self.anyOpen(self.selling):
                     indicator = colorEh("*") + colorGood("*")
-                elif not self.anyOpen(self.buy) and self.anyOpen(self.sell):
+                elif not self.anyOpen(self.buying) and self.anyOpen(self.selling):
                     indicator = colorGood("*") + colorEh("*")
                 else:
                     indicator = colorGood("*") * 2
@@ -614,9 +497,13 @@ class Bouncer:
                             colorThreshold(item["no_fees"]),
                             colorThreshold(item["spread_w_fees"]),
                             colorLow(item["buy"].name),
-                            colorLow("{:.3f}".format(item["buy_price"])),
+                            colorLow(
+                                "{}".format(round(item["buy_price"], self.precision))
+                            ),
                             colorHigh(item["sell"].name),
-                            colorHigh("{:.3f}".format(item["sell_price"])),
+                            colorHigh(
+                                "{}".format(round(item["sell_price"], self.precision))
+                            ),
                             colorThreshold(item["speedup"], threshold=self.min_speedup),
                             colorLiquidity(item["liquidity"], threshold=1),
                         )
@@ -641,9 +528,9 @@ class Bouncer:
                             colorThreshold(no_fees),
                             colorThreshold(spread),
                             colorLow(buy.name),
-                            colorLow("{:.3f}".format(low)),
+                            colorLow("{}".format(round(low, self.precision))),
                             colorHigh(sell.name),
-                            colorHigh("{:.3f}".format(high)),
+                            colorHigh("{}".format(round(high, self.precision))),
                             colorThreshold((high - low), 3, self.margin),
                         )
                     )
@@ -823,7 +710,7 @@ class Bouncer:
         self.blockTrades(5)
         print('Final balances:')
         base, quote = self.updateBalances(loud=False)
-        print('Sums: [{:.8f} {}, {:.3f} {}]'.format(
+        print('Sums: [{:.8f} {}, {} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
         print('Net: {}%'.format(colorThreshold(self.net)))
@@ -853,7 +740,7 @@ class Bouncer:
                     buy_ex, amt, self.symbol, low
                 )
             )
-            self.buy = buy_ex
+            self.buying = buy_ex
             buy_ex.create_limit_buy_order(self.symbol, amt, low)
             self.trade_count += 1
             new_row = [
@@ -872,7 +759,7 @@ class Bouncer:
                     sell_ex, amt, self.symbol, high
                 )
             )
-            self.sell = sell_ex
+            self.selling = sell_ex
             sell_ex.create_limit_sell_order(self.symbol, amt, high)
             self.trade_count += 1
             new_row = [
@@ -947,8 +834,11 @@ class Bouncer:
                         ):
                             print(
                                 colorBad(
-                                    "* Insufficient balance (missing ${:.3f} on {}, {:.4f} {} on {})".format(
-                                        self.quote_order_size - quote_balance,
+                                    "* Insufficient balance (missing ${} on {}, {:.4f} {} on {})".format(
+                                        round(
+                                            self.quote_order_size - quote_balance,
+                                            self.precision,
+                                        ),
                                         buy_ex.name,
                                         self.quote_order_size / high - base_balance,
                                         self.base_coin,
@@ -959,8 +849,11 @@ class Bouncer:
                         elif quote_balance < self.quote_order_size:
                             print(
                                 colorBad(
-                                    "* Insufficient balance (missing ${:.3f} on {})".format(
-                                        self.quote_order_size - quote_balance,
+                                    "* Insufficient balance (missing ${} on {})".format(
+                                        round(
+                                            self.quote_order_size - quote_balance,
+                                            self.precision,
+                                        ),
                                         buy_ex.name,
                                     )
                                 )

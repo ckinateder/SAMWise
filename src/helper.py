@@ -42,6 +42,8 @@ def notify(message):
 
 
 def humanFormat(number):
+    if type(number) == str:
+        return colorEh(number)
     units = ["", "K", "M", "G", "T", "P"]
     k = 1000.0
     magnitude = int(floor(log(number, k)))

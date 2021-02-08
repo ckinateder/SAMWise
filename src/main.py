@@ -14,6 +14,7 @@ try:
 except:
     dynamic_input = False
 from bouncer import WIDTH, Bouncer
+from scanner import Scanner
 from helper import *
 
 __author__ = "Calvin Kinateder"
@@ -145,13 +146,15 @@ def getAvailableExchanges():
     """
     Get all existing exchanges
     """
-    exchanges = list()
     # find exchanges from file structure
     file_list = listdir(keypath)
-    for i in range(0, len(file_list) - 2):
+    end = len(file_list) - 1
+    for i in range(0, end):
         x = file_list[i]
+        # print(x)
         if ".DS_Store" in x or ".gitkeep" in x:
             file_list.remove(x)
+        end = len(file_list)
     for i in range(0, len(file_list)):
         x = file_list[i]
         if "_public" in x:
@@ -275,8 +278,8 @@ def getDynamicCommons(exchanges, minnum=3):
     for i in exchanges:
         x = list(i.load_markets().keys())
         for j in x:
-            if QUOTE in j:  # or 'BTC' in j or 'ETH' in j:
-                alls.append(j)
+            # if QUOTE in j:  # or 'BTC' in j or 'ETH' in j:
+            alls.append(j)
     alls = list(set(alls))
 
     compatibles = {}
@@ -343,7 +346,7 @@ def configure():
             )
             for e in dynamics:
                 currencies.append(
-                    Bouncer(
+                    Scanner(
                         e,
                         float(sys.argv[2]),
                         dynamics[e],
@@ -476,32 +479,57 @@ def configure():
                     )
                 )
             )
-            for sym in dynamics:
+            if globals()["trading"]:
+                for sym in dynamics:
+                    currencies.append(
+                        Bouncer(
+                            sym,
+                            invest,
+                            dynamics[sym],
+                            inip,
+                            speedup,
+                            margin,
+                            min_speedup,
+                        )
+                    )
+            else:
+                for sym in dynamics:
+                    currencies.append(
+                        Scanner(
+                            sym,
+                            invest,
+                            dynamics[sym],
+                            inip,
+                            speedup,
+                            margin,
+                            min_speedup,
+                        )
+                    )
+        else:
+            if globals()["trading"]:
                 currencies.append(
                     Bouncer(
-                        sym,
+                        curr,
                         invest,
-                        dynamics[sym],
+                        exchanges,
                         inip,
                         speedup,
-                        globals()["trading"],
                         margin,
                         min_speedup,
                     )
                 )
-        else:
-            currencies.append(
-                Bouncer(
-                    curr,
-                    invest,
-                    exchanges,
-                    inip,
-                    speedup,
-                    globals()["trading"],
-                    margin,
-                    min_speedup,
+            else:
+                currencies.append(
+                    Scanner(
+                        curr,
+                        invest,
+                        exchanges,
+                        inip,
+                        speedup,
+                        margin,
+                        min_speedup,
+                    )
                 )
-            )
     notify("Configured")
 
 
@@ -538,7 +566,10 @@ if __name__ == "__main__":
     while True:
         try:
             for i in currencies:
-                i.arbitrate()
+                if type(i) == Bouncer:
+                    i.arbitrate()
+                elif type(i) == Scanner:
+                    i.getSpread()
                 if KILL:
                     kill()
             time.sleep(3 / len(currencies))
