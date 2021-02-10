@@ -13,7 +13,7 @@ try:
     dynamic_input = True
 except:
     dynamic_input = False
-from bouncer import WIDTH, Bouncer
+from bouncer import Bouncer
 from scanner import Scanner
 from helper import *
 

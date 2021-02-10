@@ -1,3 +1,5 @@
+import os
+import subprocess
 import time
 from math import floor, log
 from string import Template
@@ -10,6 +12,35 @@ try:
     notifications = True
 except:
     notifications = False
+
+
+def updateSize():
+    return [int(i) for i in subprocess.check_output(["stty", "size"]).decode().split()]
+
+
+HEIGHT, WIDTH = updateSize()
+
+
+def intro():
+    """
+    Print the intro string.
+    """
+    print("Welcome to SAMWise!".center(WIDTH))
+    print("(Spatial Arbitrage Method Wizard)".center(WIDTH))
+    print("Created by Calvin Kinateder, 2021".center(WIDTH))
+    print(
+        "calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/".center(WIDTH)
+    )
+    print("CTRL C to quit. Note: '$' is used to symbolize quote coin.".center(WIDTH))
+    print(("-" * WIDTH).center(WIDTH) + "\n")
+
+
+def clear():
+    """
+    Clear screen.
+    """
+    os.system("cls" if os.name == "nt" else "clear")
+    print("\n" * (HEIGHT - 1))
 
 
 def stringitizeL(l):

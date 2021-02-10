@@ -18,8 +18,6 @@ from scanner import Scanner
 __author__ = "Calvin Kinateder"
 __email__ = "calvinkinateder@gmail.com"
 
-WIDTH = 100
-
 
 class Bouncer(Scanner):
     def __init__(

@@ -18,8 +18,6 @@ from helper import *
 __author__ = "Calvin Kinateder"
 __email__ = "calvinkinateder@gmail.com"
 
-WIDTH = 100
-
 
 class Scanner:
     def __init__(
@@ -72,7 +70,8 @@ class Scanner:
 
         if "USD" in self.quote_coin:
             self.precision = 2
-
+        # get width
+        self.height, self.width = updateSize()
         # find currency name
         count = 0
         self.currency_name = None
@@ -218,7 +217,8 @@ class Scanner:
         """
         Get tickers for the watched symbols and return exchanges and spread.
         returns: spreads, [error True or False]
-        """
+        """  # update sizes
+        self.height, self.width = updateSize()
         self.cycles += 1
 
         # only print ONCE
@@ -478,7 +478,7 @@ class Scanner:
 
                 total_header_str = (
                     "/"
-                    + "-" * (WIDTH - 44)
+                    + "-" * (self.width - 44)
                     + colorCycle(f"{self.cycles:2d}")
                     + "--"
                     + uptime_str
@@ -520,12 +520,12 @@ class Scanner:
                                 # print(len(msg_str))
                                 # print(msg_str, end=' '*35)
                                 # print(
-                                #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(WIDTH-6))
+                                #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(self.width-6))
                         intermediate = intermediate[:-1] + "]"
                         total_message += msg_str + colorGood(intermediate) + "\n"
                     else:
                         total_message += indicator + "\n"  # , end="")
-                        # print(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(WIDTH + 7))
+                        # print(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(self.width + 7))
                     for i in range(len(spreads)):
                         item = spreads[i]
                         total_message += (

@@ -1,8 +1,8 @@
 from datetime import *
 from os import error, listdir, path
 from pprint import pprint
-
-import ccxt
+import subprocess
+import ccxt, timeit
 import pandas as pd
 import progressbar
 
@@ -300,15 +300,24 @@ class Hive:
             responses = {}
             for scan in progressbar.progressbar(currencies, redirect_stdout=True):
                 spreads, error, ff = scan.getSpread()
-                responses[scan] = ff
+                responses[scan] = {"flip_flop": ff, "error": error}
+            # print summary
+            print(f"Summary of cycle {cmt}:")
+            flops = []
+            errors = []
             for i in responses:
-                if responses[i]:
-                    print(colorGood(str(i) + ": " + str(responses[i])))
-                else:
-                    print(colorEh(str(i) + ": " + str(responses[i])))
+                if responses[i]["flip_flop"]:
+                    flops.append(str(i))
+                if responses[i]["error"]:
+                    errors.append(str(i))
+            print(colorGood(f"Flip flops: {stringitizeL(flops)}"))
+            if errors:
+                print(colorBad(f"Errors: {stringitizeL(errors)}"))
 
 
 if __name__ == "__main__":
+    clear()
+    intro()
     hive = Hive()
     start_time = datetime.now()
     hive.scanAll(trade_size=100, n=80)
