@@ -13,10 +13,24 @@ except:
 
 
 def stringitizeL(l):
+    """
+    Creates a string from a list, adding 'and' at the end.
+    """
     out = ""
     for i in range(len(l) - 1):
         out += l[i] + ", "
     out += "and " + l[-1]
+    return out
+
+
+def stringitizeExc(list_of_exchanges):
+    """
+    Creates a string from a list of ccxt exchange objects, adding 'and' at the end.
+    """
+    out = ""
+    for i in range(len(list_of_exchanges) - 1):
+        out += list_of_exchanges[i].name + ", "
+    out += "and " + list_of_exchanges[-1].name
     return out
 
 
@@ -44,10 +58,16 @@ def notify(message):
 
 
 def now():
+    """
+    Shortened version of calling time.time()
+    """
     return time.time()
 
 
 def humanFormat(number):
+    """
+    Shorten a long number with abbreversediations
+    """
     if type(number) == str:
         return colorEh(number)
     units = ["", "K", "M", "G", "T", "P"]
@@ -57,6 +77,9 @@ def humanFormat(number):
 
 
 def colorGood(strr):
+    """
+    Color a string green.
+    """
     if not type(strr) == str:
         return colored(f"{strr:,}", "green")
     else:
@@ -64,6 +87,9 @@ def colorGood(strr):
 
 
 def colorEh(strr):
+    """
+    Color a string yellow.
+    """
     if not type(strr) == str:
         return colored(f"{strr:,}", "yellow")
     else:
@@ -71,6 +97,9 @@ def colorEh(strr):
 
 
 def colorBad(strr):
+    """
+    Color a string red.
+    """
     if not type(strr) == str:
         return colored(f"{strr:,}", "red")
     else:
@@ -78,6 +107,9 @@ def colorBad(strr):
 
 
 def colorHigh(strr):
+    """
+    Color a string cyan.
+    """
     if not type(strr) == str:
         return colored(f"{strr:,}", "cyan")
     else:
@@ -85,6 +117,9 @@ def colorHigh(strr):
 
 
 def colorLow(strr):
+    """
+    Color a string magenta.
+    """
     if not type(strr) == str:
         return colored(f"{strr:,}", "magenta")
     else:
@@ -92,40 +127,55 @@ def colorLow(strr):
 
 
 def colorClock(strr):
+    """
+    Color a string green.
+    """
     return colored(text=strr, color="grey", on_color="on_yellow")
 
 
 def colorUptime(strr):
+    """
+    Highlight a string cyan.
+    """
     return colored(text=strr, color="grey", on_color="on_cyan")
 
 
 def colorTrades(strr):
+    """
+    Highlight a string magenta.
+    """
     return colored(text=strr, color="grey", on_color="on_magenta")
 
 
-def colorPerc(strr):
+def colorCycle(strr):
+    """
+    Highlight a string white.
+    """
     return colored(text=strr, color="grey", on_color="on_white")
 
 
 def colorProg(strr):
+    """
+    Highlight a string grey (white text).
+    """
     return colored(text=strr, color="white", on_color="on_grey")
 
 
-def colorThreshold(number, dig=3, threshold=0, rev=False):
+def colorThreshold(number, dig=3, threshold=0, reversed=False):
     """
-    Color code a number.
+    Color code a number based on a threshold.
     """
     if type(number) == float:
         number = round(number, dig)
         try:
-            if not rev:
+            if not reversed:
                 if number > threshold:
                     form = colorGood(number)
                 elif number < threshold:
                     form = colorBad(number)
                 else:
                     form = colorEh(number)
-            elif rev:
+            elif reversed:
                 if number < threshold:
                     form = colorGood(number)
                 elif number > threshold:
@@ -141,7 +191,7 @@ def colorThreshold(number, dig=3, threshold=0, rev=False):
 
 def colorLiquidity(number, threshold=0):
     """
-    Color code a number.
+    Color code a LARGE number based on a threshold.
     """
     if type(number) == float:
         try:
@@ -156,9 +206,3 @@ def colorLiquidity(number, threshold=0):
         return form
     else:
         return colorEh(number)
-
-
-def colorSymbol(strr):
-    pair = strr.split("/")
-    # return colored(pair[0], 'blue', 'on_white')+colored('/', 'white', 'on_grey')+colored(pair[1], 'white', 'on_blue')
-    return colored(strr, "white", "on_blue")

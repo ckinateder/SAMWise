@@ -29,7 +29,7 @@ class Pricer:
 
     def getOneSymbol(self, exchange, symbol, loud=False):
         """
-        Get one single symbol. this may not be necessary
+        Get one single symbol on one exchange.
         """
         s = now()
         try_again = True
@@ -51,7 +51,9 @@ class Pricer:
         return {}
 
     def getMultipleSymbols(self, exchange, symbols):
-
+        """
+        Get multiple symbols in a bulk call on one exchange.
+        """
         out = {}
         for key in list(self.dynamics.keys()):
             out[key] = {}
@@ -63,7 +65,7 @@ class Pricer:
 
     def divideSymbols(self, exchange, symbols):
         """
-        for exchanges that cant fetch all at once, divide up for each
+        For exchanges that cant fetch all at once, divide up for each
         """
         intermediate = {}
         for symbol in symbols:

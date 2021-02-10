@@ -57,7 +57,7 @@ class Scanner:
         self.notifying = False
         self.loud = loud
         # check if symbol supported by all
-        if symbol in self.getCommons():
+        if self.validateSymbol(symbol):
             self.symbol = symbol
             self.base_coin = symbol.split("/")[0]
             self.quote_coin = symbol.split("/")[1]
@@ -143,7 +143,16 @@ class Scanner:
         self.uptime = datetime.now() - self.start_time
         return strfdelta(self.uptime, "%H:%M:%S")
 
+    def validateSymbol(self, symbol):
+        if symbol in self.getCommons():
+            return True
+        else:
+            return False
+
     def getCommons(self):
+        """
+        Get symbols in common with ALL self.exchanges. Used to check if __init__ given a valid symbol or not.
+        """
         alls = list()
         for i in self.exchanges:
             x = list(i.load_markets().keys())
@@ -470,7 +479,7 @@ class Scanner:
                 total_header_str = (
                     "/"
                     + "-" * (WIDTH - 44)
-                    + colorPerc(f"{self.cycles:2d}")
+                    + colorCycle(f"{self.cycles:2d}")
                     + "--"
                     + uptime_str
                     + "--"

@@ -28,17 +28,9 @@ keypath = "keys/"
 QUOTE = "USD"
 
 
-def stringitizeExc(l):
-    out = ""
-    for i in range(len(l) - 1):
-        out += l[i].name + ", "
-    out += "and " + l[-1].name
-    return out
-
-
 def setupExchanges():
     """
-    Sets up all exchanges from the CLI. (for first time)
+    Sets up all exchanges from the CLI (for first time use).
     """
     exchanges = list()
     moreToAdd = True

@@ -201,7 +201,7 @@ class Bouncer(Scanner):
 
     def updateNet(self, loud=False):
         """
-        Returns self.net as a percent and updates.
+        Returns self.net as a percent and updates. CURRENTLY NOT IMPLEMENTED.
         """
         base, quote = self.updateBalances(loud)
         if self.start_total_base_amount == 0 or self.start_total_quote_amount == 0:
@@ -254,6 +254,9 @@ class Bouncer(Scanner):
         self.blockTrades(5)
 
     def anyOpen(self, exchange=None):
+        """
+        Checks if any trades are open. If given an exchange, it only checks for that exchange, otherwise it will check for all self.exchanges.
+        """
         if exchange == None:
             for i in self.exchanges:
                 x = i.fetch_open_orders(self.symbol)
@@ -266,6 +269,9 @@ class Bouncer(Scanner):
         return False
 
     def cleanup(self):
+        """
+        Cleans up by selling off any balances still left on platforms.
+        """
         print("Cleaning up for {}...".format(self.symbol))
         responses = self.getWatched()
         self.updateBalances(loud=False)
@@ -306,6 +312,9 @@ class Bouncer(Scanner):
         print(colorEh("Trades sumbitted ... exiting."))
 
     def blockTrades(self, timewait):
+        """
+        Blocks code until no active trades.
+        """
         print(colorEh("Trades initiated ... blocking to completion"))
 
         open_trades = self.anyOpen()
@@ -376,7 +385,7 @@ class Bouncer(Scanner):
 
     def arbitrate(self):
         """
-        Calculate spread and buy on low and sell on high.
+        Calculate spread and buy on low and sell on high, with checking for low balances and whatnot.
         """
         try:
             spreads, error, flip_flop = self.getSpread()
