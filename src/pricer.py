@@ -49,10 +49,15 @@ class Pricer:
         return {}
 
     def getMultipleSymbols(self, exchange, symbols):
+
+        out = {}
+        for key in list(self.dynamics.keys()):
+            out[key] = {}
+
         bulk = exchange.fetchTickers(symbols)
         for symbol in bulk:
-            self.props[symbol][exchange] = bulk[symbol]
-        return self.props
+            out[symbol][exchange] = bulk[symbol]
+        return out
 
     def divideSymbols(self, exchange, symbols):
         """
@@ -138,12 +143,12 @@ class Pricer:
         for exchange in self.idynamics:
             if exchange.has["fetchTickers"]:
                 print(f"quick {exchange}")
-                self.getMultipleSymbols(exchange, self.idynamics[exchange])
+                inter = self.getMultipleSymbols(exchange, self.idynamics[exchange])
+                self.mergeProps(inter, self.props)
 
             elif exchange.has["fetchTicker"]:
                 print(f"slow {exchange} ...")
                 inter = self.divideSymbols(exchange, self.idynamics[exchange])
-                # merge inter into self.props
                 self.mergeProps(inter, self.props)
 
         # pprint(self.props)
