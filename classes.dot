@@ -1,5 +1,0 @@
-digraph "classes" {
-charset="utf-8"
-rankdir=BT
-"0" [label="{Bouncer|balances : dict\lbase_coin\lbuy : NoneType\lcurrency_name : NoneType\lcycles : int\lexchanges\lireq\lloud : bool\lmargin : float\lmax_speedup : int\lmin_speedup : int\lnet : int\lposition : NoneType\lprecision : int\lpro_filename\lprofit_cycles : int\lquote_coin\lquote_order_size\lsection : str\lsell : NoneType\lstart_time : datetime\lstart_total_base_amount : int\lstart_total_quote_amount : int\lsymbol\ltrade_count : int\ltrades : DataFrame\ltrades_filename\ltrades_headers : list\ltrading : bool\l|anyOpen(exchange)\larbitrate()\lblockTrades(timewait)\lcalculateLiquidity(test_buy, test_sell)\lcleanup()\lfindFlipFlop(spreadlist)\lgetCommons()\lgetSpread(responses)\lgetWatched()\lhandleTransaction(buy_ex, sell_ex, low, high)\linititalizeBalances()\lsaveDict(toCSV)\lshorten(liquid)\lupdateBalances(loud)\lupdateNet(loud)\l}", shape="record"];
-}
