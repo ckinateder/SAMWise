@@ -1,93 +1,71 @@
-import asyncio
+import asyncio, aiohttp
 import json
 import threading
 import time
-from pprint import pprint
-from re import sub
-from types import coroutine
+from pprint import pformat, pprint
 
 import ccxt
-import websockets
+import requests
+from bs4 import BeautifulSoup
 
-import hive
+from hive import Hive
 
-key = open("keys/cryptocompare").read().strip()
-
-cc_aliases = {
-    "coinbasepro": "Coinbase",
-    "binance": "Binance",
-    "binanceus": "binanceusa",
-    "okcoin": "OKCoin",
-    "huobipro": "HuobiPro",
-    "bitstamp": "Bitstamp",
-    "bittrex": "BitTrex",
-    "bithumb": "Bithumb",
-    "kraken": "Kraken",
-    "bitfinex": "Bitfinex",
-    "kucoin": "Kucoin",
-}
+alls = {}
 
 
-def createSingleSub(args):
+PROPS = {}
+
+
+async def getOneSymbol(exchange, symbol):
+    s = time.time()
+    x = exchange.fetchTicker(symbol)
+    if exchange.id == "coinbasepro":
+        time.sleep(0.08)
+    print(f"got {symbol} symbols on {exchange} in {time.time()-s:.2f}s")
+    PROPS[symbol].append({exchange: x})
+
+
+async def divideSymbols(exchange, symbols):
+    tasks = []
+    for x in symbols:
+        tasks.append(asyncio.ensure_future(getOneSymbol(exchange, x)))
+    await asyncio.gather(*tasks, return_exceptions=True)
+
+
+# get slugs
+async def propagate():
     """
-    Args must be in format [{type}, {exchange}, {base}, {quote}]
-    Ex (fetch ticker for BTC-USD on Coinbase): [2, "Coinbase", "BTC", "USD"]
-    https://min-api.cryptocompare.com/documentation/websockets
+    Get all tickers for each exchange, then propagate into dictionary. EACH CALL TO EACH EXCHANGE WILL BE ASYNC
+    Ex:
+    {
+        'BTC/USD': {
+            ccxt.coinbasepro(): {...},
+            ccxt.kraken(): {...},
+            ccxt.binanceus(): {...},
+            ...etc
+        }
+    }
     """
-    return "~".join([str(i) for i in args])
+    h = Hive()
+    dynamics = h.getDynamicCommons()
+    idynmaics = h.transpose(dynamics)
+    # set keys
+    for key in list(dynamics.keys()):
+        PROPS[key] = []
 
-
-def createAllSubs(commons):
-    """
-    Create list of subscriptions for a commons dict
-    """
-    subs = []
-    for symbol in commons:
-        for exchange in commons[symbol]:
-            if exchange.id in cc_aliases:
-                subs.append(
-                    createSingleSub(
-                        [
-                            2,
-                            cc_aliases[exchange.id],
-                            symbol.split("/")[0],
-                            symbol.split("/")[1],
-                        ]
-                    )
-                )
-            else:
-                print(
-                    f"ticker {symbol} not supported for {exchange.name} on cryptocompare"
-                )
-    print(f"creating {len(subs)} subs")
-    return subs
-
-
-async def checkData(subscriptions):
-    uri = f"wss://streamer.cryptocompare.com/v2?api_key={key}"
-    async with websockets.connect(uri) as websocket:
-        await websocket.send(
-            json.dumps(
-                {
-                    "action": "SubAdd",
-                    "subs": subscriptions,
-                }
-            )
-        )
-        while True:
-            greeting = await websocket.recv()
-            pprint(json.loads(greeting))
-
-
-async def main():
-    h = hive.Hive()
-    commons = h.getDynamicCommons()
-    subs = createAllSubs(commons)
-    asyncio.ensure_future(checkData(subs))
-    print("holding 60")
-    await asyncio.sleep(60)
+    # pprint(idynmaics)
+    # fetch for ecah
+    for x in idynmaics:
+        if x.has["fetchTickers"]:
+            print(f"quick {x}")
+            y = x.fetchTickers(idynmaics[x])
+            for z in y:
+                PROPS[z].append({x: y[z]})
+        elif x.has["fetchTicker"]:
+            print(f"slow {x}")
+            await divideSymbols(x, idynmaics[x])
+    pprint(PROPS)
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    asyncio.get_event_loop().run_until_complete(propagate())

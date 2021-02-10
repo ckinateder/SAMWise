@@ -4,6 +4,7 @@ from helper import *
 from os import listdir, path
 import ccxt
 import pandas as pd
+from pprint import pprint
 
 __author__ = "Calvin Kinateder"
 __email__ = "calvinkinateder@gmail.com"
@@ -14,14 +15,14 @@ QUOTE = "USD"
 class Hive:
     def __init__(self):
         self.keypath = "keys/"
-
-    def getTableOfAll(self):
         availables = self.getAvailableExchanges()
         # availables.remove('bittrex')
-        exchanges = self.loadExchanges(availables)
+        self.exchanges = self.loadExchanges(availables)
+
+    def getTableOfAll(self):
         index = list()
 
-        for i in exchanges:
+        for i in self.exchanges:
             x = list(i.load_markets().keys())
             for j in x:
                 if "USD" in j:
@@ -30,7 +31,7 @@ class Hive:
         index = list(set(index))
 
         alls = list()
-        for i in exchanges:
+        for i in self.exchanges:
             alls.append(i.id)
 
         headers = alls
@@ -39,7 +40,7 @@ class Hive:
         yes_and_no = pd.DataFrame(columns=headers)
         yes_and_no["ticker"] = index
 
-        for exchange in exchanges:
+        for exchange in self.exchanges:
             for i in range(0, len(index)):
                 marks = list(exchange.load_markets().keys())
                 if index[i] in marks:
@@ -52,10 +53,10 @@ class Hive:
 
     def loadExchanges(self, all_ex):
         """
-        Create exchanges objects for all existing ones
+        Create self.exchanges objects for all existing ones
         """
         print("Creating exchange objects for {}.".format(stringitizeL(all_ex)))
-        exchanges = list()
+        self.exchanges = list()
         # create objs
         for exchstr in all_ex:
             if exchstr in ccxt.exchanges:  # j to be safe
@@ -112,7 +113,7 @@ class Hive:
                         )
                     current.fetch_balance()
                     print(colorGood("Exchange {} added successfully!").format(exchstr))
-                    exchanges.append(current)
+                    self.exchanges.append(current)
                 except ccxt.AuthenticationError:
                     print(
                         colorBad("Invalid credentials for {} ... moving on.").format(
@@ -132,18 +133,20 @@ class Hive:
 
         print(
             colorGood(
-                "Done! Added exchanges {}.".format(self.stringitizeExc(exchanges))
+                "Done! Added self.exchanges {}.".format(
+                    self.stringitizeExc(self.exchanges)
+                )
             )
         )
-        notify("Loaded exchanges {}".format(self.stringitizeExc(exchanges)))
-        return exchanges
+        notify("Loaded self.exchanges {}".format(self.stringitizeExc(self.exchanges)))
+        return self.exchanges
 
-    def getCommons(self, exchanges):
+    def getCommons(self):
         """
         Get all symbols in common with EVERY given exchange.
         """
         alls = list()
-        for i in exchanges:
+        for i in self.exchanges:
             x = list(i.load_markets().keys())
             for j in x:
                 alls.append(j)
@@ -152,27 +155,27 @@ class Hive:
         for item in alls:
             # Important - only allows usd
             # and not 'XRP' in item:
-            if alls.count(item) == len(exchanges) and QUOTE in item:
+            if alls.count(item) == len(self.exchanges) and QUOTE in item:
                 out.append(item)
         out = list(set(out))
         return out
 
-    def getDynamicCommons(self, exchanges=None, minnum=3):
+    def getDynamicCommons(self, minnum=3):
         """
-        Get all symbols in common with 3 or more of the given exchanges.
+        Get all symbols in common with 3 or more of the given self.exchanges.
         """
-        if not exchanges:
-            exchanges = self.loadExchanges(self.getAvailableExchanges())
         alls = list()
-        for i in exchanges:
+        for i in self.exchanges:
             x = list(i.load_markets().keys())
             for j in x:
-                # if QUOTE in j:  # or 'BTC' in j or 'ETH' in j:
-                alls.append(j)
+                if (
+                    QUOTE in j  # or "BTC" in j or "ETH" in j
+                ):  # not ("GBP" in j or "EUR" in j):  # or 'BTC' in j or 'ETH' in j:
+                    alls.append(j)
         alls = list(set(alls))
 
         compatibles = {}
-        for exchange in exchanges:
+        for exchange in self.exchanges:
             possibles = list(exchange.load_markets().keys())
             for symbol in alls:
                 if symbol in possibles:
@@ -186,6 +189,28 @@ class Hive:
             if len(compatibles[key]) >= minnum:
                 multiples[key] = compatibles[key]
         return multiples
+
+    def getInvertedDynamicCommons(self, minnum=3):
+        """
+        Get all symbols in common with 3 or more of the given self.exchanges.
+        """
+        if not self.exchanges:
+            self.exchanges = self.loadExchanges(self.getAvailableExchanges())
+        original = self.getDynamicCommons(minnum)
+
+        return self.transpose(original)
+
+    def transpose(self, original):
+        inverted = {}
+        for symbol in original:
+            for exchange in self.exchanges:
+                if exchange in original[symbol]:
+                    if exchange in inverted:
+                        inverted[exchange].append(symbol)
+                    else:
+                        inverted[exchange] = [symbol]
+
+        return inverted
 
     def getAvailableExchanges(self):
         """
