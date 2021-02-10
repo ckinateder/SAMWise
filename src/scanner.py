@@ -192,6 +192,9 @@ class Scanner:
         return l
 
     def findFlipFlop(self, spreadlist):
+        """
+        Finds if an option in the spreadlist can be both bought and sold to and from each other and still be profitable.
+        """
         flops = []
         flops_bool = False
         for item in spreadlist:
@@ -207,6 +210,7 @@ class Scanner:
         Get tickers for the watched symbols and return exchanges and spread.
         returns: spreads, [error True or False]
         """
+        self.cycles += 1
         try:
             #
             if responses == None:
@@ -238,9 +242,8 @@ class Scanner:
             ]
             """
 
-            # make ordered dict of spreads COUNTING fees
-
-            spreads = dict()  # OrderedDict()
+            # make dict of spreads COUNTING fees
+            spreads = dict()
             for test_buy in response_items:
                 for test_sell in response_items:
                     if not test_sell == test_buy:
@@ -321,7 +324,8 @@ class Scanner:
                                 ran = True
                             if ran:
                                 actual_speedup -= inc  # set after
-                            # print(actual_speedup)
+
+                            # create dictionary
                             spreads[spread_w_fee] = {
                                 "time": t_formatted,
                                 "symbol": self.symbol,
@@ -355,7 +359,7 @@ class Scanner:
                         getitem(x, "liquidity"),
                     ),
                 )  # as a list
-
+                # reverse the list for printing
                 spreads.reverse()
                 # pprint(spreads)
                 # get last in list, sorted from low to high spread_w_fees
@@ -384,17 +388,17 @@ class Scanner:
                     'timestamp': 1612156852.032166
                 }
                 """
+                # get most profitable
                 most_profitable = spreads[0]
                 buy = most_profitable["buy"]
                 sell = most_profitable["sell"]
-
                 low = most_profitable["buy_price"]  # will remove soon
                 high = most_profitable["sell_price"]  # ditto
                 fees = most_profitable["fees"]
                 no_fees = most_profitable["no_fees"]
                 spread = most_profitable["spread_w_fees"]
 
-                # find buy and sell and log
+                # create formatted out string
                 exchanges_str = ""
                 for i in range(0, len(responses)):
                     ask = response_items[i][1]["ask"]
@@ -451,7 +455,7 @@ class Scanner:
                 perc_str = "---"
                 if not self.position == None:
                     perc_str = colorProg("{:2.0f}%".format(self.position))
-                # have cycle counter
+
                 currency_str = ""
                 if self.currency_name:
                     currency_str = f" ({self.currency_name})"

@@ -378,7 +378,6 @@ class Bouncer(Scanner):
         """
         Calculate spread and buy on low and sell on high.
         """
-        self.cycles += 1
         try:
             spreads, error, flip_flop = self.getSpread()
 

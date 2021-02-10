@@ -19,6 +19,7 @@ class Pricer:
     def __init__(self):
         self.props = {}
         h = Hive()
+        self.exchanges = h.exchanges
         self.dynamics = h.getDynamicCommons()
         self.idynamics = h.transpose(self.dynamics)
         # set keys
@@ -125,7 +126,7 @@ class Pricer:
         return verified
 
     # get slugs
-    def propagate(self):
+    def propagate(self, exchange):
         """
         Get all tickers for each exchange, then propagate into dictionary. EACH CALL TO EACH EXCHANGE WILL BE ASYNC
         Ex:
@@ -140,22 +141,30 @@ class Pricer:
         """  # pprint(self.idynamics)
         # fetch for each
 
-        for exchange in self.idynamics:
-            if exchange.has["fetchTickers"]:
-                print(f"quick {exchange}")
-                inter = self.getMultipleSymbols(exchange, self.idynamics[exchange])
-                self.mergeProps(inter, self.props)
+        # for exchange in self.idynamics:
+        print(exchange)
+        if exchange.has["fetchTickers"]:
+            print(f"quick {exchange}")
+            print(self.idynamics.keys())
+            inter = self.getMultipleSymbols(exchange, self.idynamics[exchange])
+            self.mergeProps(inter, self.props)
 
-            elif exchange.has["fetchTicker"]:
-                print(f"slow {exchange} ...")
-                inter = self.divideSymbols(exchange, self.idynamics[exchange])
-                self.mergeProps(inter, self.props)
+        elif exchange.has["fetchTicker"]:
+            print(f"slow {exchange} ...")
+            inter = self.divideSymbols(exchange, self.idynamics[exchange])
+            self.mergeProps(inter, self.props)
 
         # pprint(self.props)
         print(f"data makes sense: {self.verify(test=self.props, sure=self.dynamics)}")
 
+    def spread(self):
+        for exchange in self.exchanges:
+            self.propagate(exchange)
+        return self.props
+
 
 if __name__ == "__main__":
     pricer = Pricer()
-    pricer.propagate()
+    pricer.spread()
+    pprint(pricer.props)
     print(f"finished in {time.time()-start:.2f}s")
