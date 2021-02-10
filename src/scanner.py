@@ -1,4 +1,5 @@
 import logging
+from tqdm import tqdm
 import sys
 import csv
 import time
@@ -30,6 +31,7 @@ class Scanner:
         min_speedup=1,
         loud=True,
         position=None,
+        timeout=3,
     ):
         """
         Create the class.
@@ -40,8 +42,9 @@ class Scanner:
             speedup: max percentage value of how tight the margin may be squeezed
             margin: min trade profit
             min_speedup: min percentage value of how tight the margin may be squeezed
-            loud: print all pairs or just profitable
+            loud: tqdm.write all pairs or just profitable
             position: optional, number assigned to object
+            timeout: seconds to wait for a response until canceling
         """
         self.start_time = datetime.now()
         self.uptime = self.start_time - datetime.now()  # really not necessary
@@ -51,7 +54,7 @@ class Scanner:
         self.max_speedup = speedup
         self.min_speedup = min_speedup
         self.exchanges = exchanges
-
+        self.timeout = timeout
         self.notifying = False
         self.loud = loud
         # check if symbol supported by all
@@ -60,7 +63,7 @@ class Scanner:
             self.base_coin = symbol.split("/")[0]
             self.quote_coin = symbol.split("/")[1]
         else:
-            print(
+            tqdm.write(
                 "Symbol '{}' not supported by all platforms. Exiting ...".format(symbol)
             )
             sys.exit(0)
@@ -110,7 +113,7 @@ class Scanner:
             len(exchanges) * self.quote_order_size * 2
         )  # how much invested total
         if self.loud:
-            print(
+            tqdm.write(
                 colorGood(
                     "Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
                 ).format(
@@ -143,6 +146,9 @@ class Scanner:
         return strfdelta(self.uptime, "%H:%M:%S")
 
     def validateSymbol(self, symbol):
+        """
+        Returns whether or not the symbol is supported by all exchanges.
+        """
         if symbol in self.getCommons():
             return True
         else:
@@ -165,7 +171,7 @@ class Scanner:
         out = set(out)
         # for i in out:
         #    if 'USD' in i:
-        #       print(i, '1', end=' ')
+        #       tqdm.write(i, '1', end=' ')
         return out
 
     def getWatched(self):
@@ -173,14 +179,28 @@ class Scanner:
         Get responses for each exchange for self.symbol.
         """
         all_responses = dict()
-        for exchange in self.exchanges:
-            try:
-                all_responses[exchange] = exchange.fetch_ticker(self.symbol)
-            except ccxt.RateLimitExceeded:
-                print(colorBad("Rate limit exceeded on {}".format(exchange.name)))
+        start = now()
+        while now() - start <= self.timeout:
+            for exchange in self.exchanges:
+                try:
+                    all_responses[exchange] = exchange.fetch_ticker(self.symbol)
+                except ccxt.RateLimitExceeded:
+                    tqdm.write(
+                        colorBad("Rate limit exceeded on {}".format(exchange.name))
+                    )
+        if len(list(all_responses.keys())) < len(self.exchanges):
+            missed = [
+                i
+                for i in self.exchanges + list(all_responses.keys())
+                if i not in self.exchanges or i not in list(all_responses.keys())
+            ]
+            tqdm.write(colorBad("Timeout reached on {}".format(stringitizeL(missed))))
         return all_responses
 
     def calculateLiquidity(self, test_buy, test_sell):
+        """
+        Calculate the liquidity metric for two exchanges
+        """
         l = "unknown"
         try:
             buy_volume = test_buy[1]["quoteVolume"]
@@ -210,7 +230,7 @@ class Scanner:
                 if item["buy"] == compared["sell"] and item["sell"] == compared["buy"]:
                     flops_bool = True
                     flops.append([item, compared])
-        # print(flops)
+        # tqdm.write(flops)
         return flops_bool, flops
 
     def getSpread(self, responses=None):
@@ -221,7 +241,7 @@ class Scanner:
         self.height, self.width = updateSize()
         self.cycles += 1
 
-        # only print ONCE
+        # only tqdm.write ONCE
         total_message = ""
         # return statements
         spreads_return = None
@@ -517,15 +537,15 @@ class Scanner:
                                 intermediate += " #{} & #{},".format(
                                     spreads.index(ff[0]) + 1, spreads.index(ff[1]) + 1
                                 )
-                                # print(len(msg_str))
-                                # print(msg_str, end=' '*35)
-                                # print(
+                                # tqdm.write(len(msg_str))
+                                # tqdm.write(msg_str, end=' '*35)
+                                # tqdm.write(
                                 #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(self.width-6))
                         intermediate = intermediate[:-1] + "]"
                         total_message += msg_str + colorGood(intermediate) + "\n"
                     else:
                         total_message += indicator + "\n"  # , end="")
-                        # print(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(self.width + 7))
+                        # tqdm.write(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(self.width + 7))
                     for i in range(len(spreads)):
                         item = spreads[i]
                         total_message += (
@@ -590,8 +610,8 @@ class Scanner:
                 colorBad("Error getting spread for {} ({})".format(self.symbol, e))
             ) + "\n"
 
-        # PRINT EVERYTHING
-        print(total_message, end="")
+        # tqdm.write EVERYTHING
+        tqdm.write(total_message, end="")
         return spreads_return, error_return, flip_flop_return
 
     def switch(self, new_symbol):

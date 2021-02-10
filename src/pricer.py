@@ -2,6 +2,7 @@ import asyncio, aiohttp
 import json
 import threading
 import time
+from tqdm import tqdm
 from pprint import pformat, pprint
 
 import ccxt
@@ -41,10 +42,10 @@ class Pricer:
                 if exchange.id == "coinbasepro":
                     time.sleep(0.08)
                 if loud:
-                    print(f"got {symbol} on {exchange} in {now()-s:.2f}s")
+                    tqdm.write(f"got {symbol} on {exchange} in {now()-s:.2f}s")
                 return resp
             except ccxt.RateLimitExceeded:
-                print("RateLimitExceeded")
+                tqdm.write("RateLimitExceeded")
                 try_again = True
                 count += 1
                 time.sleep(5)
@@ -111,9 +112,9 @@ class Pricer:
 
     def myPrint(self, dic):
         for x in dic:
-            print(f"'{x}': ", end="")
+            tqdm.write(f"'{x}': ", end="")
             for exc in dic[x]:
-                print(f"{exc}: " + "{ ... }")
+                tqdm.write(f"{exc}: " + "{ ... }")
 
     def verify(self, test, sure):
         """
@@ -145,20 +146,22 @@ class Pricer:
         # fetch for each
 
         # for exchange in self.idynamics:
-        print(exchange)
+        tqdm.write(exchange)
         if exchange.has["fetchTickers"]:
-            print(f"quick {exchange}")
-            print(self.idynamics.keys())
+            tqdm.write(f"quick {exchange}")
+            tqdm.write(self.idynamics.keys())
             inter = self.getMultipleSymbols(exchange, self.idynamics[exchange])
             self.mergeProps(inter, self.props)
 
         elif exchange.has["fetchTicker"]:
-            print(f"slow {exchange} ...")
+            tqdm.write(f"slow {exchange} ...")
             inter = self.divideSymbols(exchange, self.idynamics[exchange])
             self.mergeProps(inter, self.props)
 
         # pprint(self.props)
-        print(f"data makes sense: {self.verify(test=self.props, sure=self.dynamics)}")
+        tqdm.write(
+            f"data makes sense: {self.verify(test=self.props, sure=self.dynamics)}"
+        )
 
     def spread(self):
         for exchange in self.exchanges:
@@ -170,4 +173,4 @@ if __name__ == "__main__":
     pricer = Pricer()
     pricer.spread()
     pprint(pricer.props)
-    print(f"finished in {now()-start:.2f}s")
+    tqdm.write(f"finished in {now()-start:.2f}s")

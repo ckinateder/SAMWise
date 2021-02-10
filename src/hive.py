@@ -4,7 +4,8 @@ from pprint import pprint
 import subprocess
 import ccxt, timeit
 import pandas as pd
-import progressbar
+from tqdm import tqdm
+from tqdm.std import trange
 
 from bouncer import WIDTH, Bouncer
 from helper import *
@@ -51,7 +52,7 @@ class Hive:
                     yes_and_no[exchange.id][i] = True
                 else:
                     yes_and_no[exchange.id][i] = False
-        # print(yes_and_no)
+        # tqdm.write(yes_and_no)
         yes_and_no.reset_index(drop=True, inplace=True)
         yes_and_no.to_csv("logs/pairs.csv")
         return yes_and_no
@@ -60,10 +61,10 @@ class Hive:
         """
         Create self.exchanges objects for all existing ones
         """
-        print("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
+        tqdm.write("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
         self.exchanges = list()
         # create objs
-        for exchstr in progressbar.progressbar(all_ex, redirect_stdout=True):
+        for exchstr in tqdm(all_ex, leave=False):
             if exchstr in ccxt.exchanges:  # j to be safe
                 try:
                     public = open(self.keypath + exchstr + "_public").read().strip()
@@ -117,16 +118,18 @@ class Hive:
                             }
                         )
                     current.fetch_balance()
-                    print(colorGood("Exchange {} added successfully!").format(exchstr))
+                    tqdm.write(
+                        colorGood("Exchange {} added successfully!").format(exchstr)
+                    )
                     self.exchanges.append(current)
                 except ccxt.AuthenticationError:
-                    print(
+                    tqdm.write(
                         colorBad("Invalid credentials for {} ... moving on.").format(
                             exchstr
                         )
                     )
                 except FileNotFoundError:
-                    print(
+                    tqdm.write(
                         colorBad(
                             "Keys for {} not found in {} ... moving on.".format(
                                 exchstr, self.keypath
@@ -134,9 +137,11 @@ class Hive:
                         )
                     )
             else:
-                print(colorBad("Sorry, {} is not supported yet :(").format(exchstr))
+                tqdm.write(
+                    colorBad("Sorry, {} is not supported yet :(").format(exchstr)
+                )
 
-        print(
+        tqdm.write(
             colorGood(
                 "Done! Added self.exchanges {}.".format(
                     self.stringitizeExc(self.exchanges)
@@ -232,7 +237,7 @@ class Hive:
         end = len(file_list) - 1
         for i in range(0, end):
             x = file_list[i]
-            # print(x)
+            # tqdm.write(x)
             if ".DS_Store" in x or ".gitkeep" in x:
                 file_list.remove(x)
             end = len(file_list)
@@ -251,7 +256,7 @@ class Hive:
 
     def stringitizeExc(self, l):
         """
-        Print out the exchanges nicely
+        tqdm.write out the exchanges nicely
         """
         out = ""
         for i in range(len(l) - 1):
@@ -266,15 +271,15 @@ class Hive:
         currencies = []
         if not dynamics:
             dynamics = self.getDynamicCommons()
-        print(
+        tqdm.write(
             colorEh(
                 "{} ({} pairs found)".format(
                     stringitizeL(list(dynamics.keys())), len(dynamics)
                 )
             )
         )
-        print(colorGood(f"Creating {len(dynamics)} scanners ..."))
-        for e in progressbar.progressbar(dynamics, redirect_stdout=True):
+        tqdm.write(colorGood(f"Creating {len(dynamics)} scanners ..."))
+        for e in tqdm(dynamics, leave=False):
             currencies.append(
                 Scanner(
                     e,
@@ -287,22 +292,22 @@ class Hive:
                     position=list(dynamics.keys()).index(e) / len(dynamics) * 100,
                 )
             )
-        print(colorGood(f"Created {len(dynamics)} scanners!\nScanning now ..."))
+        tqdm.write(colorGood(f"Created {len(dynamics)} scanners!\nScanning now ..."))
         return currencies
 
     def scanAll(self, trade_size, n=1):
         """
-        Scan every single exchange n times and print a summary.
+        Scan every single exchange n times and tqdm.write a summary.
         """
         currencies = self.createDynamicScanners(trade_size=trade_size)
-
-        for cmt in range(n):
+        # nested loop with progressbar
+        for cmt in trange(n, position=1):
             responses = {}
-            for scan in progressbar.progressbar(currencies, redirect_stdout=True):
+            for scan in tqdm(currencies, leave=False):
                 spreads, error, ff = scan.getSpread()
                 responses[scan] = {"flip_flop": ff, "error": error}
-            # print summary
-            print(f"Summary of cycle {cmt}:")
+            # tqdm.write summary
+            tqdm.write(f"Summary of cycle {cmt}:")
             flops = []
             errors = []
             for i in responses:
@@ -310,9 +315,9 @@ class Hive:
                     flops.append(str(i))
                 if responses[i]["error"]:
                     errors.append(str(i))
-            print(colorGood(f"Flip flops: {stringitizeL(flops)}"))
+            tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
             if errors:
-                print(colorBad(f"Errors: {stringitizeL(errors)}"))
+                tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
 
 
 if __name__ == "__main__":
@@ -320,6 +325,6 @@ if __name__ == "__main__":
     intro()
     hive = Hive()
     start_time = datetime.now()
-    hive.scanAll(trade_size=100, n=80)
-    print(f"Scanned all symbols in {(datetime.now()-start_time)}")
+    hive.scanAll(trade_size=100, n=10)
+    tqdm.write(f"Scanned all symbols in {(datetime.now()-start_time)}")
     tableOfAll = hive.getTableOfAll()

@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm
 import subprocess
 import time
 from math import floor, log
@@ -23,16 +24,18 @@ HEIGHT, WIDTH = updateSize()
 
 def intro():
     """
-    Print the intro string.
+    tqdm.write the intro string.
     """
-    print("Welcome to SAMWise!".center(WIDTH))
-    print("(Spatial Arbitrage Method Wizard)".center(WIDTH))
-    print("Created by Calvin Kinateder, 2021".center(WIDTH))
-    print(
+    tqdm.write("Welcome to SAMWise!".center(WIDTH))
+    tqdm.write("(Spatial Arbitrage Method Wizard)".center(WIDTH))
+    tqdm.write("Created by Calvin Kinateder, 2021".center(WIDTH))
+    tqdm.write(
         "calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/".center(WIDTH)
     )
-    print("CTRL C to quit. Note: '$' is used to symbolize quote coin.".center(WIDTH))
-    print(("-" * WIDTH).center(WIDTH) + "\n")
+    tqdm.write(
+        "CTRL C to quit. Note: '$' is used to symbolize quote coin.".center(WIDTH)
+    )
+    tqdm.write(("-" * WIDTH).center(WIDTH) + "\n")
 
 
 def clear():
@@ -40,17 +43,20 @@ def clear():
     Clear screen.
     """
     os.system("cls" if os.name == "nt" else "clear")
-    print("\n" * (HEIGHT - 1))
+    tqdm.write("\n" * (HEIGHT - 1))
 
 
 def stringitizeL(l):
     """
     Creates a string from a list, adding 'and' at the end.
     """
-    out = ""
-    for i in range(len(l) - 1):
-        out += l[i] + ", "
-    out += "and " + l[-1]
+    if len(l) > 1:
+        out = ""
+        for i in range(len(l) - 1):
+            out += l[i] + ", "
+        out += "and " + l[-1]
+    else:
+        out = l[0]
     return out
 
 
@@ -214,7 +220,7 @@ def colorThreshold(number, dig=3, threshold=0, reversed=False):
                 else:
                     form = colorEh(number)
         except:
-            print("Couldn't colorize")
+            tqdm.write("Couldn't colorize")
         return form
     else:
         return colorEh(number)
@@ -233,7 +239,7 @@ def colorLiquidity(number, threshold=0):
             else:
                 form = colorEh(humanFormat(number))
         except:
-            print("Couldn't colorize")
+            tqdm.write("Couldn't colorize")
         return form
     else:
         return colorEh(number)
