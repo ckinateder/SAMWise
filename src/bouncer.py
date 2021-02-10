@@ -471,3 +471,6 @@ class Bouncer(Scanner):
 
         except Exception as e:
             print(colorBad("Error in call ... moving on ({})").format(e))
+
+    def __str__(self):
+        return f"Bouncer @ {self.symbol}"

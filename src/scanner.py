@@ -110,19 +110,19 @@ class Scanner:
         self.ireq = (
             len(exchanges) * self.quote_order_size * 2
         )  # how much invested total
-
-        print(
-            colorGood(
-                "Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
-            ).format(
-                self.symbol,
-                self.ireq,
-                self.min_speedup,
-                self.max_speedup,
-                self.margin,
-                exchanges_str,
+        if self.loud:
+            print(
+                colorGood(
+                    "Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
+                ).format(
+                    self.symbol,
+                    self.ireq,
+                    self.min_speedup,
+                    self.max_speedup,
+                    self.margin,
+                    exchanges_str,
+                )
             )
-        )
 
     def saveDict(self, toCSV):
         """
@@ -211,6 +211,13 @@ class Scanner:
         returns: spreads, [error True or False]
         """
         self.cycles += 1
+
+        # only print ONCE
+        total_message = ""
+        # return statements
+        spreads_return = None
+        error_return = True
+        flip_flop_return = False
         try:
             #
             if responses == None:
@@ -452,9 +459,6 @@ class Scanner:
                     profitable = False
 
                 # show percentage
-                perc_str = "---"
-                if not self.position == None:
-                    perc_str = colorProg("{:2.0f}%".format(self.position))
 
                 currency_str = ""
                 if self.currency_name:
@@ -465,9 +469,7 @@ class Scanner:
 
                 total_header_str = (
                     "/"
-                    + "-" * (WIDTH - 47)
-                    + perc_str
-                    + "--"
+                    + "-" * (WIDTH - 44)
                     + colorPerc(f"{self.cycles:2d}")
                     + "--"
                     + uptime_str
@@ -476,7 +478,6 @@ class Scanner:
                 )
 
                 flip_flop, flop_pairs = self.findFlipFlop(spreads)
-
                 # indicates whether there are any open trades
                 # format ** [buy, sell]
                 if self.selling and self.buying:
@@ -485,13 +486,12 @@ class Scanner:
                     indicator = colorGood("*") * 2
 
                 if spreads:
-                    print(total_header_str)
-                    print(
-                        "[For {} w/ ${:,.3f}{}]:".format(
-                            (self.symbol), self.quote_order_size, currency_str
-                        )
+                    total_message += total_header_str + "\n"
+                    total_message += "[For {} w/ ${:,.3f}{}]:\n".format(
+                        (self.symbol), self.quote_order_size, currency_str
                     )
-                    print(exchanges_str, end="")
+
+                    total_message += exchanges_str
                     if flip_flop:
                         msg_str = "{}".format(indicator)
                         intermediate = " [FF"
@@ -513,13 +513,13 @@ class Scanner:
                                 # print(
                                 #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(WIDTH-6))
                         intermediate = intermediate[:-1] + "]"
-                        print(msg_str + colorGood(intermediate))
+                        total_message += msg_str + colorGood(intermediate) + "\n"
                     else:
-                        print(indicator)  # , end="")
+                        total_message += indicator + "\n"  # , end="")
                         # print(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(WIDTH + 7))
                     for i in range(len(spreads)):
                         item = spreads[i]
-                        print(
+                        total_message += (
                             "{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])".format(
                                 colorGood("[PASSED #{}]".format(i + 1)),
                                 colorThreshold(item["no_fees"]),
@@ -541,22 +541,23 @@ class Scanner:
                                 ),
                                 colorLiquidity(item["liquidity"], threshold=1),
                             )
+                            + "\n"
                         )
                 else:
                     if self.loud:
-                        print(total_header_str)
-                        print(
+                        total_message += total_header_str + "\n"
+                        total_message += (
                             "[For {} w/ ${:,.3f}{}]:".format(
                                 (self.symbol), self.quote_order_size, currency_str
                             )
-                        )
-                        print(exchanges_str, end="")
-                        print(indicator)
+                        ) + "\n"
+                        total_message += exchanges_str
+                        total_message += (indicator) + "\n"
                         if spread > 0 and spread <= self.margin:
                             msg = colorEh("[FAILED]")
                         else:
                             msg = colorBad("[FAILED]")
-                        print(
+                        total_message += (
                             "{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])".format(
                                 msg,
                                 colorThreshold(no_fees),
@@ -567,17 +568,25 @@ class Scanner:
                                 colorHigh("{}".format(round(high, self.precision))),
                                 colorThreshold((high - low), 3, self.margin),
                             )
+                            + "\n"
                         )
-
                 if profitable:
                     self.saveDict(spreads)
 
-                return spreads, False, flip_flop
-            else:
-                return None, True, False
+                spreads_return = spreads
+                error_return = False
+                flip_flop_return = flip_flop
         except Exception as e:
-            print(colorBad("Error getting spread for {} ({})".format(self.symbol, e)))
-        return None, True, False
+            total_message += (
+                colorBad("Error getting spread for {} ({})".format(self.symbol, e))
+            ) + "\n"
+
+        # PRINT EVERYTHING
+        print(total_message, end="")
+        return spreads_return, error_return, flip_flop_return
 
     def switch(self, new_symbol):
         self.symbol = new_symbol
+
+    def __str__(self):
+        return f"Scanner @ {self.symbol}"

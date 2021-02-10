@@ -11,8 +11,9 @@ import threading
 from bs4 import BeautifulSoup
 
 from hive import Hive
+from helper import *
 
-start = time.time()
+start = now()
 
 
 class Pricer:
@@ -30,7 +31,7 @@ class Pricer:
         """
         Get one single symbol. this may not be necessary
         """
-        s = time.time()
+        s = now()
         try_again = True
         timeout = 2
         count = 0
@@ -40,7 +41,7 @@ class Pricer:
                 if exchange.id == "coinbasepro":
                     time.sleep(0.08)
                 if loud:
-                    print(f"got {symbol} on {exchange} in {time.time()-s:.2f}s")
+                    print(f"got {symbol} on {exchange} in {now()-s:.2f}s")
                 return resp
             except ccxt.RateLimitExceeded:
                 print("RateLimitExceeded")
@@ -167,4 +168,4 @@ if __name__ == "__main__":
     pricer = Pricer()
     pricer.spread()
     pprint(pricer.props)
-    print(f"finished in {time.time()-start:.2f}s")
+    print(f"finished in {now()-start:.2f}s")

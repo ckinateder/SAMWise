@@ -1,10 +1,14 @@
-from bouncer import WIDTH, Bouncer
-from scanner import Scanner
-from helper import *
-from os import listdir, path
+from datetime import *
+from os import error, listdir, path
+from pprint import pprint
+
 import ccxt
 import pandas as pd
-from pprint import pprint
+import progressbar
+
+from bouncer import WIDTH, Bouncer
+from helper import *
+from scanner import Scanner
 
 __author__ = "Calvin Kinateder"
 __email__ = "calvinkinateder@gmail.com"
@@ -47,18 +51,19 @@ class Hive:
                     yes_and_no[exchange.id][i] = True
                 else:
                     yes_and_no[exchange.id][i] = False
-        print(yes_and_no)
+        # print(yes_and_no)
         yes_and_no.reset_index(drop=True, inplace=True)
         yes_and_no.to_csv("logs/pairs.csv")
+        return yes_and_no
 
     def loadExchanges(self, all_ex):
         """
         Create self.exchanges objects for all existing ones
         """
-        print("Creating exchange objects for {}.".format(stringitizeL(all_ex)))
+        print("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
         self.exchanges = list()
         # create objs
-        for exchstr in all_ex:
+        for exchstr in progressbar.progressbar(all_ex, redirect_stdout=True):
             if exchstr in ccxt.exchanges:  # j to be safe
                 try:
                     public = open(self.keypath + exchstr + "_public").read().strip()
@@ -169,8 +174,11 @@ class Hive:
             x = list(i.load_markets().keys())
             for j in x:
                 if (
-                    QUOTE in j  # or "BTC" in j or "ETH" in j
-                ):  # not ("GBP" in j or "EUR" in j):  # or 'BTC' in j or 'ETH' in j:
+                    QUOTE in j
+                    or "BTC" in j
+                    or "ETH" in j
+                    and not ("GBP" in j or not "EUR" in j)
+                ):
                     alls.append(j)
         alls = list(set(alls))
 
@@ -201,6 +209,9 @@ class Hive:
         return self.transpose(original)
 
     def transpose(self, original):
+        """
+        Flip a dictionary of dictionaries
+        """
         inverted = {}
         for symbol in original:
             for exchange in self.exchanges:
@@ -239,13 +250,67 @@ class Hive:
         return all_ex
 
     def stringitizeExc(self, l):
+        """
+        Print out the exchanges nicely
+        """
         out = ""
         for i in range(len(l) - 1):
             out += l[i].name + ", "
         out += "and " + l[-1].name
         return out
 
+    def createDynamicScanners(self, trade_size=100, dynamics=None):
+        """
+        Create scanners for all the dynamic exchanges
+        """
+        currencies = []
+        if not dynamics:
+            dynamics = self.getDynamicCommons()
+        print(
+            colorEh(
+                "{} ({} pairs found)".format(
+                    stringitizeL(list(dynamics.keys())), len(dynamics)
+                )
+            )
+        )
+        print(colorGood(f"Creating {len(dynamics)} scanners ..."))
+        for e in progressbar.progressbar(dynamics, redirect_stdout=True):
+            currencies.append(
+                Scanner(
+                    e,
+                    trade_size,
+                    dynamics[e],
+                    margin=0.01,
+                    min_speedup=0.2,
+                    speedup=72,
+                    loud=False,
+                    position=list(dynamics.keys()).index(e) / len(dynamics) * 100,
+                )
+            )
+        print(colorGood(f"Created {len(dynamics)} scanners!\nScanning now ..."))
+        return currencies
+
+    def scanAll(self, trade_size, n=1):
+        """
+        Scan every single exchange n times and print a summary.
+        """
+        currencies = self.createDynamicScanners(trade_size=trade_size)
+
+        for cmt in range(n):
+            responses = {}
+            for scan in progressbar.progressbar(currencies, redirect_stdout=True):
+                spreads, error, ff = scan.getSpread()
+                responses[scan] = ff
+            for i in responses:
+                if responses[i]:
+                    print(colorGood(str(i) + ": " + str(responses[i])))
+                else:
+                    print(colorEh(str(i) + ": " + str(responses[i])))
+
 
 if __name__ == "__main__":
     hive = Hive()
-    hive.getTableOfAll()
+    start_time = datetime.now()
+    hive.scanAll(trade_size=100, n=80)
+    print(f"Scanned all symbols in {(datetime.now()-start_time)}")
+    tableOfAll = hive.getTableOfAll()

@@ -1,6 +1,8 @@
-from termcolor import colored
-from string import Template
+import time
 from math import floor, log
+from string import Template
+
+from termcolor import colored
 
 try:
     import pync
@@ -39,6 +41,10 @@ def notify(message):
     """
     if notifications:
         pync.notify(message, title="SAMWise")
+
+
+def now():
+    return time.time()
 
 
 def humanFormat(number):
