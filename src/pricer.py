@@ -5,7 +5,9 @@ import time
 from pprint import pformat, pprint
 
 import ccxt
+import concurrent.futures
 import requests
+import threading
 from bs4 import BeautifulSoup
 
 from hive import Hive
@@ -16,6 +18,12 @@ start = time.time()
 class Pricer:
     def __init__(self):
         self.props = {}
+        h = Hive()
+        self.dynamics = h.getDynamicCommons()
+        self.idynamics = h.transpose(self.dynamics)
+        # set keys
+        for key in list(self.dynamics.keys()):
+            self.props[key] = {}
 
     def getOneSymbol(self, exchange, symbol, loud=False):
         """
@@ -39,6 +47,12 @@ class Pricer:
                 count += 1
                 time.sleep(5)
         return {}
+
+    def getMultipleSymbols(self, exchange, symbols):
+        bulk = exchange.fetchTickers(symbols)
+        for symbol in bulk:
+            self.props[symbol][exchange] = bulk[symbol]
+        return self.props
 
     def divideSymbols(self, exchange, symbols):
         """
@@ -118,31 +132,22 @@ class Pricer:
                 ...etc
             }
         }
-        """
-        h = Hive()
-        dynamics = h.getDynamicCommons()
-        idynmaics = h.transpose(dynamics)
-        # set keys
-        for key in list(dynamics.keys()):
-            self.props[key] = {}
-
-        # pprint(idynmaics)
+        """  # pprint(self.idynamics)
         # fetch for each
-        for exchange in idynmaics:
+
+        for exchange in self.idynamics:
             if exchange.has["fetchTickers"]:
                 print(f"quick {exchange}")
-                bulk = exchange.fetchTickers(idynmaics[exchange])
-                for symbol in bulk:
-                    self.props[symbol][exchange] = bulk[symbol]
+                self.getMultipleSymbols(exchange, self.idynamics[exchange])
 
             elif exchange.has["fetchTicker"]:
                 print(f"slow {exchange} ...")
-                inter = self.divideSymbols(exchange, idynmaics[exchange])
+                inter = self.divideSymbols(exchange, self.idynamics[exchange])
                 # merge inter into self.props
                 self.mergeProps(inter, self.props)
 
         # pprint(self.props)
-        print(f"data makes sense: {self.verify(test=self.props, sure=dynamics)}")
+        print(f"data makes sense: {self.verify(test=self.props, sure=self.dynamics)}")
 
 
 if __name__ == "__main__":
