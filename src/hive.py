@@ -301,24 +301,27 @@ class Hive:
         """
         currencies = self.createDynamicScanners(trade_size=trade_size)
         # nested loop with progressbar
-        for cmt in trange(n, position=1):
-            responses = {}
-            for scan in tqdm(currencies, leave=False):
-                spreads, error, ff = scan.getSpread()
-                responses[scan] = {"flip_flop": ff, "error": error}
-            # tqdm.write summary
-            tqdm.write(f"Summary of cycle {cmt}:")
-            flops = []
-            errors = []
-            for i in responses:
-                if responses[i]["flip_flop"]:
-                    flops.append(str(i))
-                if responses[i]["error"]:
-                    errors.append(str(i))
-            tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
-            if errors:
-                tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
-            notify(f"Completed cycle {cmt} of {n} ({cmt/n:.0f}%")
+        total = len(currencies) * n
+        with tqdm(total=total, position=1) as total_bar:
+            for cmt in range(n):
+                responses = {}
+                for scan in tqdm(currencies, leave=False):
+                    spreads, error, ff = scan.getSpread()
+                    responses[scan] = {"flip_flop": ff, "error": error}
+                    total_bar.update(1)
+                # tqdm.write summary
+                tqdm.write(f"Summary of cycle {cmt}:")
+                flops = []
+                errors = []
+                for i in responses:
+                    if responses[i]["flip_flop"]:
+                        flops.append(str(i))
+                    if responses[i]["error"]:
+                        errors.append(str(i))
+                tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
+                if errors:
+                    tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
+                notify(f"Completed cycle {cmt} of {n} ({cmt/n:.0f}%)")
         notify("Completed!")
 
 
@@ -327,6 +330,6 @@ if __name__ == "__main__":
     intro()
     hive = Hive()
     start_time = datetime.now()
-    hive.scanAll(trade_size=100, n=10)
+    hive.scanAll(trade_size=100, n=3)
     tqdm.write(f"Scanned all symbols in {(datetime.now()-start_time)}")
     tableOfAll = hive.getTableOfAll()

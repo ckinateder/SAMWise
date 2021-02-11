@@ -1,0 +1,1905 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>scanner API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>scanner</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import logging
+from tqdm import tqdm
+import sys
+import csv
+import time
+from datetime import date, datetime, timedelta
+from os import path
+from math import log, floor
+
+from collections import OrderedDict
+from operator import getitem
+
+import ccxt
+import pandas as pd
+from pprint import pformat, pprint
+
+from helper import *
+
+__author__ = &#34;Calvin Kinateder&#34;
+__email__ = &#34;calvinkinateder@gmail.com&#34;
+
+
+class Scanner:
+    def __init__(
+        self,
+        symbol,
+        quote_order_size,
+        exchanges,
+        speedup=10,
+        margin=0.01,
+        min_speedup=1,
+        loud=True,
+        position=None,
+        timeout=3,
+    ):
+        &#34;&#34;&#34;
+        Create the class.
+        Params:
+            symbol: market pair to run on
+            quote_order_size: how much each trade should be worth
+            exchanges: exchanges it should run on
+            speedup: max percentage value of how tight the margin may be squeezed
+            margin: min trade profit
+            min_speedup: min percentage value of how tight the margin may be squeezed
+            loud: tqdm.write all pairs or just profitable
+            position: optional, number assigned to object
+            timeout: seconds to wait for a response until canceling
+        &#34;&#34;&#34;
+        self.start_time = datetime.now()
+        self.uptime = self.start_time - datetime.now()  # really not necessary
+        self.position = position
+        # precision to display quotes
+        # speedup is used to narrow the price gap to enable trades to finish faster.
+        self.max_speedup = speedup
+        self.min_speedup = min_speedup
+        self.exchanges = exchanges
+        self.timeout = timeout
+        self.notifying = False
+        self.loud = loud
+        # check if symbol supported by all
+        if self.validateSymbol(symbol):
+            self.symbol = symbol
+            self.base_coin = symbol.split(&#34;/&#34;)[0]
+            self.quote_coin = symbol.split(&#34;/&#34;)[1]
+        else:
+            tqdm.write(
+                &#34;Symbol &#39;{}&#39; not supported by all platforms. Exiting ...&#34;.format(symbol)
+            )
+            sys.exit(0)
+
+        # set precision
+        self.precision = 5
+
+        if &#34;USD&#34; in self.quote_coin:
+            self.precision = 2
+        # get width
+        self.height, self.width = updateSize()
+        # find currency name
+        count = 0
+        self.currency_name = None
+        while count &lt; len(self.exchanges) and not self.currency_name:
+            if self.base_coin in self.exchanges[count].currencies:
+                if &#34;name&#34; in self.exchanges[count].currencies[self.base_coin]:
+                    self.currency_name = self.exchanges[count].currencies[
+                        self.base_coin
+                    ][&#34;name&#34;]
+            count += 1
+
+        # initialize for indicators
+        self.selling = None
+        self.buying = None
+
+        # initialize
+        self.cycles = 0  # counts cycles
+        self.quote_order_size = quote_order_size
+        self.pro_filename = &#34;logs/&#34; + self.base_coin + &#34;-&#34; + self.quote_coin + &#34;.csv&#34;
+        self.trades_filename = (
+            &#34;logs/trades/&#34;
+            + datetime.now().strftime(&#34;%m-%d-%Y_%H-%M&#34;)
+            + &#34;_&#34;
+            + self.base_coin
+            + &#34;-&#34;
+            + self.quote_coin
+            + &#34;_trades.csv&#34;
+        )
+        self.margin = margin  # for trades
+
+        exchanges_str = &#34;&#34;
+        for i in range(0, len(self.exchanges) - 1):
+            exchanges_str += self.exchanges[i].name + &#34;, &#34;
+        exchanges_str += &#34;and &#34; + self.exchanges[-1].name
+        self.ireq = (
+            len(exchanges) * self.quote_order_size * 2
+        )  # how much invested total
+        if self.loud:
+            tqdm.write(
+                colorGood(
+                    &#34;Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]&#34;
+                ).format(
+                    self.symbol,
+                    self.ireq,
+                    self.min_speedup,
+                    self.max_speedup,
+                    self.margin,
+                    exchanges_str,
+                )
+            )
+
+    def saveDict(self, toCSV):
+        &#34;&#34;&#34;
+        takes a list of dictionaries and saves it to a csv
+        &#34;&#34;&#34;
+        keys = toCSV[0].keys()
+        did_exist = path.isfile(self.pro_filename)
+        with open(self.pro_filename, &#34;a+&#34;, newline=&#34;&#34;) as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            if not did_exist:
+                dict_writer.writeheader()  # only write if not exists
+            dict_writer.writerows(toCSV)
+
+    def updateUptime(self):
+        &#34;&#34;&#34;
+        Updates the uptime and returns a formatted string.
+        &#34;&#34;&#34;
+        self.uptime = datetime.now() - self.start_time
+        return strfdelta(self.uptime, &#34;%H:%M:%S&#34;)
+
+    def validateSymbol(self, symbol):
+        &#34;&#34;&#34;
+        Returns whether or not the symbol is supported by all exchanges.
+        &#34;&#34;&#34;
+        if symbol in self.getCommons():
+            return True
+        else:
+            return False
+
+    def getCommons(self):
+        &#34;&#34;&#34;
+        Get symbols in common with ALL self.exchanges. Used to check if __init__ given a valid symbol or not.
+        &#34;&#34;&#34;
+        alls = list()
+        for i in self.exchanges:
+            x = list(i.load_markets().keys())
+            for j in x:
+                alls.append(j)
+        out = list()
+
+        for item in alls:
+            if alls.count(item) == len(self.exchanges):
+                out.append(item)
+        out = set(out)
+        # for i in out:
+        #    if &#39;USD&#39; in i:
+        #       tqdm.write(i, &#39;1&#39;, end=&#39; &#39;)
+        return out
+
+    def getWatched(self):
+        &#34;&#34;&#34;
+        Get responses for each exchange for self.symbol.
+        &#34;&#34;&#34;
+        all_responses = dict()
+        start = now()
+        while now() - start &lt;= self.timeout:
+            for exchange in self.exchanges:
+                try:
+                    all_responses[exchange] = exchange.fetch_ticker(self.symbol)
+                except ccxt.RateLimitExceeded:
+                    tqdm.write(
+                        colorBad(&#34;Rate limit exceeded on {}&#34;.format(exchange.name))
+                    )
+        if len(list(all_responses.keys())) &lt; len(self.exchanges):
+            missed = [
+                i
+                for i in self.exchanges + list(all_responses.keys())
+                if i not in self.exchanges or i not in list(all_responses.keys())
+            ]
+            tqdm.write(colorBad(&#34;Timeout reached on {}&#34;.format(stringitizeL(missed))))
+        return all_responses
+
+    def calculateLiquidity(self, test_buy, test_sell):
+        &#34;&#34;&#34;
+        Calculate the liquidity metric for two exchanges
+        &#34;&#34;&#34;
+        l = &#34;unknown&#34;
+        try:
+            buy_volume = test_buy[1][&#34;quoteVolume&#34;]
+            sell_volume = test_sell[1][&#34;quoteVolume&#34;]
+            buy_close = test_buy[1][&#34;close&#34;]
+            sell_close = test_sell[1][&#34;close&#34;]
+            buy_high = test_buy[1][&#34;high&#34;]
+            buy_low = test_buy[1][&#34;low&#34;]
+            sell_high = test_sell[1][&#34;high&#34;]
+            sell_low = test_sell[1][&#34;low&#34;]
+            l1 = (buy_volume * buy_close) / (buy_high - buy_low)
+            l2 = (sell_volume * sell_close) / (sell_high - sell_low)
+            # l = f&#39;b{l1}  s{l2}&#39;
+            l = 0.5 * l1 + 0.5 * l2
+        except:
+            l = &#34;unknown&#34;
+        return l
+
+    def findFlipFlop(self, spreadlist):
+        &#34;&#34;&#34;
+        Finds if an option in the spreadlist can be both bought and sold to and from each other and still be profitable.
+        &#34;&#34;&#34;
+        flops = []
+        flops_bool = False
+        for item in spreadlist:
+            for compared in spreadlist:
+                if item[&#34;buy&#34;] == compared[&#34;sell&#34;] and item[&#34;sell&#34;] == compared[&#34;buy&#34;]:
+                    flops_bool = True
+                    flops.append([item, compared])
+        # tqdm.write(flops)
+        return flops_bool, flops
+
+    def getSpread(self, responses=None):
+        &#34;&#34;&#34;
+        Get tickers for the watched symbols and return exchanges and spread.
+        returns: spreads, [error True or False]
+        &#34;&#34;&#34;  # update sizes
+        self.height, self.width = updateSize()
+        self.cycles += 1
+
+        # only tqdm.write ONCE
+        total_message = &#34;&#34;
+        # return statements
+        spreads_return = None
+        error_return = True
+        flip_flop_return = False
+        try:
+            #
+            if responses == None:
+                t_formatted = datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S&#34;)
+                timestamp = time.time()
+                responses = self.getWatched()
+            # not necessary to sort but it helps
+            # pprint(responses)
+            got_zero = False
+            try:
+                responses = OrderedDict(
+                    sorted(responses.items(), key=lambda x: getitem(x[1], &#34;ask&#34;))
+                )
+            except TypeError:
+                response_items = []
+                got_zero = True
+            response_items = list(responses.items())
+
+            # set high and low
+            &#34;&#34;&#34;
+            Format on response_items
+            [
+                (exchange,{
+                    ask: 333,
+                    bid: 345,
+                    ...
+                }),
+                ...
+            ]
+            &#34;&#34;&#34;
+
+            # make dict of spreads COUNTING fees
+            spreads = dict()
+            for test_buy in response_items:
+                for test_sell in response_items:
+                    if not test_sell == test_buy:
+                        buy_price = test_buy[1][&#34;bid&#34;]
+                        sell_price = test_sell[1][&#34;ask&#34;]
+                        if buy_price != 0 and sell_price != 0:
+                            buy_volume = test_buy[1][&#34;quoteVolume&#34;]
+                            sell_volume = test_sell[1][&#34;quoteVolume&#34;]
+                            liquidity = self.calculateLiquidity(
+                                test_buy, test_sell
+                            )  # change
+
+                            # calculate speedup
+                            test_spread = (self.quote_order_size / sell_price) * (
+                                sell_price - buy_price
+                            )
+                            test_fee = (
+                                test_buy[0].calculateFee(
+                                    self.symbol,
+                                    &#34;limit&#34;,
+                                    &#34;buy&#34;,
+                                    self.quote_order_size / buy_price,
+                                    buy_price,
+                                    takerOrMaker=&#34;taker&#34;,
+                                    params={},
+                                )[&#34;cost&#34;]
+                                + test_sell[0].calculateFee(
+                                    self.symbol,
+                                    &#34;limit&#34;,
+                                    &#34;sell&#34;,
+                                    self.quote_order_size / sell_price,
+                                    sell_price,
+                                    takerOrMaker=&#34;taker&#34;,
+                                    params={},
+                                )[&#34;cost&#34;]
+                            )
+                            spread_w_fee = test_spread - test_fee
+
+                            actual_speedup = 0
+                            inc = 0.001
+                            ran = False
+                            while (
+                                spread_w_fee &gt; self.margin + inc
+                                and actual_speedup &lt;= self.max_speedup
+                            ):
+                                buy_price = test_buy[1][&#34;bid&#34;] * (
+                                    1 + (actual_speedup / 200)
+                                )
+                                sell_price = test_sell[1][&#34;ask&#34;] * (
+                                    1 - (actual_speedup / 200)
+                                )
+                                # recalculate
+                                test_spread = (self.quote_order_size / sell_price) * (
+                                    sell_price - buy_price
+                                )
+                                test_fee = (
+                                    test_buy[0].calculateFee(
+                                        self.symbol,
+                                        &#34;limit&#34;,
+                                        &#34;buy&#34;,
+                                        self.quote_order_size / buy_price,
+                                        buy_price,
+                                        takerOrMaker=&#34;taker&#34;,
+                                        params={},
+                                    )[&#34;cost&#34;]
+                                    + test_sell[0].calculateFee(
+                                        self.symbol,
+                                        &#34;limit&#34;,
+                                        &#34;sell&#34;,
+                                        self.quote_order_size / sell_price,
+                                        sell_price,
+                                        takerOrMaker=&#34;taker&#34;,
+                                        params={},
+                                    )[&#34;cost&#34;]
+                                )
+                                spread_w_fee = test_spread - test_fee
+                                actual_speedup = round(actual_speedup + inc, 3)
+                                ran = True
+                            if ran:
+                                actual_speedup -= inc  # set after
+
+                            # create dictionary
+                            spreads[spread_w_fee] = {
+                                &#34;time&#34;: t_formatted,
+                                &#34;symbol&#34;: self.symbol,
+                                &#34;profitable&#34;: spread_w_fee &gt;= self.margin,
+                                &#34;spread_w_fees&#34;: spread_w_fee,
+                                &#34;fees&#34;: test_fee,
+                                &#34;buy_price&#34;: buy_price,
+                                &#34;sell_price&#34;: sell_price,
+                                &#34;buy&#34;: test_buy[0],
+                                &#34;sell&#34;: test_sell[0],
+                                &#34;quote_order_size&#34;: self.quote_order_size,
+                                &#34;speedup&#34;: actual_speedup,
+                                &#34;buy_bid&#34;: test_buy[1][&#34;bid&#34;],
+                                &#34;buy_ask&#34;: test_buy[1][&#34;ask&#34;],
+                                &#34;buy_volume&#34;: buy_volume,
+                                &#34;sell_bid&#34;: test_sell[1][&#34;bid&#34;],
+                                &#34;sell_ask&#34;: test_sell[1][&#34;ask&#34;],
+                                &#34;sell_volume&#34;: sell_volume,
+                                &#34;liquidity&#34;: liquidity,
+                                &#34;no_fees&#34;: test_spread,  # a percent
+                                &#34;timestamp&#34;: timestamp,
+                            }
+                        else:
+                            got_zero = True
+            if not got_zero:
+                spreads = sorted(
+                    spreads.values(),
+                    key=lambda x: (
+                        getitem(x, &#34;speedup&#34;),
+                        getitem(x, &#34;spread_w_fees&#34;),
+                        getitem(x, &#34;liquidity&#34;),
+                    ),
+                )  # as a list
+                # reverse the list for printing
+                spreads.reverse()
+                # pprint(spreads)
+                # get last in list, sorted from low to high spread_w_fees
+                &#34;&#34;&#34;
+                sample from spreads:
+                {
+                    &#39;buy&#39;: ccxt.bittrex(),
+                    &#39;buy_ask&#39;: 1.30599,
+                    &#39;buy_bid&#39;: 1.24303,
+                    &#39;buy_price&#39;: 1.2676792848999983,
+                    &#39;buy_volume&#39;: None,
+                    &#39;fees&#39;: 0.35,
+                    &#39;liquidity&#39;: 4.422258513471112,
+                    &#39;no_fees&#39;: 0.36009720681011115,
+                    &#39;profitable&#39;: True,
+                    &#39;quote_order_size&#39;: 100,
+                    &#39;sell&#39;: ccxt.binanceus(),
+                    &#39;sell_ask&#39;: 1.298,
+                    &#39;sell_bid&#39;: 1.293,
+                    &#39;sell_price&#39;: 1.2722606600000022,
+                    &#39;sell_volume&#39;: 142404.2786,
+                    &#39;speedup&#39;: 3.9659999999996742,
+                    &#39;spread_w_fees&#39;: 0.01009720681011117,
+                    &#39;symbol&#39;: &#39;KNC/USD&#39;,
+                    &#39;time&#39;: &#39;02-01-2021_00-20-52&#39;,
+                    &#39;timestamp&#39;: 1612156852.032166
+                }
+                &#34;&#34;&#34;
+                # get most profitable
+                most_profitable = spreads[0]
+                buy = most_profitable[&#34;buy&#34;]
+                sell = most_profitable[&#34;sell&#34;]
+                low = most_profitable[&#34;buy_price&#34;]  # will remove soon
+                high = most_profitable[&#34;sell_price&#34;]  # ditto
+                fees = most_profitable[&#34;fees&#34;]
+                no_fees = most_profitable[&#34;no_fees&#34;]
+                spread = most_profitable[&#34;spread_w_fees&#34;]
+
+                # create formatted out string
+                exchanges_str = &#34;&#34;
+                for i in range(0, len(responses)):
+                    ask = response_items[i][1][&#34;ask&#34;]
+                    bid = response_items[i][1][&#34;bid&#34;]
+                    exchange = response_items[i][0]
+                    if exchange == buy:
+                        logstr = colorLow(
+                            &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                                exchange.name,
+                                round(ask, self.precision),
+                                round(bid, self.precision),
+                            )
+                        )
+                    elif exchange == sell:
+                        logstr = colorHigh(
+                            &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                                exchange.name,
+                                round(ask, self.precision),
+                                round(bid, self.precision),
+                            )
+                        )
+                    elif exchange == sell and exchange == buy:
+                        logstr = colorEh(
+                            &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                                exchange.name,
+                                round(ask, self.precision),
+                                round(bid, self.precision),
+                            )
+                        )
+                    else:
+                        logstr = &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
+
+                    exchanges_str += logstr + &#34;\n&#34;
+
+                # remove all values less than margin
+                for i in range(0, len(spreads)):
+                    if spreads[i][&#34;spread_w_fees&#34;] &lt;= self.margin:
+                        spreads[i] = None
+                spreads[:] = [x for x in spreads if x]
+
+                # if empty, not profitable
+                if spreads:
+                    profitable = True
+                    if self.notifying:
+                        notify(f&#34;Profitable on {self.symbol}&#34;)
+                else:
+                    profitable = False
+
+                # show percentage
+
+                currency_str = &#34;&#34;
+                if self.currency_name:
+                    currency_str = f&#34; ({self.currency_name})&#34;
+
+                uptime_str = colorUptime(self.updateUptime())
+                clock_str = colorClock(datetime.now().strftime(&#34;%m/%d/%Y-%H:%M:%S:%f&#34;))
+
+                total_header_str = (
+                    &#34;/&#34;
+                    + &#34;-&#34; * (self.width - 44)
+                    + colorCycle(f&#34;{self.cycles:2d}&#34;)
+                    + &#34;--&#34;
+                    + uptime_str
+                    + &#34;--&#34;
+                    + clock_str
+                )
+
+                flip_flop, flop_pairs = self.findFlipFlop(spreads)
+                # indicates whether there are any open trades
+                # format ** [buy, sell]
+                if self.selling and self.buying:
+                    indicator = colorGood(&#34;*&#34;) * 2
+                else:  # all good
+                    indicator = colorGood(&#34;*&#34;) * 2
+
+                if spreads:
+                    total_message += total_header_str + &#34;\n&#34;
+                    total_message += &#34;[For {} w/ ${:,.3f}{}]:\n&#34;.format(
+                        (self.symbol), self.quote_order_size, currency_str
+                    )
+
+                    total_message += exchanges_str
+                    if flip_flop:
+                        msg_str = &#34;{}&#34;.format(indicator)
+                        intermediate = &#34; [FF&#34;
+                        already = []
+                        # iterate through flop pairs
+                        for ff in flop_pairs:
+                            # check if already done
+                            already_done = False
+                            for x in already:
+                                if ff[0] == x[1]:
+                                    already_done = True
+                            if not already_done:
+                                already.append(ff)
+                                intermediate += &#34; #{} &amp; #{},&#34;.format(
+                                    spreads.index(ff[0]) + 1, spreads.index(ff[1]) + 1
+                                )
+                                # tqdm.write(len(msg_str))
+                                # tqdm.write(msg_str, end=&#39; &#39;*35)
+                                # tqdm.write(
+                                #    colorGood(&#39;max speedup of {}% (found {} profitable pairs ****)&#39;.format(self.max_speedup, len(spreads))))  # .rjust(self.width-6))
+                        intermediate = intermediate[:-1] + &#34;]&#34;
+                        total_message += msg_str + colorGood(intermediate) + &#34;\n&#34;
+                    else:
+                        total_message += indicator + &#34;\n&#34;  # , end=&#34;&#34;)
+                        # tqdm.write(colorGood(&#34;max speedup of {}% (found {} profitable pairs ****)&#34;.format(self.max_speedup, len(spreads))).rjust(self.width + 7))
+                    for i in range(len(spreads)):
+                        item = spreads[i]
+                        total_message += (
+                            &#34;{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])&#34;.format(
+                                colorGood(&#34;[PASSED #{}]&#34;.format(i + 1)),
+                                colorThreshold(item[&#34;no_fees&#34;]),
+                                colorThreshold(item[&#34;spread_w_fees&#34;]),
+                                colorLow(item[&#34;buy&#34;].name),
+                                colorLow(
+                                    &#34;{}&#34;.format(
+                                        round(item[&#34;buy_price&#34;], self.precision)
+                                    )
+                                ),
+                                colorHigh(item[&#34;sell&#34;].name),
+                                colorHigh(
+                                    &#34;{}&#34;.format(
+                                        round(item[&#34;sell_price&#34;], self.precision)
+                                    )
+                                ),
+                                colorThreshold(
+                                    item[&#34;speedup&#34;], threshold=self.min_speedup
+                                ),
+                                colorLiquidity(item[&#34;liquidity&#34;], threshold=1),
+                            )
+                            + &#34;\n&#34;
+                        )
+                else:
+                    if self.loud:
+                        total_message += total_header_str + &#34;\n&#34;
+                        total_message += (
+                            &#34;[For {} w/ ${:,.3f}{}]:&#34;.format(
+                                (self.symbol), self.quote_order_size, currency_str
+                            )
+                        ) + &#34;\n&#34;
+                        total_message += exchanges_str
+                        total_message += (indicator) + &#34;\n&#34;
+                        if spread &gt; 0 and spread &lt;= self.margin:
+                            msg = colorEh(&#34;[FAILED]&#34;)
+                        else:
+                            msg = colorBad(&#34;[FAILED]&#34;)
+                        total_message += (
+                            &#34;{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])&#34;.format(
+                                msg,
+                                colorThreshold(no_fees),
+                                colorThreshold(spread),
+                                colorLow(buy.name),
+                                colorLow(&#34;{}&#34;.format(round(low, self.precision))),
+                                colorHigh(sell.name),
+                                colorHigh(&#34;{}&#34;.format(round(high, self.precision))),
+                                colorThreshold((high - low), 3, self.margin),
+                            )
+                            + &#34;\n&#34;
+                        )
+                if profitable:
+                    self.saveDict(spreads)
+
+                spreads_return = spreads
+                error_return = False
+                flip_flop_return = flip_flop
+        except Exception as e:
+            total_message += (
+                colorBad(&#34;Error getting spread for {} ({})&#34;.format(self.symbol, e))
+            ) + &#34;\n&#34;
+
+        # tqdm.write EVERYTHING
+        tqdm.write(total_message, end=&#34;&#34;)
+        return spreads_return, error_return, flip_flop_return
+
+    def switch(self, new_symbol):
+        self.symbol = new_symbol
+
+    def __str__(self):
+        return f&#34;Scanner @ {self.symbol}&#34;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="scanner.Scanner"><code class="flex name class">
+<span>class <span class="ident">Scanner</span></span>
+<span>(</span><span>symbol, quote_order_size, exchanges, speedup=10, margin=0.01, min_speedup=1, loud=True, position=None, timeout=3)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create the class.</p>
+<h2 id="params">Params</h2>
+<p>symbol: market pair to run on
+quote_order_size: how much each trade should be worth
+exchanges: exchanges it should run on
+speedup: max percentage value of how tight the margin may be squeezed
+margin: min trade profit
+min_speedup: min percentage value of how tight the margin may be squeezed
+loud: tqdm.write all pairs or just profitable
+position: optional, number assigned to object
+timeout: seconds to wait for a response until canceling</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Scanner:
+    def __init__(
+        self,
+        symbol,
+        quote_order_size,
+        exchanges,
+        speedup=10,
+        margin=0.01,
+        min_speedup=1,
+        loud=True,
+        position=None,
+        timeout=3,
+    ):
+        &#34;&#34;&#34;
+        Create the class.
+        Params:
+            symbol: market pair to run on
+            quote_order_size: how much each trade should be worth
+            exchanges: exchanges it should run on
+            speedup: max percentage value of how tight the margin may be squeezed
+            margin: min trade profit
+            min_speedup: min percentage value of how tight the margin may be squeezed
+            loud: tqdm.write all pairs or just profitable
+            position: optional, number assigned to object
+            timeout: seconds to wait for a response until canceling
+        &#34;&#34;&#34;
+        self.start_time = datetime.now()
+        self.uptime = self.start_time - datetime.now()  # really not necessary
+        self.position = position
+        # precision to display quotes
+        # speedup is used to narrow the price gap to enable trades to finish faster.
+        self.max_speedup = speedup
+        self.min_speedup = min_speedup
+        self.exchanges = exchanges
+        self.timeout = timeout
+        self.notifying = False
+        self.loud = loud
+        # check if symbol supported by all
+        if self.validateSymbol(symbol):
+            self.symbol = symbol
+            self.base_coin = symbol.split(&#34;/&#34;)[0]
+            self.quote_coin = symbol.split(&#34;/&#34;)[1]
+        else:
+            tqdm.write(
+                &#34;Symbol &#39;{}&#39; not supported by all platforms. Exiting ...&#34;.format(symbol)
+            )
+            sys.exit(0)
+
+        # set precision
+        self.precision = 5
+
+        if &#34;USD&#34; in self.quote_coin:
+            self.precision = 2
+        # get width
+        self.height, self.width = updateSize()
+        # find currency name
+        count = 0
+        self.currency_name = None
+        while count &lt; len(self.exchanges) and not self.currency_name:
+            if self.base_coin in self.exchanges[count].currencies:
+                if &#34;name&#34; in self.exchanges[count].currencies[self.base_coin]:
+                    self.currency_name = self.exchanges[count].currencies[
+                        self.base_coin
+                    ][&#34;name&#34;]
+            count += 1
+
+        # initialize for indicators
+        self.selling = None
+        self.buying = None
+
+        # initialize
+        self.cycles = 0  # counts cycles
+        self.quote_order_size = quote_order_size
+        self.pro_filename = &#34;logs/&#34; + self.base_coin + &#34;-&#34; + self.quote_coin + &#34;.csv&#34;
+        self.trades_filename = (
+            &#34;logs/trades/&#34;
+            + datetime.now().strftime(&#34;%m-%d-%Y_%H-%M&#34;)
+            + &#34;_&#34;
+            + self.base_coin
+            + &#34;-&#34;
+            + self.quote_coin
+            + &#34;_trades.csv&#34;
+        )
+        self.margin = margin  # for trades
+
+        exchanges_str = &#34;&#34;
+        for i in range(0, len(self.exchanges) - 1):
+            exchanges_str += self.exchanges[i].name + &#34;, &#34;
+        exchanges_str += &#34;and &#34; + self.exchanges[-1].name
+        self.ireq = (
+            len(exchanges) * self.quote_order_size * 2
+        )  # how much invested total
+        if self.loud:
+            tqdm.write(
+                colorGood(
+                    &#34;Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]&#34;
+                ).format(
+                    self.symbol,
+                    self.ireq,
+                    self.min_speedup,
+                    self.max_speedup,
+                    self.margin,
+                    exchanges_str,
+                )
+            )
+
+    def saveDict(self, toCSV):
+        &#34;&#34;&#34;
+        takes a list of dictionaries and saves it to a csv
+        &#34;&#34;&#34;
+        keys = toCSV[0].keys()
+        did_exist = path.isfile(self.pro_filename)
+        with open(self.pro_filename, &#34;a+&#34;, newline=&#34;&#34;) as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            if not did_exist:
+                dict_writer.writeheader()  # only write if not exists
+            dict_writer.writerows(toCSV)
+
+    def updateUptime(self):
+        &#34;&#34;&#34;
+        Updates the uptime and returns a formatted string.
+        &#34;&#34;&#34;
+        self.uptime = datetime.now() - self.start_time
+        return strfdelta(self.uptime, &#34;%H:%M:%S&#34;)
+
+    def validateSymbol(self, symbol):
+        &#34;&#34;&#34;
+        Returns whether or not the symbol is supported by all exchanges.
+        &#34;&#34;&#34;
+        if symbol in self.getCommons():
+            return True
+        else:
+            return False
+
+    def getCommons(self):
+        &#34;&#34;&#34;
+        Get symbols in common with ALL self.exchanges. Used to check if __init__ given a valid symbol or not.
+        &#34;&#34;&#34;
+        alls = list()
+        for i in self.exchanges:
+            x = list(i.load_markets().keys())
+            for j in x:
+                alls.append(j)
+        out = list()
+
+        for item in alls:
+            if alls.count(item) == len(self.exchanges):
+                out.append(item)
+        out = set(out)
+        # for i in out:
+        #    if &#39;USD&#39; in i:
+        #       tqdm.write(i, &#39;1&#39;, end=&#39; &#39;)
+        return out
+
+    def getWatched(self):
+        &#34;&#34;&#34;
+        Get responses for each exchange for self.symbol.
+        &#34;&#34;&#34;
+        all_responses = dict()
+        start = now()
+        while now() - start &lt;= self.timeout:
+            for exchange in self.exchanges:
+                try:
+                    all_responses[exchange] = exchange.fetch_ticker(self.symbol)
+                except ccxt.RateLimitExceeded:
+                    tqdm.write(
+                        colorBad(&#34;Rate limit exceeded on {}&#34;.format(exchange.name))
+                    )
+        if len(list(all_responses.keys())) &lt; len(self.exchanges):
+            missed = [
+                i
+                for i in self.exchanges + list(all_responses.keys())
+                if i not in self.exchanges or i not in list(all_responses.keys())
+            ]
+            tqdm.write(colorBad(&#34;Timeout reached on {}&#34;.format(stringitizeL(missed))))
+        return all_responses
+
+    def calculateLiquidity(self, test_buy, test_sell):
+        &#34;&#34;&#34;
+        Calculate the liquidity metric for two exchanges
+        &#34;&#34;&#34;
+        l = &#34;unknown&#34;
+        try:
+            buy_volume = test_buy[1][&#34;quoteVolume&#34;]
+            sell_volume = test_sell[1][&#34;quoteVolume&#34;]
+            buy_close = test_buy[1][&#34;close&#34;]
+            sell_close = test_sell[1][&#34;close&#34;]
+            buy_high = test_buy[1][&#34;high&#34;]
+            buy_low = test_buy[1][&#34;low&#34;]
+            sell_high = test_sell[1][&#34;high&#34;]
+            sell_low = test_sell[1][&#34;low&#34;]
+            l1 = (buy_volume * buy_close) / (buy_high - buy_low)
+            l2 = (sell_volume * sell_close) / (sell_high - sell_low)
+            # l = f&#39;b{l1}  s{l2}&#39;
+            l = 0.5 * l1 + 0.5 * l2
+        except:
+            l = &#34;unknown&#34;
+        return l
+
+    def findFlipFlop(self, spreadlist):
+        &#34;&#34;&#34;
+        Finds if an option in the spreadlist can be both bought and sold to and from each other and still be profitable.
+        &#34;&#34;&#34;
+        flops = []
+        flops_bool = False
+        for item in spreadlist:
+            for compared in spreadlist:
+                if item[&#34;buy&#34;] == compared[&#34;sell&#34;] and item[&#34;sell&#34;] == compared[&#34;buy&#34;]:
+                    flops_bool = True
+                    flops.append([item, compared])
+        # tqdm.write(flops)
+        return flops_bool, flops
+
+    def getSpread(self, responses=None):
+        &#34;&#34;&#34;
+        Get tickers for the watched symbols and return exchanges and spread.
+        returns: spreads, [error True or False]
+        &#34;&#34;&#34;  # update sizes
+        self.height, self.width = updateSize()
+        self.cycles += 1
+
+        # only tqdm.write ONCE
+        total_message = &#34;&#34;
+        # return statements
+        spreads_return = None
+        error_return = True
+        flip_flop_return = False
+        try:
+            #
+            if responses == None:
+                t_formatted = datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S&#34;)
+                timestamp = time.time()
+                responses = self.getWatched()
+            # not necessary to sort but it helps
+            # pprint(responses)
+            got_zero = False
+            try:
+                responses = OrderedDict(
+                    sorted(responses.items(), key=lambda x: getitem(x[1], &#34;ask&#34;))
+                )
+            except TypeError:
+                response_items = []
+                got_zero = True
+            response_items = list(responses.items())
+
+            # set high and low
+            &#34;&#34;&#34;
+            Format on response_items
+            [
+                (exchange,{
+                    ask: 333,
+                    bid: 345,
+                    ...
+                }),
+                ...
+            ]
+            &#34;&#34;&#34;
+
+            # make dict of spreads COUNTING fees
+            spreads = dict()
+            for test_buy in response_items:
+                for test_sell in response_items:
+                    if not test_sell == test_buy:
+                        buy_price = test_buy[1][&#34;bid&#34;]
+                        sell_price = test_sell[1][&#34;ask&#34;]
+                        if buy_price != 0 and sell_price != 0:
+                            buy_volume = test_buy[1][&#34;quoteVolume&#34;]
+                            sell_volume = test_sell[1][&#34;quoteVolume&#34;]
+                            liquidity = self.calculateLiquidity(
+                                test_buy, test_sell
+                            )  # change
+
+                            # calculate speedup
+                            test_spread = (self.quote_order_size / sell_price) * (
+                                sell_price - buy_price
+                            )
+                            test_fee = (
+                                test_buy[0].calculateFee(
+                                    self.symbol,
+                                    &#34;limit&#34;,
+                                    &#34;buy&#34;,
+                                    self.quote_order_size / buy_price,
+                                    buy_price,
+                                    takerOrMaker=&#34;taker&#34;,
+                                    params={},
+                                )[&#34;cost&#34;]
+                                + test_sell[0].calculateFee(
+                                    self.symbol,
+                                    &#34;limit&#34;,
+                                    &#34;sell&#34;,
+                                    self.quote_order_size / sell_price,
+                                    sell_price,
+                                    takerOrMaker=&#34;taker&#34;,
+                                    params={},
+                                )[&#34;cost&#34;]
+                            )
+                            spread_w_fee = test_spread - test_fee
+
+                            actual_speedup = 0
+                            inc = 0.001
+                            ran = False
+                            while (
+                                spread_w_fee &gt; self.margin + inc
+                                and actual_speedup &lt;= self.max_speedup
+                            ):
+                                buy_price = test_buy[1][&#34;bid&#34;] * (
+                                    1 + (actual_speedup / 200)
+                                )
+                                sell_price = test_sell[1][&#34;ask&#34;] * (
+                                    1 - (actual_speedup / 200)
+                                )
+                                # recalculate
+                                test_spread = (self.quote_order_size / sell_price) * (
+                                    sell_price - buy_price
+                                )
+                                test_fee = (
+                                    test_buy[0].calculateFee(
+                                        self.symbol,
+                                        &#34;limit&#34;,
+                                        &#34;buy&#34;,
+                                        self.quote_order_size / buy_price,
+                                        buy_price,
+                                        takerOrMaker=&#34;taker&#34;,
+                                        params={},
+                                    )[&#34;cost&#34;]
+                                    + test_sell[0].calculateFee(
+                                        self.symbol,
+                                        &#34;limit&#34;,
+                                        &#34;sell&#34;,
+                                        self.quote_order_size / sell_price,
+                                        sell_price,
+                                        takerOrMaker=&#34;taker&#34;,
+                                        params={},
+                                    )[&#34;cost&#34;]
+                                )
+                                spread_w_fee = test_spread - test_fee
+                                actual_speedup = round(actual_speedup + inc, 3)
+                                ran = True
+                            if ran:
+                                actual_speedup -= inc  # set after
+
+                            # create dictionary
+                            spreads[spread_w_fee] = {
+                                &#34;time&#34;: t_formatted,
+                                &#34;symbol&#34;: self.symbol,
+                                &#34;profitable&#34;: spread_w_fee &gt;= self.margin,
+                                &#34;spread_w_fees&#34;: spread_w_fee,
+                                &#34;fees&#34;: test_fee,
+                                &#34;buy_price&#34;: buy_price,
+                                &#34;sell_price&#34;: sell_price,
+                                &#34;buy&#34;: test_buy[0],
+                                &#34;sell&#34;: test_sell[0],
+                                &#34;quote_order_size&#34;: self.quote_order_size,
+                                &#34;speedup&#34;: actual_speedup,
+                                &#34;buy_bid&#34;: test_buy[1][&#34;bid&#34;],
+                                &#34;buy_ask&#34;: test_buy[1][&#34;ask&#34;],
+                                &#34;buy_volume&#34;: buy_volume,
+                                &#34;sell_bid&#34;: test_sell[1][&#34;bid&#34;],
+                                &#34;sell_ask&#34;: test_sell[1][&#34;ask&#34;],
+                                &#34;sell_volume&#34;: sell_volume,
+                                &#34;liquidity&#34;: liquidity,
+                                &#34;no_fees&#34;: test_spread,  # a percent
+                                &#34;timestamp&#34;: timestamp,
+                            }
+                        else:
+                            got_zero = True
+            if not got_zero:
+                spreads = sorted(
+                    spreads.values(),
+                    key=lambda x: (
+                        getitem(x, &#34;speedup&#34;),
+                        getitem(x, &#34;spread_w_fees&#34;),
+                        getitem(x, &#34;liquidity&#34;),
+                    ),
+                )  # as a list
+                # reverse the list for printing
+                spreads.reverse()
+                # pprint(spreads)
+                # get last in list, sorted from low to high spread_w_fees
+                &#34;&#34;&#34;
+                sample from spreads:
+                {
+                    &#39;buy&#39;: ccxt.bittrex(),
+                    &#39;buy_ask&#39;: 1.30599,
+                    &#39;buy_bid&#39;: 1.24303,
+                    &#39;buy_price&#39;: 1.2676792848999983,
+                    &#39;buy_volume&#39;: None,
+                    &#39;fees&#39;: 0.35,
+                    &#39;liquidity&#39;: 4.422258513471112,
+                    &#39;no_fees&#39;: 0.36009720681011115,
+                    &#39;profitable&#39;: True,
+                    &#39;quote_order_size&#39;: 100,
+                    &#39;sell&#39;: ccxt.binanceus(),
+                    &#39;sell_ask&#39;: 1.298,
+                    &#39;sell_bid&#39;: 1.293,
+                    &#39;sell_price&#39;: 1.2722606600000022,
+                    &#39;sell_volume&#39;: 142404.2786,
+                    &#39;speedup&#39;: 3.9659999999996742,
+                    &#39;spread_w_fees&#39;: 0.01009720681011117,
+                    &#39;symbol&#39;: &#39;KNC/USD&#39;,
+                    &#39;time&#39;: &#39;02-01-2021_00-20-52&#39;,
+                    &#39;timestamp&#39;: 1612156852.032166
+                }
+                &#34;&#34;&#34;
+                # get most profitable
+                most_profitable = spreads[0]
+                buy = most_profitable[&#34;buy&#34;]
+                sell = most_profitable[&#34;sell&#34;]
+                low = most_profitable[&#34;buy_price&#34;]  # will remove soon
+                high = most_profitable[&#34;sell_price&#34;]  # ditto
+                fees = most_profitable[&#34;fees&#34;]
+                no_fees = most_profitable[&#34;no_fees&#34;]
+                spread = most_profitable[&#34;spread_w_fees&#34;]
+
+                # create formatted out string
+                exchanges_str = &#34;&#34;
+                for i in range(0, len(responses)):
+                    ask = response_items[i][1][&#34;ask&#34;]
+                    bid = response_items[i][1][&#34;bid&#34;]
+                    exchange = response_items[i][0]
+                    if exchange == buy:
+                        logstr = colorLow(
+                            &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                                exchange.name,
+                                round(ask, self.precision),
+                                round(bid, self.precision),
+                            )
+                        )
+                    elif exchange == sell:
+                        logstr = colorHigh(
+                            &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                                exchange.name,
+                                round(ask, self.precision),
+                                round(bid, self.precision),
+                            )
+                        )
+                    elif exchange == sell and exchange == buy:
+                        logstr = colorEh(
+                            &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                                exchange.name,
+                                round(ask, self.precision),
+                                round(bid, self.precision),
+                            )
+                        )
+                    else:
+                        logstr = &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
+
+                    exchanges_str += logstr + &#34;\n&#34;
+
+                # remove all values less than margin
+                for i in range(0, len(spreads)):
+                    if spreads[i][&#34;spread_w_fees&#34;] &lt;= self.margin:
+                        spreads[i] = None
+                spreads[:] = [x for x in spreads if x]
+
+                # if empty, not profitable
+                if spreads:
+                    profitable = True
+                    if self.notifying:
+                        notify(f&#34;Profitable on {self.symbol}&#34;)
+                else:
+                    profitable = False
+
+                # show percentage
+
+                currency_str = &#34;&#34;
+                if self.currency_name:
+                    currency_str = f&#34; ({self.currency_name})&#34;
+
+                uptime_str = colorUptime(self.updateUptime())
+                clock_str = colorClock(datetime.now().strftime(&#34;%m/%d/%Y-%H:%M:%S:%f&#34;))
+
+                total_header_str = (
+                    &#34;/&#34;
+                    + &#34;-&#34; * (self.width - 44)
+                    + colorCycle(f&#34;{self.cycles:2d}&#34;)
+                    + &#34;--&#34;
+                    + uptime_str
+                    + &#34;--&#34;
+                    + clock_str
+                )
+
+                flip_flop, flop_pairs = self.findFlipFlop(spreads)
+                # indicates whether there are any open trades
+                # format ** [buy, sell]
+                if self.selling and self.buying:
+                    indicator = colorGood(&#34;*&#34;) * 2
+                else:  # all good
+                    indicator = colorGood(&#34;*&#34;) * 2
+
+                if spreads:
+                    total_message += total_header_str + &#34;\n&#34;
+                    total_message += &#34;[For {} w/ ${:,.3f}{}]:\n&#34;.format(
+                        (self.symbol), self.quote_order_size, currency_str
+                    )
+
+                    total_message += exchanges_str
+                    if flip_flop:
+                        msg_str = &#34;{}&#34;.format(indicator)
+                        intermediate = &#34; [FF&#34;
+                        already = []
+                        # iterate through flop pairs
+                        for ff in flop_pairs:
+                            # check if already done
+                            already_done = False
+                            for x in already:
+                                if ff[0] == x[1]:
+                                    already_done = True
+                            if not already_done:
+                                already.append(ff)
+                                intermediate += &#34; #{} &amp; #{},&#34;.format(
+                                    spreads.index(ff[0]) + 1, spreads.index(ff[1]) + 1
+                                )
+                                # tqdm.write(len(msg_str))
+                                # tqdm.write(msg_str, end=&#39; &#39;*35)
+                                # tqdm.write(
+                                #    colorGood(&#39;max speedup of {}% (found {} profitable pairs ****)&#39;.format(self.max_speedup, len(spreads))))  # .rjust(self.width-6))
+                        intermediate = intermediate[:-1] + &#34;]&#34;
+                        total_message += msg_str + colorGood(intermediate) + &#34;\n&#34;
+                    else:
+                        total_message += indicator + &#34;\n&#34;  # , end=&#34;&#34;)
+                        # tqdm.write(colorGood(&#34;max speedup of {}% (found {} profitable pairs ****)&#34;.format(self.max_speedup, len(spreads))).rjust(self.width + 7))
+                    for i in range(len(spreads)):
+                        item = spreads[i]
+                        total_message += (
+                            &#34;{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])&#34;.format(
+                                colorGood(&#34;[PASSED #{}]&#34;.format(i + 1)),
+                                colorThreshold(item[&#34;no_fees&#34;]),
+                                colorThreshold(item[&#34;spread_w_fees&#34;]),
+                                colorLow(item[&#34;buy&#34;].name),
+                                colorLow(
+                                    &#34;{}&#34;.format(
+                                        round(item[&#34;buy_price&#34;], self.precision)
+                                    )
+                                ),
+                                colorHigh(item[&#34;sell&#34;].name),
+                                colorHigh(
+                                    &#34;{}&#34;.format(
+                                        round(item[&#34;sell_price&#34;], self.precision)
+                                    )
+                                ),
+                                colorThreshold(
+                                    item[&#34;speedup&#34;], threshold=self.min_speedup
+                                ),
+                                colorLiquidity(item[&#34;liquidity&#34;], threshold=1),
+                            )
+                            + &#34;\n&#34;
+                        )
+                else:
+                    if self.loud:
+                        total_message += total_header_str + &#34;\n&#34;
+                        total_message += (
+                            &#34;[For {} w/ ${:,.3f}{}]:&#34;.format(
+                                (self.symbol), self.quote_order_size, currency_str
+                            )
+                        ) + &#34;\n&#34;
+                        total_message += exchanges_str
+                        total_message += (indicator) + &#34;\n&#34;
+                        if spread &gt; 0 and spread &lt;= self.margin:
+                            msg = colorEh(&#34;[FAILED]&#34;)
+                        else:
+                            msg = colorBad(&#34;[FAILED]&#34;)
+                        total_message += (
+                            &#34;{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])&#34;.format(
+                                msg,
+                                colorThreshold(no_fees),
+                                colorThreshold(spread),
+                                colorLow(buy.name),
+                                colorLow(&#34;{}&#34;.format(round(low, self.precision))),
+                                colorHigh(sell.name),
+                                colorHigh(&#34;{}&#34;.format(round(high, self.precision))),
+                                colorThreshold((high - low), 3, self.margin),
+                            )
+                            + &#34;\n&#34;
+                        )
+                if profitable:
+                    self.saveDict(spreads)
+
+                spreads_return = spreads
+                error_return = False
+                flip_flop_return = flip_flop
+        except Exception as e:
+            total_message += (
+                colorBad(&#34;Error getting spread for {} ({})&#34;.format(self.symbol, e))
+            ) + &#34;\n&#34;
+
+        # tqdm.write EVERYTHING
+        tqdm.write(total_message, end=&#34;&#34;)
+        return spreads_return, error_return, flip_flop_return
+
+    def switch(self, new_symbol):
+        self.symbol = new_symbol
+
+    def __str__(self):
+        return f&#34;Scanner @ {self.symbol}&#34;</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bouncer.Bouncer" href="bouncer.html#bouncer.Bouncer">Bouncer</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="scanner.Scanner.calculateLiquidity"><code class="name flex">
+<span>def <span class="ident">calculateLiquidity</span></span>(<span>self, test_buy, test_sell)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the liquidity metric for two exchanges</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculateLiquidity(self, test_buy, test_sell):
+    &#34;&#34;&#34;
+    Calculate the liquidity metric for two exchanges
+    &#34;&#34;&#34;
+    l = &#34;unknown&#34;
+    try:
+        buy_volume = test_buy[1][&#34;quoteVolume&#34;]
+        sell_volume = test_sell[1][&#34;quoteVolume&#34;]
+        buy_close = test_buy[1][&#34;close&#34;]
+        sell_close = test_sell[1][&#34;close&#34;]
+        buy_high = test_buy[1][&#34;high&#34;]
+        buy_low = test_buy[1][&#34;low&#34;]
+        sell_high = test_sell[1][&#34;high&#34;]
+        sell_low = test_sell[1][&#34;low&#34;]
+        l1 = (buy_volume * buy_close) / (buy_high - buy_low)
+        l2 = (sell_volume * sell_close) / (sell_high - sell_low)
+        # l = f&#39;b{l1}  s{l2}&#39;
+        l = 0.5 * l1 + 0.5 * l2
+    except:
+        l = &#34;unknown&#34;
+    return l</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.findFlipFlop"><code class="name flex">
+<span>def <span class="ident">findFlipFlop</span></span>(<span>self, spreadlist)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds if an option in the spreadlist can be both bought and sold to and from each other and still be profitable.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def findFlipFlop(self, spreadlist):
+    &#34;&#34;&#34;
+    Finds if an option in the spreadlist can be both bought and sold to and from each other and still be profitable.
+    &#34;&#34;&#34;
+    flops = []
+    flops_bool = False
+    for item in spreadlist:
+        for compared in spreadlist:
+            if item[&#34;buy&#34;] == compared[&#34;sell&#34;] and item[&#34;sell&#34;] == compared[&#34;buy&#34;]:
+                flops_bool = True
+                flops.append([item, compared])
+    # tqdm.write(flops)
+    return flops_bool, flops</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.getCommons"><code class="name flex">
+<span>def <span class="ident">getCommons</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get symbols in common with ALL self.exchanges. Used to check if <strong>init</strong> given a valid symbol or not.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getCommons(self):
+    &#34;&#34;&#34;
+    Get symbols in common with ALL self.exchanges. Used to check if __init__ given a valid symbol or not.
+    &#34;&#34;&#34;
+    alls = list()
+    for i in self.exchanges:
+        x = list(i.load_markets().keys())
+        for j in x:
+            alls.append(j)
+    out = list()
+
+    for item in alls:
+        if alls.count(item) == len(self.exchanges):
+            out.append(item)
+    out = set(out)
+    # for i in out:
+    #    if &#39;USD&#39; in i:
+    #       tqdm.write(i, &#39;1&#39;, end=&#39; &#39;)
+    return out</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.getSpread"><code class="name flex">
+<span>def <span class="ident">getSpread</span></span>(<span>self, responses=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get tickers for the watched symbols and return exchanges and spread.
+returns: spreads, [error True or False]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getSpread(self, responses=None):
+    &#34;&#34;&#34;
+    Get tickers for the watched symbols and return exchanges and spread.
+    returns: spreads, [error True or False]
+    &#34;&#34;&#34;  # update sizes
+    self.height, self.width = updateSize()
+    self.cycles += 1
+
+    # only tqdm.write ONCE
+    total_message = &#34;&#34;
+    # return statements
+    spreads_return = None
+    error_return = True
+    flip_flop_return = False
+    try:
+        #
+        if responses == None:
+            t_formatted = datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S&#34;)
+            timestamp = time.time()
+            responses = self.getWatched()
+        # not necessary to sort but it helps
+        # pprint(responses)
+        got_zero = False
+        try:
+            responses = OrderedDict(
+                sorted(responses.items(), key=lambda x: getitem(x[1], &#34;ask&#34;))
+            )
+        except TypeError:
+            response_items = []
+            got_zero = True
+        response_items = list(responses.items())
+
+        # set high and low
+        &#34;&#34;&#34;
+        Format on response_items
+        [
+            (exchange,{
+                ask: 333,
+                bid: 345,
+                ...
+            }),
+            ...
+        ]
+        &#34;&#34;&#34;
+
+        # make dict of spreads COUNTING fees
+        spreads = dict()
+        for test_buy in response_items:
+            for test_sell in response_items:
+                if not test_sell == test_buy:
+                    buy_price = test_buy[1][&#34;bid&#34;]
+                    sell_price = test_sell[1][&#34;ask&#34;]
+                    if buy_price != 0 and sell_price != 0:
+                        buy_volume = test_buy[1][&#34;quoteVolume&#34;]
+                        sell_volume = test_sell[1][&#34;quoteVolume&#34;]
+                        liquidity = self.calculateLiquidity(
+                            test_buy, test_sell
+                        )  # change
+
+                        # calculate speedup
+                        test_spread = (self.quote_order_size / sell_price) * (
+                            sell_price - buy_price
+                        )
+                        test_fee = (
+                            test_buy[0].calculateFee(
+                                self.symbol,
+                                &#34;limit&#34;,
+                                &#34;buy&#34;,
+                                self.quote_order_size / buy_price,
+                                buy_price,
+                                takerOrMaker=&#34;taker&#34;,
+                                params={},
+                            )[&#34;cost&#34;]
+                            + test_sell[0].calculateFee(
+                                self.symbol,
+                                &#34;limit&#34;,
+                                &#34;sell&#34;,
+                                self.quote_order_size / sell_price,
+                                sell_price,
+                                takerOrMaker=&#34;taker&#34;,
+                                params={},
+                            )[&#34;cost&#34;]
+                        )
+                        spread_w_fee = test_spread - test_fee
+
+                        actual_speedup = 0
+                        inc = 0.001
+                        ran = False
+                        while (
+                            spread_w_fee &gt; self.margin + inc
+                            and actual_speedup &lt;= self.max_speedup
+                        ):
+                            buy_price = test_buy[1][&#34;bid&#34;] * (
+                                1 + (actual_speedup / 200)
+                            )
+                            sell_price = test_sell[1][&#34;ask&#34;] * (
+                                1 - (actual_speedup / 200)
+                            )
+                            # recalculate
+                            test_spread = (self.quote_order_size / sell_price) * (
+                                sell_price - buy_price
+                            )
+                            test_fee = (
+                                test_buy[0].calculateFee(
+                                    self.symbol,
+                                    &#34;limit&#34;,
+                                    &#34;buy&#34;,
+                                    self.quote_order_size / buy_price,
+                                    buy_price,
+                                    takerOrMaker=&#34;taker&#34;,
+                                    params={},
+                                )[&#34;cost&#34;]
+                                + test_sell[0].calculateFee(
+                                    self.symbol,
+                                    &#34;limit&#34;,
+                                    &#34;sell&#34;,
+                                    self.quote_order_size / sell_price,
+                                    sell_price,
+                                    takerOrMaker=&#34;taker&#34;,
+                                    params={},
+                                )[&#34;cost&#34;]
+                            )
+                            spread_w_fee = test_spread - test_fee
+                            actual_speedup = round(actual_speedup + inc, 3)
+                            ran = True
+                        if ran:
+                            actual_speedup -= inc  # set after
+
+                        # create dictionary
+                        spreads[spread_w_fee] = {
+                            &#34;time&#34;: t_formatted,
+                            &#34;symbol&#34;: self.symbol,
+                            &#34;profitable&#34;: spread_w_fee &gt;= self.margin,
+                            &#34;spread_w_fees&#34;: spread_w_fee,
+                            &#34;fees&#34;: test_fee,
+                            &#34;buy_price&#34;: buy_price,
+                            &#34;sell_price&#34;: sell_price,
+                            &#34;buy&#34;: test_buy[0],
+                            &#34;sell&#34;: test_sell[0],
+                            &#34;quote_order_size&#34;: self.quote_order_size,
+                            &#34;speedup&#34;: actual_speedup,
+                            &#34;buy_bid&#34;: test_buy[1][&#34;bid&#34;],
+                            &#34;buy_ask&#34;: test_buy[1][&#34;ask&#34;],
+                            &#34;buy_volume&#34;: buy_volume,
+                            &#34;sell_bid&#34;: test_sell[1][&#34;bid&#34;],
+                            &#34;sell_ask&#34;: test_sell[1][&#34;ask&#34;],
+                            &#34;sell_volume&#34;: sell_volume,
+                            &#34;liquidity&#34;: liquidity,
+                            &#34;no_fees&#34;: test_spread,  # a percent
+                            &#34;timestamp&#34;: timestamp,
+                        }
+                    else:
+                        got_zero = True
+        if not got_zero:
+            spreads = sorted(
+                spreads.values(),
+                key=lambda x: (
+                    getitem(x, &#34;speedup&#34;),
+                    getitem(x, &#34;spread_w_fees&#34;),
+                    getitem(x, &#34;liquidity&#34;),
+                ),
+            )  # as a list
+            # reverse the list for printing
+            spreads.reverse()
+            # pprint(spreads)
+            # get last in list, sorted from low to high spread_w_fees
+            &#34;&#34;&#34;
+            sample from spreads:
+            {
+                &#39;buy&#39;: ccxt.bittrex(),
+                &#39;buy_ask&#39;: 1.30599,
+                &#39;buy_bid&#39;: 1.24303,
+                &#39;buy_price&#39;: 1.2676792848999983,
+                &#39;buy_volume&#39;: None,
+                &#39;fees&#39;: 0.35,
+                &#39;liquidity&#39;: 4.422258513471112,
+                &#39;no_fees&#39;: 0.36009720681011115,
+                &#39;profitable&#39;: True,
+                &#39;quote_order_size&#39;: 100,
+                &#39;sell&#39;: ccxt.binanceus(),
+                &#39;sell_ask&#39;: 1.298,
+                &#39;sell_bid&#39;: 1.293,
+                &#39;sell_price&#39;: 1.2722606600000022,
+                &#39;sell_volume&#39;: 142404.2786,
+                &#39;speedup&#39;: 3.9659999999996742,
+                &#39;spread_w_fees&#39;: 0.01009720681011117,
+                &#39;symbol&#39;: &#39;KNC/USD&#39;,
+                &#39;time&#39;: &#39;02-01-2021_00-20-52&#39;,
+                &#39;timestamp&#39;: 1612156852.032166
+            }
+            &#34;&#34;&#34;
+            # get most profitable
+            most_profitable = spreads[0]
+            buy = most_profitable[&#34;buy&#34;]
+            sell = most_profitable[&#34;sell&#34;]
+            low = most_profitable[&#34;buy_price&#34;]  # will remove soon
+            high = most_profitable[&#34;sell_price&#34;]  # ditto
+            fees = most_profitable[&#34;fees&#34;]
+            no_fees = most_profitable[&#34;no_fees&#34;]
+            spread = most_profitable[&#34;spread_w_fees&#34;]
+
+            # create formatted out string
+            exchanges_str = &#34;&#34;
+            for i in range(0, len(responses)):
+                ask = response_items[i][1][&#34;ask&#34;]
+                bid = response_items[i][1][&#34;bid&#34;]
+                exchange = response_items[i][0]
+                if exchange == buy:
+                    logstr = colorLow(
+                        &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
+                    )
+                elif exchange == sell:
+                    logstr = colorHigh(
+                        &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
+                    )
+                elif exchange == sell and exchange == buy:
+                    logstr = colorEh(
+                        &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                            exchange.name,
+                            round(ask, self.precision),
+                            round(bid, self.precision),
+                        )
+                    )
+                else:
+                    logstr = &#34;\t{}: ${} ask, ${} bid&#34;.format(
+                        exchange.name,
+                        round(ask, self.precision),
+                        round(bid, self.precision),
+                    )
+
+                exchanges_str += logstr + &#34;\n&#34;
+
+            # remove all values less than margin
+            for i in range(0, len(spreads)):
+                if spreads[i][&#34;spread_w_fees&#34;] &lt;= self.margin:
+                    spreads[i] = None
+            spreads[:] = [x for x in spreads if x]
+
+            # if empty, not profitable
+            if spreads:
+                profitable = True
+                if self.notifying:
+                    notify(f&#34;Profitable on {self.symbol}&#34;)
+            else:
+                profitable = False
+
+            # show percentage
+
+            currency_str = &#34;&#34;
+            if self.currency_name:
+                currency_str = f&#34; ({self.currency_name})&#34;
+
+            uptime_str = colorUptime(self.updateUptime())
+            clock_str = colorClock(datetime.now().strftime(&#34;%m/%d/%Y-%H:%M:%S:%f&#34;))
+
+            total_header_str = (
+                &#34;/&#34;
+                + &#34;-&#34; * (self.width - 44)
+                + colorCycle(f&#34;{self.cycles:2d}&#34;)
+                + &#34;--&#34;
+                + uptime_str
+                + &#34;--&#34;
+                + clock_str
+            )
+
+            flip_flop, flop_pairs = self.findFlipFlop(spreads)
+            # indicates whether there are any open trades
+            # format ** [buy, sell]
+            if self.selling and self.buying:
+                indicator = colorGood(&#34;*&#34;) * 2
+            else:  # all good
+                indicator = colorGood(&#34;*&#34;) * 2
+
+            if spreads:
+                total_message += total_header_str + &#34;\n&#34;
+                total_message += &#34;[For {} w/ ${:,.3f}{}]:\n&#34;.format(
+                    (self.symbol), self.quote_order_size, currency_str
+                )
+
+                total_message += exchanges_str
+                if flip_flop:
+                    msg_str = &#34;{}&#34;.format(indicator)
+                    intermediate = &#34; [FF&#34;
+                    already = []
+                    # iterate through flop pairs
+                    for ff in flop_pairs:
+                        # check if already done
+                        already_done = False
+                        for x in already:
+                            if ff[0] == x[1]:
+                                already_done = True
+                        if not already_done:
+                            already.append(ff)
+                            intermediate += &#34; #{} &amp; #{},&#34;.format(
+                                spreads.index(ff[0]) + 1, spreads.index(ff[1]) + 1
+                            )
+                            # tqdm.write(len(msg_str))
+                            # tqdm.write(msg_str, end=&#39; &#39;*35)
+                            # tqdm.write(
+                            #    colorGood(&#39;max speedup of {}% (found {} profitable pairs ****)&#39;.format(self.max_speedup, len(spreads))))  # .rjust(self.width-6))
+                    intermediate = intermediate[:-1] + &#34;]&#34;
+                    total_message += msg_str + colorGood(intermediate) + &#34;\n&#34;
+                else:
+                    total_message += indicator + &#34;\n&#34;  # , end=&#34;&#34;)
+                    # tqdm.write(colorGood(&#34;max speedup of {}% (found {} profitable pairs ****)&#34;.format(self.max_speedup, len(spreads))).rjust(self.width + 7))
+                for i in range(len(spreads)):
+                    item = spreads[i]
+                    total_message += (
+                        &#34;{} Adjusted Spread: ${} (after fees: ${})\n  (buy on {} @ ${}, sell on {} @ ${} [speedup: {}%, liquidity: {}])&#34;.format(
+                            colorGood(&#34;[PASSED #{}]&#34;.format(i + 1)),
+                            colorThreshold(item[&#34;no_fees&#34;]),
+                            colorThreshold(item[&#34;spread_w_fees&#34;]),
+                            colorLow(item[&#34;buy&#34;].name),
+                            colorLow(
+                                &#34;{}&#34;.format(
+                                    round(item[&#34;buy_price&#34;], self.precision)
+                                )
+                            ),
+                            colorHigh(item[&#34;sell&#34;].name),
+                            colorHigh(
+                                &#34;{}&#34;.format(
+                                    round(item[&#34;sell_price&#34;], self.precision)
+                                )
+                            ),
+                            colorThreshold(
+                                item[&#34;speedup&#34;], threshold=self.min_speedup
+                            ),
+                            colorLiquidity(item[&#34;liquidity&#34;], threshold=1),
+                        )
+                        + &#34;\n&#34;
+                    )
+            else:
+                if self.loud:
+                    total_message += total_header_str + &#34;\n&#34;
+                    total_message += (
+                        &#34;[For {} w/ ${:,.3f}{}]:&#34;.format(
+                            (self.symbol), self.quote_order_size, currency_str
+                        )
+                    ) + &#34;\n&#34;
+                    total_message += exchanges_str
+                    total_message += (indicator) + &#34;\n&#34;
+                    if spread &gt; 0 and spread &lt;= self.margin:
+                        msg = colorEh(&#34;[FAILED]&#34;)
+                    else:
+                        msg = colorBad(&#34;[FAILED]&#34;)
+                    total_message += (
+                        &#34;{} Adjusted Spread: ${} (after fees: ${})\n (buy on {} @ ${}, sell on {} @ ${} [grs.dif: ${}])&#34;.format(
+                            msg,
+                            colorThreshold(no_fees),
+                            colorThreshold(spread),
+                            colorLow(buy.name),
+                            colorLow(&#34;{}&#34;.format(round(low, self.precision))),
+                            colorHigh(sell.name),
+                            colorHigh(&#34;{}&#34;.format(round(high, self.precision))),
+                            colorThreshold((high - low), 3, self.margin),
+                        )
+                        + &#34;\n&#34;
+                    )
+            if profitable:
+                self.saveDict(spreads)
+
+            spreads_return = spreads
+            error_return = False
+            flip_flop_return = flip_flop
+    except Exception as e:
+        total_message += (
+            colorBad(&#34;Error getting spread for {} ({})&#34;.format(self.symbol, e))
+        ) + &#34;\n&#34;
+
+    # tqdm.write EVERYTHING
+    tqdm.write(total_message, end=&#34;&#34;)
+    return spreads_return, error_return, flip_flop_return</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.getWatched"><code class="name flex">
+<span>def <span class="ident">getWatched</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get responses for each exchange for self.symbol.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getWatched(self):
+    &#34;&#34;&#34;
+    Get responses for each exchange for self.symbol.
+    &#34;&#34;&#34;
+    all_responses = dict()
+    start = now()
+    while now() - start &lt;= self.timeout:
+        for exchange in self.exchanges:
+            try:
+                all_responses[exchange] = exchange.fetch_ticker(self.symbol)
+            except ccxt.RateLimitExceeded:
+                tqdm.write(
+                    colorBad(&#34;Rate limit exceeded on {}&#34;.format(exchange.name))
+                )
+    if len(list(all_responses.keys())) &lt; len(self.exchanges):
+        missed = [
+            i
+            for i in self.exchanges + list(all_responses.keys())
+            if i not in self.exchanges or i not in list(all_responses.keys())
+        ]
+        tqdm.write(colorBad(&#34;Timeout reached on {}&#34;.format(stringitizeL(missed))))
+    return all_responses</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.saveDict"><code class="name flex">
+<span>def <span class="ident">saveDict</span></span>(<span>self, toCSV)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>takes a list of dictionaries and saves it to a csv</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def saveDict(self, toCSV):
+    &#34;&#34;&#34;
+    takes a list of dictionaries and saves it to a csv
+    &#34;&#34;&#34;
+    keys = toCSV[0].keys()
+    did_exist = path.isfile(self.pro_filename)
+    with open(self.pro_filename, &#34;a+&#34;, newline=&#34;&#34;) as output_file:
+        dict_writer = csv.DictWriter(output_file, keys)
+        if not did_exist:
+            dict_writer.writeheader()  # only write if not exists
+        dict_writer.writerows(toCSV)</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.switch"><code class="name flex">
+<span>def <span class="ident">switch</span></span>(<span>self, new_symbol)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def switch(self, new_symbol):
+    self.symbol = new_symbol</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.updateUptime"><code class="name flex">
+<span>def <span class="ident">updateUptime</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates the uptime and returns a formatted string.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateUptime(self):
+    &#34;&#34;&#34;
+    Updates the uptime and returns a formatted string.
+    &#34;&#34;&#34;
+    self.uptime = datetime.now() - self.start_time
+    return strfdelta(self.uptime, &#34;%H:%M:%S&#34;)</code></pre>
+</details>
+</dd>
+<dt id="scanner.Scanner.validateSymbol"><code class="name flex">
+<span>def <span class="ident">validateSymbol</span></span>(<span>self, symbol)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns whether or not the symbol is supported by all exchanges.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validateSymbol(self, symbol):
+    &#34;&#34;&#34;
+    Returns whether or not the symbol is supported by all exchanges.
+    &#34;&#34;&#34;
+    if symbol in self.getCommons():
+        return True
+    else:
+        return False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="scanner.Scanner" href="#scanner.Scanner">Scanner</a></code></h4>
+<ul class="two-column">
+<li><code><a title="scanner.Scanner.calculateLiquidity" href="#scanner.Scanner.calculateLiquidity">calculateLiquidity</a></code></li>
+<li><code><a title="scanner.Scanner.findFlipFlop" href="#scanner.Scanner.findFlipFlop">findFlipFlop</a></code></li>
+<li><code><a title="scanner.Scanner.getCommons" href="#scanner.Scanner.getCommons">getCommons</a></code></li>
+<li><code><a title="scanner.Scanner.getSpread" href="#scanner.Scanner.getSpread">getSpread</a></code></li>
+<li><code><a title="scanner.Scanner.getWatched" href="#scanner.Scanner.getWatched">getWatched</a></code></li>
+<li><code><a title="scanner.Scanner.saveDict" href="#scanner.Scanner.saveDict">saveDict</a></code></li>
+<li><code><a title="scanner.Scanner.switch" href="#scanner.Scanner.switch">switch</a></code></li>
+<li><code><a title="scanner.Scanner.updateUptime" href="#scanner.Scanner.updateUptime">updateUptime</a></code></li>
+<li><code><a title="scanner.Scanner.validateSymbol" href="#scanner.Scanner.validateSymbol">validateSymbol</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

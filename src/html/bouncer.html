@@ -1,0 +1,1498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>bouncer API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>bouncer</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import csv
+import logging
+import sys
+import time
+from collections import OrderedDict
+from datetime import date, datetime, timedelta
+from math import floor, log
+from operator import getitem
+from os import path
+from pprint import pformat, pprint
+
+import ccxt
+import pandas as pd
+
+from helper import *
+from scanner import Scanner
+
+__author__ = &#34;Calvin Kinateder&#34;
+__email__ = &#34;calvinkinateder@gmail.com&#34;
+
+
+from tqdm import tqdm
+
+
+class Bouncer(Scanner):
+    def __init__(
+        self,
+        symbol,
+        quote_order_size,
+        exchanges,
+        initializeq=False,
+        speedup=10,
+        margin=0.01,
+        min_speedup=1,
+        loud=True,
+        position=None,
+    ):
+        &#34;&#34;&#34;
+        Create the class, extends Hive.
+        Params:
+            symbol: market pair to run on
+            quote_order_size: how much each trade should be worth
+            exchanges: exchanges it should run on
+            initializeq: initialize balances or not
+            speedup: max percentage value of how tight the margin may be squeezed
+            trading: determines if acting or scanning
+            margin: min trade profit
+            min_speedup: min percentage value of how tight the margin may be squeezed
+            loud: tqdm.write all pairs or just profitable
+            position: optional, number assigned to object
+        &#34;&#34;&#34;
+        super().__init__(
+            symbol=symbol,
+            quote_order_size=quote_order_size,
+            exchanges=exchanges,
+            speedup=speedup,
+            margin=margin,
+            min_speedup=min_speedup,
+            loud=loud,
+            position=position,
+        )
+        self.trades_filename = (
+            &#34;logs/trades/&#34;
+            + datetime.now().strftime(&#34;%m-%d-%Y_%H-%M&#34;)
+            + &#34;_&#34;
+            + self.base_coin
+            + &#34;-&#34;
+            + self.quote_coin
+            + &#34;_trades.csv&#34;
+        )
+        self.margin = margin  # for trades
+        exchanges_str = &#34;&#34;
+        self.trading = True
+        # set up trades file
+        self.trades_headers = [
+            &#34;Date&#34;,
+            &#34;Symbol&#34;,
+            &#34;Side&#34;,
+            &#34;Price&#34;,
+            &#34;Exchange&#34;,
+            &#34;Net Gain (%)&#34;,
+        ]
+        self.trades = pd.DataFrame(columns=self.trades_headers)
+        self.trade_count = 0
+        for i in range(0, len(self.exchanges) - 1):
+            exchanges_str += self.exchanges[i].name + &#34;, &#34;
+        exchanges_str += &#34;and &#34; + self.exchanges[-1].name
+        self.ireq = (
+            len(exchanges) * self.quote_order_size * 2
+        )  # how much invested total
+
+        tqdm.write(
+            colorGood(
+                &#34;Spending ${:,.0f} for ${}: playing with {:,.0f}, speedup {}% to {}%, margin ${} - [{}]&#34;
+            ).format(
+                self.quote_order_size,
+                self.symbol,
+                self.ireq,
+                self.min_speedup,
+                self.max_speedup,
+                self.margin,
+                exchanges_str,
+            )
+        )
+
+        # init balances
+        self.balances = dict()
+        self.net = 0
+        self.section = &#34;total&#34;
+        # initialize balances
+        if initializeq:
+            tqdm.write(
+                &#34;Initializing balances with ${} worth of {} in each account.&#34;.format(
+                    self.quote_order_size, self.base_coin
+                )
+            )
+            self.inititalizeBalances()
+        (
+            self.start_total_base_amount,
+            self.start_total_quote_amount,
+        ) = self.updateBalances(loud=False)
+
+        tqdm.write(
+            colorClock(&#34;Starting base amount [{:.8f} {}, {:.4f} {}]&#34;).format(
+                self.start_total_base_amount,
+                self.base_coin,
+                self.start_total_quote_amount,
+                self.quote_coin,
+            )
+        )
+        tqdm.write()
+
+    def updateBalances(self, loud=True):
+        &#34;&#34;&#34;
+        Log balances to file and total base and quote amounts.
+        &#34;&#34;&#34;
+        for exchange in self.exchanges:
+            try:
+                self.balances[exchange] = exchange.fetch_balance()
+                # pprint(self.balances[exchange])
+            except Exception as e:
+                if self.trading:
+                    tqdm.write(
+                        colorBad(
+                            &#34;Balances for {} could not be fetched - setting trading to false.&#34;.format(
+                                exchange.name
+                            )
+                        )
+                    )
+                    self.trading = False
+                else:
+                    tqdm.write(
+                        colorBad(
+                            &#34;Balances for {} could not be fetched.&#34;.format(
+                                exchange.name
+                            )
+                        )
+                    )
+                self.balances[exchange] = {}
+                self.balances[exchange][self.section] = {}
+
+        if loud:
+            for exchange in self.exchanges:
+                tqdm.write(
+                    &#34;{} balance response - {}&#34;.format(
+                        exchange, pformat(self.balances[exchange])
+                    )
+                )
+
+        total_base_amount = 0
+        for exchange in self.exchanges:
+            if self.base_coin in self.balances[exchange][self.section]:
+                total_base_amount += self.balances[exchange][self.section][
+                    self.base_coin
+                ]
+            else:
+                self.balances[exchange][self.section][self.base_coin] = 0
+
+        total_quote_order_size = 0
+        for exchange in self.exchanges:
+            if self.quote_coin in self.balances[exchange][self.section]:
+                total_quote_order_size += self.balances[exchange][self.section][
+                    self.quote_coin
+                ]
+            else:
+                self.balances[exchange][self.section][self.quote_coin] = 0
+        if loud:
+            for exchange in self.exchanges:
+                tqdm.write(
+                    &#34;\t{} balances ({}) - [{}: {}, {}: {}]&#34;.format(
+                        exchange,
+                        self.section,
+                        self.base_coin,
+                        self.balances[exchange][self.section][self.base_coin],
+                        self.quote_coin,
+                        self.balances[exchange][self.section][self.quote_coin],
+                    )
+                )
+
+        # bittrex_string, binance_string, kraken_string, coinbasepro_string
+        return total_base_amount, total_quote_order_size
+
+    def updateNet(self, loud=False):
+        &#34;&#34;&#34;
+        Returns self.net as a percent and updates. CURRENTLY NOT IMPLEMENTED.
+        &#34;&#34;&#34;
+        base, quote = self.updateBalances(loud)
+        if self.start_total_base_amount == 0 or self.start_total_quote_amount == 0:
+            self.net = 0
+        else:
+            self.net = 0
+        return self.net
+
+    def inititalizeBalances(self):
+        &#34;&#34;&#34;
+        Optional function used to initialize the balances buying the crypto needed in each exchange.
+        &#34;&#34;&#34;
+        # note, bc of fees it will buy 2 dollar higher.
+        self.updateBalances(loud=False)
+
+        for exchange in self.exchanges:
+            price = (exchange.fetch_ticker(self.symbol))[&#34;bid&#34;]
+            if (
+                self.balances[exchange][self.section][self.quote_coin]
+                &gt;= self.quote_order_size
+            ):
+                try:
+                    tqdm.write(
+                        &#34;Creating buy order on {} for {} {}&#34;.format(
+                            exchange, self.quote_order_size / price, self.symbol
+                        )
+                    )
+                    exchange.create_market_buy_order(
+                        self.symbol, self.quote_order_size / price
+                    )
+                    self.trade_count += 1
+                    new_row = [
+                        datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                        self.symbol,
+                        &#34;buy&#34;,
+                        price,
+                        exchange.name,
+                        self.net,
+                    ]
+                    self.trades.loc[len(self.trades)] = new_row
+                except ccxt.ExchangeNotAvailable:
+                    tqdm.write(&#34;Market on {} offline.&#34;.format(exchange.name))
+            else:
+                tqdm.write(
+                    &#34;* Insufficient funds on {} to initialize balance&#34;.format(
+                        exchange.name
+                    )
+                )
+
+        self.blockTrades(5)
+
+    def anyOpen(self, exchange=None):
+        &#34;&#34;&#34;
+        Checks if any trades are open. If given an exchange, it only checks for that exchange, otherwise it will check for all self.exchanges.
+        &#34;&#34;&#34;
+        if exchange == None:
+            for i in self.exchanges:
+                x = i.fetch_open_orders(self.symbol)
+                if len(x) &gt; 0:
+                    return True
+        else:
+            if len(exchange.fetch_open_orders(self.symbol)) &gt; 0:
+                return True
+
+        return False
+
+    def cleanup(self):
+        &#34;&#34;&#34;
+        Cleans up by selling off any balances still left on platforms.
+        &#34;&#34;&#34;
+        tqdm.write(&#34;Cleaning up for {}...&#34;.format(self.symbol))
+        responses = self.getWatched()
+        self.updateBalances(loud=False)
+
+        for exchange in responses:
+            # sell remaining
+            remaining = float(self.balances[exchange][self.section][self.base_coin])
+            if remaining &gt; 0 and not self.anyOpen(exchange):
+                try:
+                    tqdm.write(
+                        &#34;Selling off {:.6f} {} on {}&#34;.format(
+                            remaining, self.base_coin, exchange.name
+                        )
+                    )
+                    exchange.create_market_sell_order(self.symbol, remaining)
+                except Exception as e:
+                    tqdm.write(
+                        &#34;* Error in selling off {:.6f} {} on {}: {}&#34;.format(
+                            remaining, self.base_coin, exchange.name, e
+                        )
+                    )
+            else:
+                tqdm.write(
+                    &#34;No need to sell, no balance in {} on {}&#34;.format(
+                        self.base_coin, exchange.name
+                    )
+                )
+        &#34;&#34;&#34;
+        self.blockTrades(5)
+        tqdm.write(&#39;Final balances:&#39;)
+        base, quote = self.updateBalances(loud=False)
+        tqdm.write(&#39;Sums: [{:.8f} {}, {} {}]&#39;.format(
+            base, self.base_coin, quote, self.quote_coin))
+        self.updateNet()
+        tqdm.write(&#39;Net: {}%&#39;.format(colorThreshold(self.net)))
+        tqdm.write(&#39;Done!\n&#39;)
+        &#34;&#34;&#34;
+        tqdm.write(colorEh(&#34;Trades sumbitted ... exiting.&#34;))
+
+    def blockTrades(self, timewait):
+        &#34;&#34;&#34;
+        Blocks code until no active trades.
+        &#34;&#34;&#34;
+        tqdm.write(colorEh(&#34;Trades initiated ... blocking to completion&#34;))
+
+        open_trades = self.anyOpen()
+        while open_trades:
+            open_trades = self.anyOpen()
+            time.sleep(timewait)
+
+        tqdm.write(colorGood(&#34;Trades completed! Moving on.&#34;))
+
+    def handleTransaction(self, buy_ex, sell_ex, low, high):
+        &#34;&#34;&#34;
+        Places the arbitrage transactions simultaneously.
+        &#34;&#34;&#34;
+        amt = self.quote_order_size / high
+        try:
+            # creating processes
+            tqdm.write(
+                &#34;Creating buy order on {} for {:.6f} {} at ${}&#34;.format(
+                    buy_ex, amt, self.symbol, low
+                )
+            )
+            self.buying = buy_ex
+            buy_ex.create_limit_buy_order(self.symbol, amt, low)
+            self.trade_count += 1
+            new_row = [
+                datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                self.symbol,
+                &#34;buy&#34;,
+                low,
+                buy_ex.name,
+                self.net,
+            ]
+            self.trades.loc[len(self.trades)] = new_row
+            self.trades.to_csv(path_or_buf=self.trades_filename)
+
+            tqdm.write(
+                &#34;Creating sell order on {} for {:.6f} {} at ${}&#34;.format(
+                    sell_ex, amt, self.symbol, high
+                )
+            )
+            self.selling = sell_ex
+            sell_ex.create_limit_sell_order(self.symbol, amt, high)
+            self.trade_count += 1
+            new_row = [
+                datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                self.symbol,
+                &#34;sell&#34;,
+                high,
+                sell_ex.name,
+                self.net,
+            ]
+            self.trades.loc[len(self.trades)] = new_row
+            self.trades.to_csv(path_or_buf=self.trades_filename)
+
+            # self.blockTrades(5)
+            tqdm.write(colorEh(&#34;Trades initiated... disabling arbitrage until completed.&#34;))
+            # perform calculations for logging
+        except ccxt.ExchangeNotAvailable:
+            tqdm.write(colorBad(&#34;Exchange not available.&#34;))
+
+        # recalculate
+        self.updateNet()
+
+        # tqdm.write(&#39;Balances fetched&#39;)
+        self.updateBalances(loud=False)
+
+        return &#34;Done&#34;
+
+    def arbitrate(self):
+        &#34;&#34;&#34;
+        Calculate spread and buy on low and sell on high, with checking for low balances and whatnot.
+        &#34;&#34;&#34;
+        try:
+            spreads, error, flip_flop = self.getSpread()
+
+            # add and subtract from mock balances here
+
+            if spreads and self.trading and not error and not self.anyOpen():
+                # get balances
+                self.updateBalances(loud=False)
+
+                action_taken = False
+                for pair in spreads:
+                    if not action_taken and pair[&#34;speedup&#34;] &gt;= self.min_speedup:
+                        buy_ex = pair[&#34;buy&#34;]
+                        sell_ex = pair[&#34;sell&#34;]
+                        low = pair[&#34;buy_price&#34;]
+                        high = pair[&#34;sell_price&#34;]
+
+                        quote_balance = self.balances[buy_ex][self.section][
+                            self.quote_coin
+                        ]
+                        base_balance = self.balances[sell_ex][self.section][
+                            self.base_coin
+                        ]
+                        if (
+                            quote_balance &gt;= self.quote_order_size
+                            and base_balance &gt;= self.quote_order_size / high
+                        ):  # balances are good for original
+                            tqdm.write(
+                                colorGood(
+                                    &#34;Executing option {} ...&#34;.format(
+                                        spreads.index(pair) + 1
+                                    )
+                                )
+                            )
+                            self.handleTransaction(buy_ex, sell_ex, low, high)
+                            action_taken = True
+                        elif (
+                            quote_balance &lt; self.quote_order_size
+                            and base_balance &lt; self.quote_order_size / high
+                        ):
+                            tqdm.write(
+                                colorBad(
+                                    &#34;* Insufficient balance (missing ${} on {}, {:.4f} {} on {})&#34;.format(
+                                        round(
+                                            self.quote_order_size - quote_balance,
+                                            self.precision,
+                                        ),
+                                        buy_ex.name,
+                                        self.quote_order_size / high - base_balance,
+                                        self.base_coin,
+                                        sell_ex.name,
+                                    )
+                                )
+                            )
+                        elif quote_balance &lt; self.quote_order_size:
+                            tqdm.write(
+                                colorBad(
+                                    &#34;* Insufficient balance (missing ${} on {})&#34;.format(
+                                        round(
+                                            self.quote_order_size - quote_balance,
+                                            self.precision,
+                                        ),
+                                        buy_ex.name,
+                                    )
+                                )
+                            )
+                        elif base_balance &lt; self.quote_order_size / high:
+                            tqdm.write(
+                                colorBad(
+                                    &#34;* Insufficient balance (missing {:.4f} {} on {})&#34;.format(
+                                        self.quote_order_size / high - base_balance,
+                                        self.base_coin,
+                                        sell_ex.name,
+                                    )
+                                )
+                            )
+                    elif pair[&#34;speedup&#34;] &lt; self.min_speedup:
+                        tqdm.write(
+                            colorBad(
+                                &#34;Speedup too low ({} &lt; {}) to place order ...&#34;.format(
+                                    pair[&#34;speedup&#34;], self.min_speedup
+                                )
+                            )
+                        )
+            elif error:
+                tqdm.write(
+                    colorBad(&#34;* Error in symbol {} - price returned 0.&#34;).format(
+                        self.symbol
+                    )
+                )
+
+        except Exception as e:
+            tqdm.write(colorBad(&#34;Error in call ... moving on ({})&#34;).format(e))
+
+    def __str__(self):
+        return f&#34;Bouncer @ {self.symbol}&#34;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="bouncer.Bouncer"><code class="flex name class">
+<span>class <span class="ident">Bouncer</span></span>
+<span>(</span><span>symbol, quote_order_size, exchanges, initializeq=False, speedup=10, margin=0.01, min_speedup=1, loud=True, position=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create the class, extends Hive.</p>
+<h2 id="params">Params</h2>
+<p>symbol: market pair to run on
+quote_order_size: how much each trade should be worth
+exchanges: exchanges it should run on
+initializeq: initialize balances or not
+speedup: max percentage value of how tight the margin may be squeezed
+trading: determines if acting or scanning
+margin: min trade profit
+min_speedup: min percentage value of how tight the margin may be squeezed
+loud: tqdm.write all pairs or just profitable
+position: optional, number assigned to object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Bouncer(Scanner):
+    def __init__(
+        self,
+        symbol,
+        quote_order_size,
+        exchanges,
+        initializeq=False,
+        speedup=10,
+        margin=0.01,
+        min_speedup=1,
+        loud=True,
+        position=None,
+    ):
+        &#34;&#34;&#34;
+        Create the class, extends Hive.
+        Params:
+            symbol: market pair to run on
+            quote_order_size: how much each trade should be worth
+            exchanges: exchanges it should run on
+            initializeq: initialize balances or not
+            speedup: max percentage value of how tight the margin may be squeezed
+            trading: determines if acting or scanning
+            margin: min trade profit
+            min_speedup: min percentage value of how tight the margin may be squeezed
+            loud: tqdm.write all pairs or just profitable
+            position: optional, number assigned to object
+        &#34;&#34;&#34;
+        super().__init__(
+            symbol=symbol,
+            quote_order_size=quote_order_size,
+            exchanges=exchanges,
+            speedup=speedup,
+            margin=margin,
+            min_speedup=min_speedup,
+            loud=loud,
+            position=position,
+        )
+        self.trades_filename = (
+            &#34;logs/trades/&#34;
+            + datetime.now().strftime(&#34;%m-%d-%Y_%H-%M&#34;)
+            + &#34;_&#34;
+            + self.base_coin
+            + &#34;-&#34;
+            + self.quote_coin
+            + &#34;_trades.csv&#34;
+        )
+        self.margin = margin  # for trades
+        exchanges_str = &#34;&#34;
+        self.trading = True
+        # set up trades file
+        self.trades_headers = [
+            &#34;Date&#34;,
+            &#34;Symbol&#34;,
+            &#34;Side&#34;,
+            &#34;Price&#34;,
+            &#34;Exchange&#34;,
+            &#34;Net Gain (%)&#34;,
+        ]
+        self.trades = pd.DataFrame(columns=self.trades_headers)
+        self.trade_count = 0
+        for i in range(0, len(self.exchanges) - 1):
+            exchanges_str += self.exchanges[i].name + &#34;, &#34;
+        exchanges_str += &#34;and &#34; + self.exchanges[-1].name
+        self.ireq = (
+            len(exchanges) * self.quote_order_size * 2
+        )  # how much invested total
+
+        tqdm.write(
+            colorGood(
+                &#34;Spending ${:,.0f} for ${}: playing with {:,.0f}, speedup {}% to {}%, margin ${} - [{}]&#34;
+            ).format(
+                self.quote_order_size,
+                self.symbol,
+                self.ireq,
+                self.min_speedup,
+                self.max_speedup,
+                self.margin,
+                exchanges_str,
+            )
+        )
+
+        # init balances
+        self.balances = dict()
+        self.net = 0
+        self.section = &#34;total&#34;
+        # initialize balances
+        if initializeq:
+            tqdm.write(
+                &#34;Initializing balances with ${} worth of {} in each account.&#34;.format(
+                    self.quote_order_size, self.base_coin
+                )
+            )
+            self.inititalizeBalances()
+        (
+            self.start_total_base_amount,
+            self.start_total_quote_amount,
+        ) = self.updateBalances(loud=False)
+
+        tqdm.write(
+            colorClock(&#34;Starting base amount [{:.8f} {}, {:.4f} {}]&#34;).format(
+                self.start_total_base_amount,
+                self.base_coin,
+                self.start_total_quote_amount,
+                self.quote_coin,
+            )
+        )
+        tqdm.write()
+
+    def updateBalances(self, loud=True):
+        &#34;&#34;&#34;
+        Log balances to file and total base and quote amounts.
+        &#34;&#34;&#34;
+        for exchange in self.exchanges:
+            try:
+                self.balances[exchange] = exchange.fetch_balance()
+                # pprint(self.balances[exchange])
+            except Exception as e:
+                if self.trading:
+                    tqdm.write(
+                        colorBad(
+                            &#34;Balances for {} could not be fetched - setting trading to false.&#34;.format(
+                                exchange.name
+                            )
+                        )
+                    )
+                    self.trading = False
+                else:
+                    tqdm.write(
+                        colorBad(
+                            &#34;Balances for {} could not be fetched.&#34;.format(
+                                exchange.name
+                            )
+                        )
+                    )
+                self.balances[exchange] = {}
+                self.balances[exchange][self.section] = {}
+
+        if loud:
+            for exchange in self.exchanges:
+                tqdm.write(
+                    &#34;{} balance response - {}&#34;.format(
+                        exchange, pformat(self.balances[exchange])
+                    )
+                )
+
+        total_base_amount = 0
+        for exchange in self.exchanges:
+            if self.base_coin in self.balances[exchange][self.section]:
+                total_base_amount += self.balances[exchange][self.section][
+                    self.base_coin
+                ]
+            else:
+                self.balances[exchange][self.section][self.base_coin] = 0
+
+        total_quote_order_size = 0
+        for exchange in self.exchanges:
+            if self.quote_coin in self.balances[exchange][self.section]:
+                total_quote_order_size += self.balances[exchange][self.section][
+                    self.quote_coin
+                ]
+            else:
+                self.balances[exchange][self.section][self.quote_coin] = 0
+        if loud:
+            for exchange in self.exchanges:
+                tqdm.write(
+                    &#34;\t{} balances ({}) - [{}: {}, {}: {}]&#34;.format(
+                        exchange,
+                        self.section,
+                        self.base_coin,
+                        self.balances[exchange][self.section][self.base_coin],
+                        self.quote_coin,
+                        self.balances[exchange][self.section][self.quote_coin],
+                    )
+                )
+
+        # bittrex_string, binance_string, kraken_string, coinbasepro_string
+        return total_base_amount, total_quote_order_size
+
+    def updateNet(self, loud=False):
+        &#34;&#34;&#34;
+        Returns self.net as a percent and updates. CURRENTLY NOT IMPLEMENTED.
+        &#34;&#34;&#34;
+        base, quote = self.updateBalances(loud)
+        if self.start_total_base_amount == 0 or self.start_total_quote_amount == 0:
+            self.net = 0
+        else:
+            self.net = 0
+        return self.net
+
+    def inititalizeBalances(self):
+        &#34;&#34;&#34;
+        Optional function used to initialize the balances buying the crypto needed in each exchange.
+        &#34;&#34;&#34;
+        # note, bc of fees it will buy 2 dollar higher.
+        self.updateBalances(loud=False)
+
+        for exchange in self.exchanges:
+            price = (exchange.fetch_ticker(self.symbol))[&#34;bid&#34;]
+            if (
+                self.balances[exchange][self.section][self.quote_coin]
+                &gt;= self.quote_order_size
+            ):
+                try:
+                    tqdm.write(
+                        &#34;Creating buy order on {} for {} {}&#34;.format(
+                            exchange, self.quote_order_size / price, self.symbol
+                        )
+                    )
+                    exchange.create_market_buy_order(
+                        self.symbol, self.quote_order_size / price
+                    )
+                    self.trade_count += 1
+                    new_row = [
+                        datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                        self.symbol,
+                        &#34;buy&#34;,
+                        price,
+                        exchange.name,
+                        self.net,
+                    ]
+                    self.trades.loc[len(self.trades)] = new_row
+                except ccxt.ExchangeNotAvailable:
+                    tqdm.write(&#34;Market on {} offline.&#34;.format(exchange.name))
+            else:
+                tqdm.write(
+                    &#34;* Insufficient funds on {} to initialize balance&#34;.format(
+                        exchange.name
+                    )
+                )
+
+        self.blockTrades(5)
+
+    def anyOpen(self, exchange=None):
+        &#34;&#34;&#34;
+        Checks if any trades are open. If given an exchange, it only checks for that exchange, otherwise it will check for all self.exchanges.
+        &#34;&#34;&#34;
+        if exchange == None:
+            for i in self.exchanges:
+                x = i.fetch_open_orders(self.symbol)
+                if len(x) &gt; 0:
+                    return True
+        else:
+            if len(exchange.fetch_open_orders(self.symbol)) &gt; 0:
+                return True
+
+        return False
+
+    def cleanup(self):
+        &#34;&#34;&#34;
+        Cleans up by selling off any balances still left on platforms.
+        &#34;&#34;&#34;
+        tqdm.write(&#34;Cleaning up for {}...&#34;.format(self.symbol))
+        responses = self.getWatched()
+        self.updateBalances(loud=False)
+
+        for exchange in responses:
+            # sell remaining
+            remaining = float(self.balances[exchange][self.section][self.base_coin])
+            if remaining &gt; 0 and not self.anyOpen(exchange):
+                try:
+                    tqdm.write(
+                        &#34;Selling off {:.6f} {} on {}&#34;.format(
+                            remaining, self.base_coin, exchange.name
+                        )
+                    )
+                    exchange.create_market_sell_order(self.symbol, remaining)
+                except Exception as e:
+                    tqdm.write(
+                        &#34;* Error in selling off {:.6f} {} on {}: {}&#34;.format(
+                            remaining, self.base_coin, exchange.name, e
+                        )
+                    )
+            else:
+                tqdm.write(
+                    &#34;No need to sell, no balance in {} on {}&#34;.format(
+                        self.base_coin, exchange.name
+                    )
+                )
+        &#34;&#34;&#34;
+        self.blockTrades(5)
+        tqdm.write(&#39;Final balances:&#39;)
+        base, quote = self.updateBalances(loud=False)
+        tqdm.write(&#39;Sums: [{:.8f} {}, {} {}]&#39;.format(
+            base, self.base_coin, quote, self.quote_coin))
+        self.updateNet()
+        tqdm.write(&#39;Net: {}%&#39;.format(colorThreshold(self.net)))
+        tqdm.write(&#39;Done!\n&#39;)
+        &#34;&#34;&#34;
+        tqdm.write(colorEh(&#34;Trades sumbitted ... exiting.&#34;))
+
+    def blockTrades(self, timewait):
+        &#34;&#34;&#34;
+        Blocks code until no active trades.
+        &#34;&#34;&#34;
+        tqdm.write(colorEh(&#34;Trades initiated ... blocking to completion&#34;))
+
+        open_trades = self.anyOpen()
+        while open_trades:
+            open_trades = self.anyOpen()
+            time.sleep(timewait)
+
+        tqdm.write(colorGood(&#34;Trades completed! Moving on.&#34;))
+
+    def handleTransaction(self, buy_ex, sell_ex, low, high):
+        &#34;&#34;&#34;
+        Places the arbitrage transactions simultaneously.
+        &#34;&#34;&#34;
+        amt = self.quote_order_size / high
+        try:
+            # creating processes
+            tqdm.write(
+                &#34;Creating buy order on {} for {:.6f} {} at ${}&#34;.format(
+                    buy_ex, amt, self.symbol, low
+                )
+            )
+            self.buying = buy_ex
+            buy_ex.create_limit_buy_order(self.symbol, amt, low)
+            self.trade_count += 1
+            new_row = [
+                datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                self.symbol,
+                &#34;buy&#34;,
+                low,
+                buy_ex.name,
+                self.net,
+            ]
+            self.trades.loc[len(self.trades)] = new_row
+            self.trades.to_csv(path_or_buf=self.trades_filename)
+
+            tqdm.write(
+                &#34;Creating sell order on {} for {:.6f} {} at ${}&#34;.format(
+                    sell_ex, amt, self.symbol, high
+                )
+            )
+            self.selling = sell_ex
+            sell_ex.create_limit_sell_order(self.symbol, amt, high)
+            self.trade_count += 1
+            new_row = [
+                datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                self.symbol,
+                &#34;sell&#34;,
+                high,
+                sell_ex.name,
+                self.net,
+            ]
+            self.trades.loc[len(self.trades)] = new_row
+            self.trades.to_csv(path_or_buf=self.trades_filename)
+
+            # self.blockTrades(5)
+            tqdm.write(colorEh(&#34;Trades initiated... disabling arbitrage until completed.&#34;))
+            # perform calculations for logging
+        except ccxt.ExchangeNotAvailable:
+            tqdm.write(colorBad(&#34;Exchange not available.&#34;))
+
+        # recalculate
+        self.updateNet()
+
+        # tqdm.write(&#39;Balances fetched&#39;)
+        self.updateBalances(loud=False)
+
+        return &#34;Done&#34;
+
+    def arbitrate(self):
+        &#34;&#34;&#34;
+        Calculate spread and buy on low and sell on high, with checking for low balances and whatnot.
+        &#34;&#34;&#34;
+        try:
+            spreads, error, flip_flop = self.getSpread()
+
+            # add and subtract from mock balances here
+
+            if spreads and self.trading and not error and not self.anyOpen():
+                # get balances
+                self.updateBalances(loud=False)
+
+                action_taken = False
+                for pair in spreads:
+                    if not action_taken and pair[&#34;speedup&#34;] &gt;= self.min_speedup:
+                        buy_ex = pair[&#34;buy&#34;]
+                        sell_ex = pair[&#34;sell&#34;]
+                        low = pair[&#34;buy_price&#34;]
+                        high = pair[&#34;sell_price&#34;]
+
+                        quote_balance = self.balances[buy_ex][self.section][
+                            self.quote_coin
+                        ]
+                        base_balance = self.balances[sell_ex][self.section][
+                            self.base_coin
+                        ]
+                        if (
+                            quote_balance &gt;= self.quote_order_size
+                            and base_balance &gt;= self.quote_order_size / high
+                        ):  # balances are good for original
+                            tqdm.write(
+                                colorGood(
+                                    &#34;Executing option {} ...&#34;.format(
+                                        spreads.index(pair) + 1
+                                    )
+                                )
+                            )
+                            self.handleTransaction(buy_ex, sell_ex, low, high)
+                            action_taken = True
+                        elif (
+                            quote_balance &lt; self.quote_order_size
+                            and base_balance &lt; self.quote_order_size / high
+                        ):
+                            tqdm.write(
+                                colorBad(
+                                    &#34;* Insufficient balance (missing ${} on {}, {:.4f} {} on {})&#34;.format(
+                                        round(
+                                            self.quote_order_size - quote_balance,
+                                            self.precision,
+                                        ),
+                                        buy_ex.name,
+                                        self.quote_order_size / high - base_balance,
+                                        self.base_coin,
+                                        sell_ex.name,
+                                    )
+                                )
+                            )
+                        elif quote_balance &lt; self.quote_order_size:
+                            tqdm.write(
+                                colorBad(
+                                    &#34;* Insufficient balance (missing ${} on {})&#34;.format(
+                                        round(
+                                            self.quote_order_size - quote_balance,
+                                            self.precision,
+                                        ),
+                                        buy_ex.name,
+                                    )
+                                )
+                            )
+                        elif base_balance &lt; self.quote_order_size / high:
+                            tqdm.write(
+                                colorBad(
+                                    &#34;* Insufficient balance (missing {:.4f} {} on {})&#34;.format(
+                                        self.quote_order_size / high - base_balance,
+                                        self.base_coin,
+                                        sell_ex.name,
+                                    )
+                                )
+                            )
+                    elif pair[&#34;speedup&#34;] &lt; self.min_speedup:
+                        tqdm.write(
+                            colorBad(
+                                &#34;Speedup too low ({} &lt; {}) to place order ...&#34;.format(
+                                    pair[&#34;speedup&#34;], self.min_speedup
+                                )
+                            )
+                        )
+            elif error:
+                tqdm.write(
+                    colorBad(&#34;* Error in symbol {} - price returned 0.&#34;).format(
+                        self.symbol
+                    )
+                )
+
+        except Exception as e:
+            tqdm.write(colorBad(&#34;Error in call ... moving on ({})&#34;).format(e))
+
+    def __str__(self):
+        return f&#34;Bouncer @ {self.symbol}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="scanner.Scanner" href="scanner.html#scanner.Scanner">Scanner</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="bouncer.Bouncer.anyOpen"><code class="name flex">
+<span>def <span class="ident">anyOpen</span></span>(<span>self, exchange=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Checks if any trades are open. If given an exchange, it only checks for that exchange, otherwise it will check for all self.exchanges.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def anyOpen(self, exchange=None):
+    &#34;&#34;&#34;
+    Checks if any trades are open. If given an exchange, it only checks for that exchange, otherwise it will check for all self.exchanges.
+    &#34;&#34;&#34;
+    if exchange == None:
+        for i in self.exchanges:
+            x = i.fetch_open_orders(self.symbol)
+            if len(x) &gt; 0:
+                return True
+    else:
+        if len(exchange.fetch_open_orders(self.symbol)) &gt; 0:
+            return True
+
+    return False</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.arbitrate"><code class="name flex">
+<span>def <span class="ident">arbitrate</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate spread and buy on low and sell on high, with checking for low balances and whatnot.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def arbitrate(self):
+    &#34;&#34;&#34;
+    Calculate spread and buy on low and sell on high, with checking for low balances and whatnot.
+    &#34;&#34;&#34;
+    try:
+        spreads, error, flip_flop = self.getSpread()
+
+        # add and subtract from mock balances here
+
+        if spreads and self.trading and not error and not self.anyOpen():
+            # get balances
+            self.updateBalances(loud=False)
+
+            action_taken = False
+            for pair in spreads:
+                if not action_taken and pair[&#34;speedup&#34;] &gt;= self.min_speedup:
+                    buy_ex = pair[&#34;buy&#34;]
+                    sell_ex = pair[&#34;sell&#34;]
+                    low = pair[&#34;buy_price&#34;]
+                    high = pair[&#34;sell_price&#34;]
+
+                    quote_balance = self.balances[buy_ex][self.section][
+                        self.quote_coin
+                    ]
+                    base_balance = self.balances[sell_ex][self.section][
+                        self.base_coin
+                    ]
+                    if (
+                        quote_balance &gt;= self.quote_order_size
+                        and base_balance &gt;= self.quote_order_size / high
+                    ):  # balances are good for original
+                        tqdm.write(
+                            colorGood(
+                                &#34;Executing option {} ...&#34;.format(
+                                    spreads.index(pair) + 1
+                                )
+                            )
+                        )
+                        self.handleTransaction(buy_ex, sell_ex, low, high)
+                        action_taken = True
+                    elif (
+                        quote_balance &lt; self.quote_order_size
+                        and base_balance &lt; self.quote_order_size / high
+                    ):
+                        tqdm.write(
+                            colorBad(
+                                &#34;* Insufficient balance (missing ${} on {}, {:.4f} {} on {})&#34;.format(
+                                    round(
+                                        self.quote_order_size - quote_balance,
+                                        self.precision,
+                                    ),
+                                    buy_ex.name,
+                                    self.quote_order_size / high - base_balance,
+                                    self.base_coin,
+                                    sell_ex.name,
+                                )
+                            )
+                        )
+                    elif quote_balance &lt; self.quote_order_size:
+                        tqdm.write(
+                            colorBad(
+                                &#34;* Insufficient balance (missing ${} on {})&#34;.format(
+                                    round(
+                                        self.quote_order_size - quote_balance,
+                                        self.precision,
+                                    ),
+                                    buy_ex.name,
+                                )
+                            )
+                        )
+                    elif base_balance &lt; self.quote_order_size / high:
+                        tqdm.write(
+                            colorBad(
+                                &#34;* Insufficient balance (missing {:.4f} {} on {})&#34;.format(
+                                    self.quote_order_size / high - base_balance,
+                                    self.base_coin,
+                                    sell_ex.name,
+                                )
+                            )
+                        )
+                elif pair[&#34;speedup&#34;] &lt; self.min_speedup:
+                    tqdm.write(
+                        colorBad(
+                            &#34;Speedup too low ({} &lt; {}) to place order ...&#34;.format(
+                                pair[&#34;speedup&#34;], self.min_speedup
+                            )
+                        )
+                    )
+        elif error:
+            tqdm.write(
+                colorBad(&#34;* Error in symbol {} - price returned 0.&#34;).format(
+                    self.symbol
+                )
+            )
+
+    except Exception as e:
+        tqdm.write(colorBad(&#34;Error in call ... moving on ({})&#34;).format(e))</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.blockTrades"><code class="name flex">
+<span>def <span class="ident">blockTrades</span></span>(<span>self, timewait)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Blocks code until no active trades.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def blockTrades(self, timewait):
+    &#34;&#34;&#34;
+    Blocks code until no active trades.
+    &#34;&#34;&#34;
+    tqdm.write(colorEh(&#34;Trades initiated ... blocking to completion&#34;))
+
+    open_trades = self.anyOpen()
+    while open_trades:
+        open_trades = self.anyOpen()
+        time.sleep(timewait)
+
+    tqdm.write(colorGood(&#34;Trades completed! Moving on.&#34;))</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.cleanup"><code class="name flex">
+<span>def <span class="ident">cleanup</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cleans up by selling off any balances still left on platforms.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cleanup(self):
+    &#34;&#34;&#34;
+    Cleans up by selling off any balances still left on platforms.
+    &#34;&#34;&#34;
+    tqdm.write(&#34;Cleaning up for {}...&#34;.format(self.symbol))
+    responses = self.getWatched()
+    self.updateBalances(loud=False)
+
+    for exchange in responses:
+        # sell remaining
+        remaining = float(self.balances[exchange][self.section][self.base_coin])
+        if remaining &gt; 0 and not self.anyOpen(exchange):
+            try:
+                tqdm.write(
+                    &#34;Selling off {:.6f} {} on {}&#34;.format(
+                        remaining, self.base_coin, exchange.name
+                    )
+                )
+                exchange.create_market_sell_order(self.symbol, remaining)
+            except Exception as e:
+                tqdm.write(
+                    &#34;* Error in selling off {:.6f} {} on {}: {}&#34;.format(
+                        remaining, self.base_coin, exchange.name, e
+                    )
+                )
+        else:
+            tqdm.write(
+                &#34;No need to sell, no balance in {} on {}&#34;.format(
+                    self.base_coin, exchange.name
+                )
+            )
+    &#34;&#34;&#34;
+    self.blockTrades(5)
+    tqdm.write(&#39;Final balances:&#39;)
+    base, quote = self.updateBalances(loud=False)
+    tqdm.write(&#39;Sums: [{:.8f} {}, {} {}]&#39;.format(
+        base, self.base_coin, quote, self.quote_coin))
+    self.updateNet()
+    tqdm.write(&#39;Net: {}%&#39;.format(colorThreshold(self.net)))
+    tqdm.write(&#39;Done!\n&#39;)
+    &#34;&#34;&#34;
+    tqdm.write(colorEh(&#34;Trades sumbitted ... exiting.&#34;))</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.handleTransaction"><code class="name flex">
+<span>def <span class="ident">handleTransaction</span></span>(<span>self, buy_ex, sell_ex, low, high)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Places the arbitrage transactions simultaneously.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handleTransaction(self, buy_ex, sell_ex, low, high):
+    &#34;&#34;&#34;
+    Places the arbitrage transactions simultaneously.
+    &#34;&#34;&#34;
+    amt = self.quote_order_size / high
+    try:
+        # creating processes
+        tqdm.write(
+            &#34;Creating buy order on {} for {:.6f} {} at ${}&#34;.format(
+                buy_ex, amt, self.symbol, low
+            )
+        )
+        self.buying = buy_ex
+        buy_ex.create_limit_buy_order(self.symbol, amt, low)
+        self.trade_count += 1
+        new_row = [
+            datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+            self.symbol,
+            &#34;buy&#34;,
+            low,
+            buy_ex.name,
+            self.net,
+        ]
+        self.trades.loc[len(self.trades)] = new_row
+        self.trades.to_csv(path_or_buf=self.trades_filename)
+
+        tqdm.write(
+            &#34;Creating sell order on {} for {:.6f} {} at ${}&#34;.format(
+                sell_ex, amt, self.symbol, high
+            )
+        )
+        self.selling = sell_ex
+        sell_ex.create_limit_sell_order(self.symbol, amt, high)
+        self.trade_count += 1
+        new_row = [
+            datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+            self.symbol,
+            &#34;sell&#34;,
+            high,
+            sell_ex.name,
+            self.net,
+        ]
+        self.trades.loc[len(self.trades)] = new_row
+        self.trades.to_csv(path_or_buf=self.trades_filename)
+
+        # self.blockTrades(5)
+        tqdm.write(colorEh(&#34;Trades initiated... disabling arbitrage until completed.&#34;))
+        # perform calculations for logging
+    except ccxt.ExchangeNotAvailable:
+        tqdm.write(colorBad(&#34;Exchange not available.&#34;))
+
+    # recalculate
+    self.updateNet()
+
+    # tqdm.write(&#39;Balances fetched&#39;)
+    self.updateBalances(loud=False)
+
+    return &#34;Done&#34;</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.inititalizeBalances"><code class="name flex">
+<span>def <span class="ident">inititalizeBalances</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Optional function used to initialize the balances buying the crypto needed in each exchange.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def inititalizeBalances(self):
+    &#34;&#34;&#34;
+    Optional function used to initialize the balances buying the crypto needed in each exchange.
+    &#34;&#34;&#34;
+    # note, bc of fees it will buy 2 dollar higher.
+    self.updateBalances(loud=False)
+
+    for exchange in self.exchanges:
+        price = (exchange.fetch_ticker(self.symbol))[&#34;bid&#34;]
+        if (
+            self.balances[exchange][self.section][self.quote_coin]
+            &gt;= self.quote_order_size
+        ):
+            try:
+                tqdm.write(
+                    &#34;Creating buy order on {} for {} {}&#34;.format(
+                        exchange, self.quote_order_size / price, self.symbol
+                    )
+                )
+                exchange.create_market_buy_order(
+                    self.symbol, self.quote_order_size / price
+                )
+                self.trade_count += 1
+                new_row = [
+                    datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S.%f&#34;),
+                    self.symbol,
+                    &#34;buy&#34;,
+                    price,
+                    exchange.name,
+                    self.net,
+                ]
+                self.trades.loc[len(self.trades)] = new_row
+            except ccxt.ExchangeNotAvailable:
+                tqdm.write(&#34;Market on {} offline.&#34;.format(exchange.name))
+        else:
+            tqdm.write(
+                &#34;* Insufficient funds on {} to initialize balance&#34;.format(
+                    exchange.name
+                )
+            )
+
+    self.blockTrades(5)</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.updateBalances"><code class="name flex">
+<span>def <span class="ident">updateBalances</span></span>(<span>self, loud=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Log balances to file and total base and quote amounts.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateBalances(self, loud=True):
+    &#34;&#34;&#34;
+    Log balances to file and total base and quote amounts.
+    &#34;&#34;&#34;
+    for exchange in self.exchanges:
+        try:
+            self.balances[exchange] = exchange.fetch_balance()
+            # pprint(self.balances[exchange])
+        except Exception as e:
+            if self.trading:
+                tqdm.write(
+                    colorBad(
+                        &#34;Balances for {} could not be fetched - setting trading to false.&#34;.format(
+                            exchange.name
+                        )
+                    )
+                )
+                self.trading = False
+            else:
+                tqdm.write(
+                    colorBad(
+                        &#34;Balances for {} could not be fetched.&#34;.format(
+                            exchange.name
+                        )
+                    )
+                )
+            self.balances[exchange] = {}
+            self.balances[exchange][self.section] = {}
+
+    if loud:
+        for exchange in self.exchanges:
+            tqdm.write(
+                &#34;{} balance response - {}&#34;.format(
+                    exchange, pformat(self.balances[exchange])
+                )
+            )
+
+    total_base_amount = 0
+    for exchange in self.exchanges:
+        if self.base_coin in self.balances[exchange][self.section]:
+            total_base_amount += self.balances[exchange][self.section][
+                self.base_coin
+            ]
+        else:
+            self.balances[exchange][self.section][self.base_coin] = 0
+
+    total_quote_order_size = 0
+    for exchange in self.exchanges:
+        if self.quote_coin in self.balances[exchange][self.section]:
+            total_quote_order_size += self.balances[exchange][self.section][
+                self.quote_coin
+            ]
+        else:
+            self.balances[exchange][self.section][self.quote_coin] = 0
+    if loud:
+        for exchange in self.exchanges:
+            tqdm.write(
+                &#34;\t{} balances ({}) - [{}: {}, {}: {}]&#34;.format(
+                    exchange,
+                    self.section,
+                    self.base_coin,
+                    self.balances[exchange][self.section][self.base_coin],
+                    self.quote_coin,
+                    self.balances[exchange][self.section][self.quote_coin],
+                )
+            )
+
+    # bittrex_string, binance_string, kraken_string, coinbasepro_string
+    return total_base_amount, total_quote_order_size</code></pre>
+</details>
+</dd>
+<dt id="bouncer.Bouncer.updateNet"><code class="name flex">
+<span>def <span class="ident">updateNet</span></span>(<span>self, loud=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns self.net as a percent and updates. CURRENTLY NOT IMPLEMENTED.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateNet(self, loud=False):
+    &#34;&#34;&#34;
+    Returns self.net as a percent and updates. CURRENTLY NOT IMPLEMENTED.
+    &#34;&#34;&#34;
+    base, quote = self.updateBalances(loud)
+    if self.start_total_base_amount == 0 or self.start_total_quote_amount == 0:
+        self.net = 0
+    else:
+        self.net = 0
+    return self.net</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="scanner.Scanner" href="scanner.html#scanner.Scanner">Scanner</a></b></code>:
+<ul class="hlist">
+<li><code><a title="scanner.Scanner.calculateLiquidity" href="scanner.html#scanner.Scanner.calculateLiquidity">calculateLiquidity</a></code></li>
+<li><code><a title="scanner.Scanner.findFlipFlop" href="scanner.html#scanner.Scanner.findFlipFlop">findFlipFlop</a></code></li>
+<li><code><a title="scanner.Scanner.getCommons" href="scanner.html#scanner.Scanner.getCommons">getCommons</a></code></li>
+<li><code><a title="scanner.Scanner.getSpread" href="scanner.html#scanner.Scanner.getSpread">getSpread</a></code></li>
+<li><code><a title="scanner.Scanner.getWatched" href="scanner.html#scanner.Scanner.getWatched">getWatched</a></code></li>
+<li><code><a title="scanner.Scanner.saveDict" href="scanner.html#scanner.Scanner.saveDict">saveDict</a></code></li>
+<li><code><a title="scanner.Scanner.updateUptime" href="scanner.html#scanner.Scanner.updateUptime">updateUptime</a></code></li>
+<li><code><a title="scanner.Scanner.validateSymbol" href="scanner.html#scanner.Scanner.validateSymbol">validateSymbol</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="bouncer.Bouncer" href="#bouncer.Bouncer">Bouncer</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bouncer.Bouncer.anyOpen" href="#bouncer.Bouncer.anyOpen">anyOpen</a></code></li>
+<li><code><a title="bouncer.Bouncer.arbitrate" href="#bouncer.Bouncer.arbitrate">arbitrate</a></code></li>
+<li><code><a title="bouncer.Bouncer.blockTrades" href="#bouncer.Bouncer.blockTrades">blockTrades</a></code></li>
+<li><code><a title="bouncer.Bouncer.cleanup" href="#bouncer.Bouncer.cleanup">cleanup</a></code></li>
+<li><code><a title="bouncer.Bouncer.handleTransaction" href="#bouncer.Bouncer.handleTransaction">handleTransaction</a></code></li>
+<li><code><a title="bouncer.Bouncer.inititalizeBalances" href="#bouncer.Bouncer.inititalizeBalances">inititalizeBalances</a></code></li>
+<li><code><a title="bouncer.Bouncer.updateBalances" href="#bouncer.Bouncer.updateBalances">updateBalances</a></code></li>
+<li><code><a title="bouncer.Bouncer.updateNet" href="#bouncer.Bouncer.updateNet">updateNet</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
