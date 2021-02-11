@@ -250,12 +250,17 @@ class Scanner:
         try:
             #
             if responses == None:
+                responses = self.getWatched()
                 t_formatted = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
                 timestamp = time.time()
-                responses = self.getWatched()
+            else:
+                t_formatted = "unknown"
+                timestamp = "unknown"
             # not necessary to sort but it helps
             # pprint(responses)
             got_zero = False
+            if len(responses) == 1:
+                got_zero = True
             try:
                 responses = OrderedDict(
                     sorted(responses.items(), key=lambda x: getitem(x[1], "ask"))
@@ -618,4 +623,4 @@ class Scanner:
         self.symbol = new_symbol
 
     def __str__(self):
-        return f"Scanner @ {self.symbol}"
+        return f"Scanner@{self.symbol}"

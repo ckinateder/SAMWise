@@ -25,6 +25,10 @@ class Hive:
         availables = self.getAvailableExchanges()
         # availables.remove('bittrex')
         self.exchanges = self.loadExchanges(availables)
+        self.dynamics = self.getDynamicCommons()
+
+    def updateDynamics(self):
+        self.dynamics = self.getDynamicCommons()
 
     def getTableOfAll(self):
         """
@@ -273,53 +277,165 @@ class Hive:
         out += "and " + l[-1].name
         return out
 
-    def createDynamicScanners(self, trade_size=100, dynamics=None):
+    def createDynamicScanners(self, trade_size=100):
         """
         Create scanners for all the dynamic exchanges
         """
         currencies = []
-        if not dynamics:
-            dynamics = self.getDynamicCommons()
         tqdm.write(
             colorEh(
                 "{} ({} pairs found)".format(
-                    stringitizeL(list(dynamics.keys())), len(dynamics)
+                    stringitizeL(list(self.dynamics.keys())), len(self.dynamics)
                 )
             )
         )
-        tqdm.write(colorGood(f"Creating {len(dynamics)} scanners ..."))
-        for e in tqdm(dynamics, leave=False):
+        tqdm.write(colorGood(f"Creating {len(self.dynamics)} scanners ..."))
+        for e in tqdm(self.dynamics, leave=False):
             currencies.append(
                 Scanner(
                     e,
                     trade_size,
-                    dynamics[e],
+                    self.dynamics[e],
                     margin=0.01,
                     min_speedup=0.2,
                     speedup=72,
                     loud=False,
-                    position=list(dynamics.keys()).index(e) / len(dynamics) * 100,
+                    position=list(self.dynamics.keys()).index(e)
+                    / len(self.dynamics)
+                    * 100,
                 )
             )
-        tqdm.write(colorGood(f"Created {len(dynamics)} scanners!\nScanning now ..."))
+        tqdm.write(
+            colorGood(f"Created {len(self.dynamics)} scanners!\nScanning now ...")
+        )
         return currencies
 
-    def scanAll(self, trade_size, n=1):
+    def getOneSymbol(self, exchange, symbol, loud=False):
         """
-        Scan every single exchange n times and tqdm.write a summary.
+        Get one single symbol on one exchange.
+        """
+        s = now()
+        try_again = True
+        timeout = 2
+        count = 0
+        while try_again and count < timeout:
+            try:
+                resp = exchange.fetchTicker(symbol)
+                if exchange.id == "coinbasepro":
+                    time.sleep(0.08)
+                if loud:
+                    tqdm.write(f"got {symbol} on {exchange} in {now()-s:.2f}s")
+                return resp
+            except ccxt.RateLimitExceeded:
+                tqdm.write(f"RateLimitExceeded on {exchange}")
+                try_again = True
+                count += 1
+                time.sleep(5)
+        return {}
+
+    def getMultipleSymbols(self, exchange, symbols):
+        """
+        Get multiple symbols in a bulk call on one exchange.
+        """
+        out = {}
+        for key in list(self.dynamics.keys()):
+            out[key] = {}
+
+        bulk = exchange.fetchTickers(symbols)
+        for symbol in bulk:
+            out[symbol][exchange] = bulk[symbol]
+        return out
+
+    def divideSymbols(self, exchange, symbols):
+        """
+        For exchanges that cant fetch all at once, divide up for each
+        """
+        intermediate = {}
+        for symbol in symbols:
+            resp = self.getOneSymbol(exchange, symbol)
+            # self.props[symbol].append({exchange: resp})
+            if symbol in intermediate:
+                intermediate[symbol][exchange] = resp
+            else:
+                intermediate[symbol] = {exchange: resp}
+        return intermediate
+
+    def mergeProps(self, one, two):
+        """
+        Merge one
+        {
+            'BTC/USD': {
+                ccxt.coinbasepro(): {...},
+                ccxt.kraken(): {...},
+                ccxt.binanceus(): {...},
+                ...etc
+            }
+        }
+        into two
+        {
+            'BTC/USD': {
+                ccxt.bitfinex(): {...},
+                ccxt.binance(): {...},
+                ccxt.phemex(): {...},
+                ...etc
+            }
+        }
+        """
+        inplace = two
+        final_out = {}
+        for symbol in one:
+            if symbol in two:
+                inplace[symbol].update(one[symbol])
+                final_out[symbol] = inplace[symbol]
+                inplace = two
+            else:
+                final_out[symbol] = one[symbol]
+        return final_out
+
+    def myPrint(self, dic):
+        for x in dic:
+            tqdm.write(f"'{x}': ", end="")
+            for exc in dic[x]:
+                tqdm.write(f"{exc}: " + "{ ... }")
+
+    def verify(self, test, sure):
+        """
+        Verify if test recieved as many responses as sure
+        """
+        verified = True
+        for sym in sure:
+            if sym in sure and sym in test:
+                if not set(sure[sym]) == set(test[sym].keys()):
+                    verified = False
+            else:
+                verified = False
+        return verified
+
+    def scanAll(self, trade_size, n=1, beta=True):
+        """
+        Scan every single exchange n times and print a summary. Set 'beta' to False to run the stable mode.
         """
         currencies = self.createDynamicScanners(trade_size=trade_size)
+        idynamics = self.transpose(self.dynamics)
         # nested loop with progressbar
         total = len(currencies) * n
-        with tqdm(total=total, position=1) as total_bar:
+        with tqdm(total=total, position=1, leave=False) as total_bar:
             for cmt in range(n):
+                props = self.propagate(idynamics=idynamics)
+                # pprint(props)
                 responses = {}
                 for scan in tqdm(currencies, leave=False):
-                    spreads, error, ff = scan.getSpread()
+                    if beta:
+                        if scan.symbol in props:
+                            spreads, error, ff = scan.getSpread(props[scan.symbol])
+                        else:
+                            spreads, error, ff = [], True, False
+                    else:
+                        spreads, error, ff = scan.getSpread()
                     responses[scan] = {"flip_flop": ff, "error": error}
                     total_bar.update(1)
                 # tqdm.write summary
-                tqdm.write(f"Summary of cycle {cmt}:")
+                tqdm.write(f"Summary of cycle {cmt+1}:")
                 flops = []
                 errors = []
                 for i in responses:
@@ -330,15 +446,30 @@ class Hive:
                 tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
                 if errors:
                     tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
-                notify(f"Completed cycle {cmt} of {n} ({cmt/n:.0f}%)")
+                notify(f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%)")
         notify("Completed!")
+
+    def propagate(self, idynamics=None):
+        tqdm.write(colorEh("Fetching tickers ... "))
+        if not idynamics:
+            idynamics = self.transpose(self.dynamics)
+        props = {}
+        for exchange in tqdm(self.exchanges, leave=False):
+            if exchange.has["fetchTickers"]:
+                inter = self.getMultipleSymbols(exchange, idynamics[exchange])
+                props = self.mergeProps(inter, props)
+
+            elif exchange.has["fetchTicker"]:
+                inter = self.divideSymbols(exchange, idynamics[exchange])
+                props = self.mergeProps(inter, props)
+        return props
 
 
 if __name__ == "__main__":
     clear()
     intro()
     hive = Hive()
-    tableOfAll = hive.getTableOfAll()
+    # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
     n = 3
     hive.scanAll(trade_size=100, n=n)
