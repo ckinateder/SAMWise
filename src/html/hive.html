@@ -46,6 +46,8 @@ QUOTE = &#34;USD&#34;
 
 
 class Hive:
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
     def __init__(self):
         self.keypath = &#34;keys/&#34;
         availables = self.getAvailableExchanges()
@@ -53,6 +55,9 @@ class Hive:
         self.exchanges = self.loadExchanges(availables)
 
     def getTableOfAll(self):
+        &#34;&#34;&#34;
+        Get table of all symbols mapped with all exchanges.
+        &#34;&#34;&#34;
         index = list()
 
         for i in self.exchanges:
@@ -69,19 +74,23 @@ class Hive:
 
         headers = alls
         headers.insert(0, &#34;ticker&#34;)
+        headers.append(&#34;count&#34;)
 
         yes_and_no = pd.DataFrame(columns=headers)
         yes_and_no[&#34;ticker&#34;] = index
+        yes_and_no[&#34;count&#34;] = 0
 
         for exchange in self.exchanges:
             for i in range(0, len(index)):
                 marks = list(exchange.load_markets().keys())
                 if index[i] in marks:
-                    yes_and_no[exchange.id][i] = True
+                    yes_and_no.iloc[exchange.id][i] = True
+                    yes_and_no.iloc[&#34;count&#34;] += 1
                 else:
-                    yes_and_no[exchange.id][i] = False
+                    yes_and_no.iloc[exchange.id][i] = False
         # tqdm.write(yes_and_no)
         yes_and_no.reset_index(drop=True, inplace=True)
+        yes_and_no = yes_and_no.sort_values(&#34;count&#34;, ascending=False)
         yes_and_no.to_csv(&#34;logs/pairs.csv&#34;)
         return yes_and_no
 
@@ -329,24 +338,27 @@ class Hive:
         &#34;&#34;&#34;
         currencies = self.createDynamicScanners(trade_size=trade_size)
         # nested loop with progressbar
-        for cmt in trange(n, position=1):
-            responses = {}
-            for scan in tqdm(currencies, leave=False):
-                spreads, error, ff = scan.getSpread()
-                responses[scan] = {&#34;flip_flop&#34;: ff, &#34;error&#34;: error}
-            # tqdm.write summary
-            tqdm.write(f&#34;Summary of cycle {cmt}:&#34;)
-            flops = []
-            errors = []
-            for i in responses:
-                if responses[i][&#34;flip_flop&#34;]:
-                    flops.append(str(i))
-                if responses[i][&#34;error&#34;]:
-                    errors.append(str(i))
-            tqdm.write(colorGood(f&#34;Flip flops: {stringitizeL(flops)}&#34;))
-            if errors:
-                tqdm.write(colorBad(f&#34;Errors: {stringitizeL(errors)}&#34;))
-            notify(f&#34;Completed cycle {cmt} of {n} ({cmt/n:.0f}%&#34;)
+        total = len(currencies) * n
+        with tqdm(total=total, position=1) as total_bar:
+            for cmt in range(n):
+                responses = {}
+                for scan in tqdm(currencies, leave=False):
+                    spreads, error, ff = scan.getSpread()
+                    responses[scan] = {&#34;flip_flop&#34;: ff, &#34;error&#34;: error}
+                    total_bar.update(1)
+                # tqdm.write summary
+                tqdm.write(f&#34;Summary of cycle {cmt}:&#34;)
+                flops = []
+                errors = []
+                for i in responses:
+                    if responses[i][&#34;flip_flop&#34;]:
+                        flops.append(str(i))
+                    if responses[i][&#34;error&#34;]:
+                        errors.append(str(i))
+                tqdm.write(colorGood(f&#34;Flip flops: {stringitizeL(flops)}&#34;))
+                if errors:
+                    tqdm.write(colorBad(f&#34;Errors: {stringitizeL(errors)}&#34;))
+                notify(f&#34;Completed cycle {cmt} of {n} ({cmt/n:.0f}%)&#34;)
         notify(&#34;Completed!&#34;)
 
 
@@ -354,10 +366,11 @@ if __name__ == &#34;__main__&#34;:
     clear()
     intro()
     hive = Hive()
+    tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    hive.scanAll(trade_size=100, n=10)
-    tqdm.write(f&#34;Scanned all symbols in {(datetime.now()-start_time)}&#34;)
-    tableOfAll = hive.getTableOfAll()</code></pre>
+    n = 3
+    hive.scanAll(trade_size=100, n=n)
+    tqdm.write(f&#34;Scanned all symbols {n} times in {(datetime.now()-start_time)}&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -379,6 +392,8 @@ if __name__ == &#34;__main__&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Hive:
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
     def __init__(self):
         self.keypath = &#34;keys/&#34;
         availables = self.getAvailableExchanges()
@@ -386,6 +401,9 @@ if __name__ == &#34;__main__&#34;:
         self.exchanges = self.loadExchanges(availables)
 
     def getTableOfAll(self):
+        &#34;&#34;&#34;
+        Get table of all symbols mapped with all exchanges.
+        &#34;&#34;&#34;
         index = list()
 
         for i in self.exchanges:
@@ -402,19 +420,23 @@ if __name__ == &#34;__main__&#34;:
 
         headers = alls
         headers.insert(0, &#34;ticker&#34;)
+        headers.append(&#34;count&#34;)
 
         yes_and_no = pd.DataFrame(columns=headers)
         yes_and_no[&#34;ticker&#34;] = index
+        yes_and_no[&#34;count&#34;] = 0
 
         for exchange in self.exchanges:
             for i in range(0, len(index)):
                 marks = list(exchange.load_markets().keys())
                 if index[i] in marks:
-                    yes_and_no[exchange.id][i] = True
+                    yes_and_no.iloc[exchange.id][i] = True
+                    yes_and_no.iloc[&#34;count&#34;] += 1
                 else:
-                    yes_and_no[exchange.id][i] = False
+                    yes_and_no.iloc[exchange.id][i] = False
         # tqdm.write(yes_and_no)
         yes_and_no.reset_index(drop=True, inplace=True)
+        yes_and_no = yes_and_no.sort_values(&#34;count&#34;, ascending=False)
         yes_and_no.to_csv(&#34;logs/pairs.csv&#34;)
         return yes_and_no
 
@@ -662,24 +684,27 @@ if __name__ == &#34;__main__&#34;:
         &#34;&#34;&#34;
         currencies = self.createDynamicScanners(trade_size=trade_size)
         # nested loop with progressbar
-        for cmt in trange(n, position=1):
-            responses = {}
-            for scan in tqdm(currencies, leave=False):
-                spreads, error, ff = scan.getSpread()
-                responses[scan] = {&#34;flip_flop&#34;: ff, &#34;error&#34;: error}
-            # tqdm.write summary
-            tqdm.write(f&#34;Summary of cycle {cmt}:&#34;)
-            flops = []
-            errors = []
-            for i in responses:
-                if responses[i][&#34;flip_flop&#34;]:
-                    flops.append(str(i))
-                if responses[i][&#34;error&#34;]:
-                    errors.append(str(i))
-            tqdm.write(colorGood(f&#34;Flip flops: {stringitizeL(flops)}&#34;))
-            if errors:
-                tqdm.write(colorBad(f&#34;Errors: {stringitizeL(errors)}&#34;))
-            notify(f&#34;Completed cycle {cmt} of {n} ({cmt/n:.0f}%&#34;)
+        total = len(currencies) * n
+        with tqdm(total=total, position=1) as total_bar:
+            for cmt in range(n):
+                responses = {}
+                for scan in tqdm(currencies, leave=False):
+                    spreads, error, ff = scan.getSpread()
+                    responses[scan] = {&#34;flip_flop&#34;: ff, &#34;error&#34;: error}
+                    total_bar.update(1)
+                # tqdm.write summary
+                tqdm.write(f&#34;Summary of cycle {cmt}:&#34;)
+                flops = []
+                errors = []
+                for i in responses:
+                    if responses[i][&#34;flip_flop&#34;]:
+                        flops.append(str(i))
+                    if responses[i][&#34;error&#34;]:
+                        errors.append(str(i))
+                tqdm.write(colorGood(f&#34;Flip flops: {stringitizeL(flops)}&#34;))
+                if errors:
+                    tqdm.write(colorBad(f&#34;Errors: {stringitizeL(errors)}&#34;))
+                notify(f&#34;Completed cycle {cmt} of {n} ({cmt/n:.0f}%)&#34;)
         notify(&#34;Completed!&#34;)</code></pre>
 </details>
 <h3>Methods</h3>
@@ -857,12 +882,15 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">getTableOfAll</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get table of all symbols mapped with all exchanges.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def getTableOfAll(self):
+    &#34;&#34;&#34;
+    Get table of all symbols mapped with all exchanges.
+    &#34;&#34;&#34;
     index = list()
 
     for i in self.exchanges:
@@ -879,19 +907,23 @@ if __name__ == &#34;__main__&#34;:
 
     headers = alls
     headers.insert(0, &#34;ticker&#34;)
+    headers.append(&#34;count&#34;)
 
     yes_and_no = pd.DataFrame(columns=headers)
     yes_and_no[&#34;ticker&#34;] = index
+    yes_and_no[&#34;count&#34;] = 0
 
     for exchange in self.exchanges:
         for i in range(0, len(index)):
             marks = list(exchange.load_markets().keys())
             if index[i] in marks:
-                yes_and_no[exchange.id][i] = True
+                yes_and_no.iloc[exchange.id][i] = True
+                yes_and_no.iloc[&#34;count&#34;] += 1
             else:
-                yes_and_no[exchange.id][i] = False
+                yes_and_no.iloc[exchange.id][i] = False
     # tqdm.write(yes_and_no)
     yes_and_no.reset_index(drop=True, inplace=True)
+    yes_and_no = yes_and_no.sort_values(&#34;count&#34;, ascending=False)
     yes_and_no.to_csv(&#34;logs/pairs.csv&#34;)
     return yes_and_no</code></pre>
 </details>
@@ -1015,24 +1047,27 @@ if __name__ == &#34;__main__&#34;:
     &#34;&#34;&#34;
     currencies = self.createDynamicScanners(trade_size=trade_size)
     # nested loop with progressbar
-    for cmt in trange(n, position=1):
-        responses = {}
-        for scan in tqdm(currencies, leave=False):
-            spreads, error, ff = scan.getSpread()
-            responses[scan] = {&#34;flip_flop&#34;: ff, &#34;error&#34;: error}
-        # tqdm.write summary
-        tqdm.write(f&#34;Summary of cycle {cmt}:&#34;)
-        flops = []
-        errors = []
-        for i in responses:
-            if responses[i][&#34;flip_flop&#34;]:
-                flops.append(str(i))
-            if responses[i][&#34;error&#34;]:
-                errors.append(str(i))
-        tqdm.write(colorGood(f&#34;Flip flops: {stringitizeL(flops)}&#34;))
-        if errors:
-            tqdm.write(colorBad(f&#34;Errors: {stringitizeL(errors)}&#34;))
-        notify(f&#34;Completed cycle {cmt} of {n} ({cmt/n:.0f}%&#34;)
+    total = len(currencies) * n
+    with tqdm(total=total, position=1) as total_bar:
+        for cmt in range(n):
+            responses = {}
+            for scan in tqdm(currencies, leave=False):
+                spreads, error, ff = scan.getSpread()
+                responses[scan] = {&#34;flip_flop&#34;: ff, &#34;error&#34;: error}
+                total_bar.update(1)
+            # tqdm.write summary
+            tqdm.write(f&#34;Summary of cycle {cmt}:&#34;)
+            flops = []
+            errors = []
+            for i in responses:
+                if responses[i][&#34;flip_flop&#34;]:
+                    flops.append(str(i))
+                if responses[i][&#34;error&#34;]:
+                    errors.append(str(i))
+            tqdm.write(colorGood(f&#34;Flip flops: {stringitizeL(flops)}&#34;))
+            if errors:
+                tqdm.write(colorBad(f&#34;Errors: {stringitizeL(errors)}&#34;))
+            notify(f&#34;Completed cycle {cmt} of {n} ({cmt/n:.0f}%)&#34;)
     notify(&#34;Completed!&#34;)</code></pre>
 </details>
 </dd>

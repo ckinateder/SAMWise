@@ -18,6 +18,8 @@ QUOTE = "USD"
 
 
 class Hive:
+    """"""
+
     def __init__(self):
         self.keypath = "keys/"
         availables = self.getAvailableExchanges()
@@ -25,6 +27,9 @@ class Hive:
         self.exchanges = self.loadExchanges(availables)
 
     def getTableOfAll(self):
+        """
+        Get table of all symbols mapped with all exchanges.
+        """
         index = list()
 
         for i in self.exchanges:
@@ -41,20 +46,24 @@ class Hive:
 
         headers = alls
         headers.insert(0, "ticker")
+        headers.append("count")
 
         yes_and_no = pd.DataFrame(columns=headers)
         yes_and_no["ticker"] = index
+        yes_and_no["count"] = 0
 
         for exchange in self.exchanges:
             for i in range(0, len(index)):
                 marks = list(exchange.load_markets().keys())
                 if index[i] in marks:
-                    yes_and_no[exchange.id][i] = True
+                    yes_and_no[exchange.id].loc[i] = True
+                    yes_and_no["count"].loc[i] += 1
                 else:
-                    yes_and_no[exchange.id][i] = False
+                    yes_and_no[exchange.id].loc[i] = False
         # tqdm.write(yes_and_no)
         yes_and_no.reset_index(drop=True, inplace=True)
-        yes_and_no.to_csv("logs/pairs.csv")
+        yes_and_no = yes_and_no.sort_values("count", ascending=False)
+        yes_and_no.to_csv("logs/pairs.csv", index=False)
         return yes_and_no
 
     def loadExchanges(self, all_ex):
@@ -329,7 +338,8 @@ if __name__ == "__main__":
     clear()
     intro()
     hive = Hive()
-    start_time = datetime.now()
-    hive.scanAll(trade_size=100, n=3)
-    tqdm.write(f"Scanned all symbols in {(datetime.now()-start_time)}")
     tableOfAll = hive.getTableOfAll()
+    start_time = datetime.now()
+    n = 3
+    hive.scanAll(trade_size=100, n=n)
+    tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
