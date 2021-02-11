@@ -118,9 +118,9 @@ class Hive:
                             }
                         )
                     current.fetch_balance()
-                    tqdm.write(
-                        colorGood("Exchange {} added successfully!").format(exchstr)
-                    )
+                    # tqdm.write(
+                    #    colorGood("Exchange {} added successfully!").format(exchstr)
+                    # )
                     self.exchanges.append(current)
                 except ccxt.AuthenticationError:
                     tqdm.write(
@@ -148,7 +148,7 @@ class Hive:
                 )
             )
         )
-        notify("Loaded self.exchanges {}".format(self.stringitizeExc(self.exchanges)))
+        notify("Loaded {}".format(self.stringitizeExc(self.exchanges)))
         return self.exchanges
 
     def getCommons(self):
@@ -318,6 +318,8 @@ class Hive:
             tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
             if errors:
                 tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
+            notify(f"Completed cycle {cmt} of {n} ({cmt/n:.0f}%")
+        notify("Completed!")
 
 
 if __name__ == "__main__":
