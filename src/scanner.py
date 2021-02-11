@@ -6,7 +6,7 @@ import time
 from datetime import date, datetime, timedelta
 from os import path
 from math import log, floor
-
+import traceback
 from collections import OrderedDict
 from operator import getitem
 
@@ -608,9 +608,11 @@ class Scanner:
                     self.saveDict(spreads)
 
                 spreads_return = spreads
-                error_return = False
+
                 flip_flop_return = flip_flop
+            error_return = False
         except Exception as e:
+            tqdm.write(traceback.format_exc())
             total_message += (
                 colorBad("Error getting spread for {} ({})".format(self.symbol, e))
             ) + "\n"

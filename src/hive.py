@@ -183,7 +183,7 @@ class Hive:
         out = list(set(out))
         return out
 
-    def getDynamicCommons(self, minnum=3):
+    def getDynamicCommons(self, minnum=4):
         """
         Get all symbols in common with 3 or more of the given self.exchanges.
         """
@@ -310,56 +310,6 @@ class Hive:
         )
         return currencies
 
-    def getOneSymbol(self, exchange, symbol, loud=False):
-        """
-        Get one single symbol on one exchange.
-        """
-        s = now()
-        try_again = True
-        timeout = 2
-        count = 0
-        while try_again and count < timeout:
-            try:
-                resp = exchange.fetchTicker(symbol)
-                if exchange.id == "coinbasepro":
-                    time.sleep(0.08)
-                if loud:
-                    tqdm.write(f"got {symbol} on {exchange} in {now()-s:.2f}s")
-                return resp
-            except ccxt.RateLimitExceeded:
-                tqdm.write(f"RateLimitExceeded on {exchange}")
-                try_again = True
-                count += 1
-                time.sleep(5)
-        return {}
-
-    def getMultipleSymbols(self, exchange, symbols):
-        """
-        Get multiple symbols in a bulk call on one exchange.
-        """
-        out = {}
-        for key in list(self.dynamics.keys()):
-            out[key] = {}
-
-        bulk = exchange.fetchTickers(symbols)
-        for symbol in bulk:
-            out[symbol][exchange] = bulk[symbol]
-        return out
-
-    def divideSymbols(self, exchange, symbols):
-        """
-        For exchanges that cant fetch all at once, divide up for each
-        """
-        intermediate = {}
-        for symbol in symbols:
-            resp = self.getOneSymbol(exchange, symbol)
-            # self.props[symbol].append({exchange: resp})
-            if symbol in intermediate:
-                intermediate[symbol][exchange] = resp
-            else:
-                intermediate[symbol] = {exchange: resp}
-        return intermediate
-
     def mergeProps(self, one, two):
         """
         Merge one
@@ -421,7 +371,8 @@ class Hive:
         total = len(currencies) * n
         with tqdm(total=total, position=1, leave=False) as total_bar:
             for cmt in range(n):
-                props = self.propagate(idynamics=idynamics)
+                if beta:
+                    props = self.propagate(idynamics=idynamics)
                 # pprint(props)
                 responses = {}
                 for scan in tqdm(currencies, leave=False):
@@ -454,14 +405,43 @@ class Hive:
         if not idynamics:
             idynamics = self.transpose(self.dynamics)
         props = {}
-        for exchange in tqdm(self.exchanges, leave=False):
-            if exchange.has["fetchTickers"]:
-                inter = self.getMultipleSymbols(exchange, idynamics[exchange])
-                props = self.mergeProps(inter, props)
+        total = 0
+        for i in idynamics:
+            total += len(idynamics[i])
+        with tqdm(total=total, leave=False) as total_bar:
+            for exchange in self.exchanges:
+                tqdm.write(str(exchange))
+                if exchange.has["fetchTickers"]:
+                    inter = {}
+                    for key in list(self.dynamics.keys()):
+                        inter[key] = {}
+                    try:
+                        bulk = exchange.fetchTickers(idynamics[exchange])
+                        for symbol in bulk:
+                            inter[symbol][exchange] = bulk[symbol]
+                    except ccxt.RateLimitExceeded:
+                        tqdm.write(f"RateLimitExceeded on {exchange}")
+                    props = self.mergeProps(inter, props)
+                    total_bar.update(len(idynamics[exchange]))
 
-            elif exchange.has["fetchTicker"]:
-                inter = self.divideSymbols(exchange, idynamics[exchange])
-                props = self.mergeProps(inter, props)
+                elif exchange.has["fetchTicker"]:
+                    inter = {}
+                    for symbol in idynamics[exchange]:
+                        try:
+                            resp = exchange.fetchTicker(symbol)
+                            # tqdm.write(str(resp))
+                            if exchange.id == "coinbasepro":
+                                time.sleep(0.08)
+                            # self.props[symbol].append({exchange: resp})
+                            if symbol in inter:
+                                inter[symbol][exchange] = resp
+                            else:
+                                inter[symbol] = {exchange: resp}
+                        except ccxt.RateLimitExceeded:
+                            tqdm.write(f"RateLimitExceeded on {exchange}")
+                        # total_bar.update(1)
+                        total_bar.update(1)
+                    props = self.mergeProps(inter, props)
         return props
 
 
@@ -471,6 +451,6 @@ if __name__ == "__main__":
     hive = Hive()
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    n = 3
-    hive.scanAll(trade_size=100, n=n)
+    n = 40
+    hive.scanAll(trade_size=100, n=n, beta=True)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
