@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from tqdm.std import trange
 
-from bouncer import WIDTH, Bouncer
+from bouncer import Bouncer
 from helper import *
 from scanner import Scanner
 
@@ -22,10 +22,14 @@ class Hive:
 
     def __init__(self):
         self.keypath = "keys/"
-        availables = self.getAvailableExchanges()
-        # availables.remove('bittrex')
-        self.exchanges = self.loadExchanges(availables)
-        self.dynamics = self.getDynamicCommons()
+        with tqdm(total=3, position=1, leave=False, dynamic_ncols=True) as total_bar:
+            availables = self.getAvailableExchanges()
+            total_bar.update(1)
+            # availables.remove('bittrex')
+            self.exchanges = self.loadExchanges(availables)
+            total_bar.update(1)
+            self.dynamics = self.getDynamicCommons()
+            total_bar.update(1)
 
     def updateDynamics(self):
         self.dynamics = self.getDynamicCommons()
@@ -74,10 +78,22 @@ class Hive:
         """
         Create self.exchanges objects for all existing ones
         """
-        tqdm.write("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
+
         self.exchanges = list()
+        tqdm.write("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
+        verified = []
+        if path.exists(self.keypath + "verified"):
+            with open(self.keypath + "verified", "r") as verified_f:
+                verified = [i.strip() for i in verified_f.readlines()]
+                tqdm.write(
+                    colorGood(
+                        f"Verified exchanges {stringitizeL(verified)}; skipping validation on these."
+                    )
+                )
+        else:
+            tqdm.write(colorBad("No verified keys."))
         # create objs
-        for exchstr in tqdm(all_ex, leave=False):
+        for exchstr in tqdm(all_ex, leave=False, dynamic_ncols=True, unit="exc"):
             if exchstr in ccxt.exchanges:  # j to be safe
                 try:
                     public = open(self.keypath + exchstr + "_public").read().strip()
@@ -130,7 +146,13 @@ class Hive:
                                 "secret": private,
                             }
                         )
-                    current.fetch_balance()
+                    # if not verified
+                    if not exchstr in verified:
+                        current.fetch_balance()
+                        # save to file
+                        with open(self.keypath + "verified", "a+") as verified_f:
+                            verified_f.write(exchstr + "\n")
+
                     # tqdm.write(
                     #    colorGood("Exchange {} added successfully!").format(exchstr)
                     # )
@@ -156,9 +178,7 @@ class Hive:
 
         tqdm.write(
             colorGood(
-                "Done! Added self.exchanges {}.".format(
-                    self.stringitizeExc(self.exchanges)
-                )
+                "Done! Added exchanges {}.".format(self.stringitizeExc(self.exchanges))
             )
         )
         notify("Loaded {}".format(self.stringitizeExc(self.exchanges)))
@@ -187,8 +207,9 @@ class Hive:
         """
         Get all symbols in common with 3 or more of the given self.exchanges.
         """
+        tqdm.write("Getting shared symbols ...")
         alls = list()
-        for i in self.exchanges:
+        for i in tqdm(self.exchanges, unit="exc", leave=False, dynamic_ncols=True):
             x = list(i.load_markets().keys())
             for j in x:
                 if (
@@ -248,13 +269,8 @@ class Hive:
         # find exchanges from file structure
         file_list = listdir(self.keypath)
         end = len(file_list) - 1
-        for i in range(0, end):
-            x = file_list[i]
-            # tqdm.write(x)
-            if ".DS_Store" in x or ".gitkeep" in x:
-                file_list.remove(x)
-            end = len(file_list)
-        for i in range(0, len(file_list)):
+
+        for i in trange(0, len(file_list), unit="exc", leave=False, dynamic_ncols=True):
             x = file_list[i]
             if "_public" in x:
                 file_list[i] = x.replace("_public", "")
@@ -264,6 +280,10 @@ class Hive:
                 file_list[i] = x.replace("_password", "")
             elif "_uid" in x:
                 file_list[i] = x.replace("_uid", "")
+            else:
+                file_list[i] = "bad"
+        if "bad" in file_list:
+            file_list = [x for x in file_list if not x == "bad"]
         all_ex = list(set(file_list))
         return all_ex
 
@@ -290,7 +310,7 @@ class Hive:
             )
         )
         tqdm.write(colorGood(f"Creating {len(self.dynamics)} scanners ..."))
-        for e in tqdm(self.dynamics, leave=False):
+        for e in tqdm(self.dynamics, leave=False, unit="sym", dynamic_ncols=True):
             currencies.append(
                 Scanner(
                     e,
@@ -369,13 +389,17 @@ class Hive:
         idynamics = self.transpose(self.dynamics)
         # nested loop with progressbar
         total = len(currencies) * n
-        with tqdm(total=total, position=1, leave=False) as total_bar:
+        with tqdm(
+            total=total, position=1, leave=True, unit="sym", dynamic_ncols=True
+        ) as total_bar:  # leave this one
             for cmt in range(n):
                 if beta:
                     props = self.propagate(idynamics=idynamics)
                 # pprint(props)
                 responses = {}
-                for scan in tqdm(currencies, leave=False):
+                for scan in tqdm(
+                    currencies, leave=False, unit="sym", dynamic_ncols=True
+                ):
                     if beta:
                         if scan.symbol in props:
                             spreads, error, ff = scan.getSpread(props[scan.symbol])
@@ -408,38 +432,23 @@ class Hive:
         total = 0
         for i in idynamics:
             total += len(idynamics[i])
-        with tqdm(total=total, leave=False) as total_bar:
+        with tqdm(
+            total=total, leave=False, unit="exc", dynamic_ncols=True
+        ) as total_bar:
             for exchange in self.exchanges:
                 tqdm.write(str(exchange))
                 if exchange.has["fetchTickers"]:
-                    inter = {}
-                    for key in list(self.dynamics.keys()):
-                        inter[key] = {}
-                    try:
-                        bulk = exchange.fetchTickers(idynamics[exchange])
-                        for symbol in bulk:
-                            inter[symbol][exchange] = bulk[symbol]
-                    except ccxt.RateLimitExceeded:
-                        tqdm.write(f"RateLimitExceeded on {exchange}")
-                    props = self.mergeProps(inter, props)
+                    ###
+                    # fetch tickers and merge into props
+                    ###
                     total_bar.update(len(idynamics[exchange]))
 
                 elif exchange.has["fetchTicker"]:
                     inter = {}
                     for symbol in idynamics[exchange]:
-                        try:
-                            resp = exchange.fetchTicker(symbol)
-                            # tqdm.write(str(resp))
-                            if exchange.id == "coinbasepro":
-                                time.sleep(0.08)
-                            # self.props[symbol].append({exchange: resp})
-                            if symbol in inter:
-                                inter[symbol][exchange] = resp
-                            else:
-                                inter[symbol] = {exchange: resp}
-                        except ccxt.RateLimitExceeded:
-                            tqdm.write(f"RateLimitExceeded on {exchange}")
-                        # total_bar.update(1)
+                        ###
+                        # fetch ticker for each and merge into props
+                        ###
                         total_bar.update(1)
                     props = self.mergeProps(inter, props)
         return props
@@ -449,8 +458,9 @@ if __name__ == "__main__":
     clear()
     intro()
     hive = Hive()
+
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    n = 40
-    hive.scanAll(trade_size=100, n=n, beta=True)
+    n = 6
+    hive.scanAll(trade_size=100, n=n, beta=False)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")

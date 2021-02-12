@@ -58,8 +58,16 @@ class Scanner:
         self.notifying = False
         self.loud = loud
         # check if symbol supported by all
-        if self.validateSymbol(symbol):
+        ####
+        validated = True  # self.validateSymbol(symbol)
+        ####
+        if validated:
             self.symbol = symbol
+            if not "/" in symbol:
+                tqdm.write(
+                    colorBad(f"Invalid format for symbol '{symbol}'.\nExiting ...")
+                )
+                sys.exit(0)
             self.base_coin = symbol.split("/")[0]
             self.quote_coin = symbol.split("/")[1]
         else:

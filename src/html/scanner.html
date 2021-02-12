@@ -34,7 +34,7 @@ import time
 from datetime import date, datetime, timedelta
 from os import path
 from math import log, floor
-
+import traceback
 from collections import OrderedDict
 from operator import getitem
 
@@ -278,12 +278,17 @@ class Scanner:
         try:
             #
             if responses == None:
+                responses = self.getWatched()
                 t_formatted = datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S&#34;)
                 timestamp = time.time()
-                responses = self.getWatched()
+            else:
+                t_formatted = &#34;unknown&#34;
+                timestamp = &#34;unknown&#34;
             # not necessary to sort but it helps
             # pprint(responses)
             got_zero = False
+            if len(responses) == 1:
+                got_zero = True
             try:
                 responses = OrderedDict(
                     sorted(responses.items(), key=lambda x: getitem(x[1], &#34;ask&#34;))
@@ -631,9 +636,11 @@ class Scanner:
                     self.saveDict(spreads)
 
                 spreads_return = spreads
-                error_return = False
+
                 flip_flop_return = flip_flop
+            error_return = False
         except Exception as e:
+            tqdm.write(traceback.format_exc())
             total_message += (
                 colorBad(&#34;Error getting spread for {} ({})&#34;.format(self.symbol, e))
             ) + &#34;\n&#34;
@@ -646,7 +653,7 @@ class Scanner:
         self.symbol = new_symbol
 
     def __str__(self):
-        return f&#34;Scanner @ {self.symbol}&#34;</code></pre>
+        return f&#34;Scanner@{self.symbol}&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -908,12 +915,17 @@ timeout: seconds to wait for a response until canceling</p></div>
         try:
             #
             if responses == None:
+                responses = self.getWatched()
                 t_formatted = datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S&#34;)
                 timestamp = time.time()
-                responses = self.getWatched()
+            else:
+                t_formatted = &#34;unknown&#34;
+                timestamp = &#34;unknown&#34;
             # not necessary to sort but it helps
             # pprint(responses)
             got_zero = False
+            if len(responses) == 1:
+                got_zero = True
             try:
                 responses = OrderedDict(
                     sorted(responses.items(), key=lambda x: getitem(x[1], &#34;ask&#34;))
@@ -1261,9 +1273,11 @@ timeout: seconds to wait for a response until canceling</p></div>
                     self.saveDict(spreads)
 
                 spreads_return = spreads
-                error_return = False
+
                 flip_flop_return = flip_flop
+            error_return = False
         except Exception as e:
+            tqdm.write(traceback.format_exc())
             total_message += (
                 colorBad(&#34;Error getting spread for {} ({})&#34;.format(self.symbol, e))
             ) + &#34;\n&#34;
@@ -1276,7 +1290,7 @@ timeout: seconds to wait for a response until canceling</p></div>
         self.symbol = new_symbol
 
     def __str__(self):
-        return f&#34;Scanner @ {self.symbol}&#34;</code></pre>
+        return f&#34;Scanner@{self.symbol}&#34;</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -1397,12 +1411,17 @@ returns: spreads, [error True or False]</p></div>
     try:
         #
         if responses == None:
+            responses = self.getWatched()
             t_formatted = datetime.now().strftime(&#34;%m-%d-%Y_%H-%M-%S&#34;)
             timestamp = time.time()
-            responses = self.getWatched()
+        else:
+            t_formatted = &#34;unknown&#34;
+            timestamp = &#34;unknown&#34;
         # not necessary to sort but it helps
         # pprint(responses)
         got_zero = False
+        if len(responses) == 1:
+            got_zero = True
         try:
             responses = OrderedDict(
                 sorted(responses.items(), key=lambda x: getitem(x[1], &#34;ask&#34;))
@@ -1750,9 +1769,11 @@ returns: spreads, [error True or False]</p></div>
                 self.saveDict(spreads)
 
             spreads_return = spreads
-            error_return = False
+
             flip_flop_return = flip_flop
+        error_return = False
     except Exception as e:
+        tqdm.write(traceback.format_exc())
         total_message += (
             colorBad(&#34;Error getting spread for {} ({})&#34;.format(self.symbol, e))
         ) + &#34;\n&#34;
