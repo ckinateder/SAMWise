@@ -241,7 +241,7 @@ class Scanner:
         # tqdm.write(flops)
         return flops_bool, flops
 
-    def getSpread(self, responses=None):
+    def getSpread(self, responses=[]):
         """
         Get tickers for the watched symbols and return exchanges and spread.
         returns: spreads, [error True or False]
@@ -257,7 +257,12 @@ class Scanner:
         flip_flop_return = False
         try:
             #
-            if responses == None:
+            if responses == []:
+                tqdm.write(
+                    colorEh(
+                        f"Querying {len(self.exchanges)} exchanges for {self.symbol} ... (didn't recieve filled dict)"
+                    )
+                )
                 responses = self.getWatched()
                 t_formatted = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
                 timestamp = time.time()

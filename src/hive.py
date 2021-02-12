@@ -2,6 +2,7 @@ from datetime import *
 from os import error, listdir, path
 from pprint import pprint
 import subprocess
+from typing import final
 import ccxt, timeit
 import pandas as pd
 from tqdm import tqdm
@@ -22,7 +23,9 @@ class Hive:
 
     def __init__(self):
         self.keypath = "keys/"
-        with tqdm(total=3, position=1, leave=False, dynamic_ncols=True) as total_bar:
+        with tqdm(
+            total=3, position=1, leave=False, dynamic_ncols=True, desc="total"
+        ) as total_bar:
             availables = self.getAvailableExchanges()
             total_bar.update(1)
             # availables.remove('bittrex')
@@ -93,7 +96,9 @@ class Hive:
         else:
             tqdm.write(colorBad("No verified keys."))
         # create objs
-        for exchstr in tqdm(all_ex, leave=False, dynamic_ncols=True, unit="exc"):
+        for exchstr in tqdm(
+            all_ex, leave=False, dynamic_ncols=True, unit="exc", desc="xchng"
+        ):
             if exchstr in ccxt.exchanges:  # j to be safe
                 try:
                     public = open(self.keypath + exchstr + "_public").read().strip()
@@ -209,7 +214,9 @@ class Hive:
         """
         tqdm.write("Getting shared symbols ...")
         alls = list()
-        for i in tqdm(self.exchanges, unit="exc", leave=False, dynamic_ncols=True):
+        for i in tqdm(
+            self.exchanges, unit="exc", leave=False, dynamic_ncols=True, desc="xchng"
+        ):
             x = list(i.load_markets().keys())
             for j in x:
                 if (
@@ -237,20 +244,15 @@ class Hive:
                 multiples[key] = compatibles[key]
         return multiples
 
-    def getInvertedDynamicCommons(self, minnum=3):
+    def getInvertedDynamicCommons(self, original=None, minnum=3):
         """
         Get all symbols in common with 3 or more of the given self.exchanges.
         """
         if not self.exchanges:
             self.exchanges = self.loadExchanges(self.getAvailableExchanges())
-        original = self.getDynamicCommons(minnum)
+        if not original:
+            original = self.getDynamicCommons(minnum)
 
-        return self.transpose(original)
-
-    def transpose(self, original):
-        """
-        Flip a dictionary of dictionaries
-        """
         inverted = {}
         for symbol in original:
             for exchange in self.exchanges:
@@ -259,6 +261,17 @@ class Hive:
                         inverted[exchange].append(symbol)
                     else:
                         inverted[exchange] = [symbol]
+
+        return inverted
+
+    def transposeBatchTickers(self, original, exchange):
+        """
+        Flip a dictionary of dictionaries
+        """
+        inverted = {}
+        for symbol in original.values():
+            act = symbol["symbol"]
+            inverted[act] = {exchange: symbol}
 
         return inverted
 
@@ -310,7 +323,9 @@ class Hive:
             )
         )
         tqdm.write(colorGood(f"Creating {len(self.dynamics)} scanners ..."))
-        for e in tqdm(self.dynamics, leave=False, unit="sym", dynamic_ncols=True):
+        for e in tqdm(
+            self.dynamics, leave=False, unit="sym", dynamic_ncols=True, desc="symbl"
+        ):
             currencies.append(
                 Scanner(
                     e,
@@ -351,15 +366,15 @@ class Hive:
             }
         }
         """
-        inplace = two
-        final_out = {}
+        final_out = two.copy()
         for symbol in one:
-            if symbol in two:
-                inplace[symbol].update(one[symbol])
-                final_out[symbol] = inplace[symbol]
-                inplace = two
+            if symbol in final_out:
+                for exchange in one[symbol]:
+                    final_out[symbol][exchange] = one[symbol][exchange]
             else:
-                final_out[symbol] = one[symbol]
+                final_out[symbol] = {}
+                for exchange in one[symbol]:
+                    final_out[symbol][exchange] = one[symbol][exchange]
         return final_out
 
     def myPrint(self, dic):
@@ -386,25 +401,36 @@ class Hive:
         Scan every single exchange n times and print a summary. Set 'beta' to False to run the stable mode.
         """
         currencies = self.createDynamicScanners(trade_size=trade_size)
-        idynamics = self.transpose(self.dynamics)
+        idynamics = self.getInvertedDynamicCommons(original=self.dynamics)
         # nested loop with progressbar
         total = len(currencies) * n
+        dd = "d"
         with tqdm(
-            total=total, position=1, leave=True, unit="sym", dynamic_ncols=True
-        ) as total_bar:  # leave this one
+            total=total,
+            position=1,
+            leave=False,
+            unit="sym",
+            dynamic_ncols=True,
+            desc="total",
+        ) as total_bar:
             for cmt in range(n):
                 if beta:
                     props = self.propagate(idynamics=idynamics)
                 # pprint(props)
                 responses = {}
                 for scan in tqdm(
-                    currencies, leave=False, unit="sym", dynamic_ncols=True
+                    currencies,
+                    leave=False,
+                    unit="sym",
+                    dynamic_ncols=True,
+                    desc="cycle",
                 ):
                     if beta:
                         if scan.symbol in props:
+                            #
                             spreads, error, ff = scan.getSpread(props[scan.symbol])
                         else:
-                            spreads, error, ff = [], True, False
+                            spreads, error, ff = scan.getSpread()
                     else:
                         spreads, error, ff = scan.getSpread()
                     responses[scan] = {"flip_flop": ff, "error": error}
@@ -426,31 +452,59 @@ class Hive:
 
     def propagate(self, idynamics=None):
         tqdm.write(colorEh("Fetching tickers ... "))
+        waittime = 4
         if not idynamics:
-            idynamics = self.transpose(self.dynamics)
+            idynamics = self.getInvertedDynamicCommons(original=self.dynamics)
         props = {}
         total = 0
         for i in idynamics:
             total += len(idynamics[i])
         with tqdm(
-            total=total, leave=False, unit="exc", dynamic_ncols=True
+            total=total, leave=False, unit="exc", dynamic_ncols=True, desc="cycle"
         ) as total_bar:
             for exchange in self.exchanges:
-                tqdm.write(str(exchange))
                 if exchange.has["fetchTickers"]:
                     ###
                     # fetch tickers and merge into props
+                    resp = self.transposeBatchTickers(
+                        exchange.fetchTickers(idynamics[exchange]), exchange
+                    )
+                    # pprint(resp)
+                    props = self.mergeProps(resp, props)
                     ###
                     total_bar.update(len(idynamics[exchange]))
 
                 elif exchange.has["fetchTicker"]:
-                    inter = {}
                     for symbol in idynamics[exchange]:
+                        inter = {}
                         ###
                         # fetch ticker for each and merge into props
+                        try:
+                            inter[symbol] = {exchange: exchange.fetchTicker(symbol)}
+                            props = self.mergeProps(inter, props)
+
+                            if exchange.id == "coinbasepro":
+                                time.sleep(0.1)
+                        except ccxt.RateLimitExceeded:
+                            tqdm.write(
+                                colorBad(
+                                    f"Rate limit exceeded on {exchange} ... trying again in {waittime}"
+                                )
+                            )
+                            for interval in trange(
+                                waittime * 100,
+                                leave=False,
+                                desc="timer",
+                                dynamic_ncols=True,
+                                position=1,
+                            ):
+                                time.sleep(waittime / 100)
                         ###
                         total_bar.update(1)
-                    props = self.mergeProps(inter, props)
+                        # pprint(props)
+                        # print(props["AAVE/BTC"])
+
+        # pprint(props)
         return props
 
 
@@ -462,5 +516,5 @@ if __name__ == "__main__":
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
     n = 6
-    hive.scanAll(trade_size=100, n=n, beta=False)
+    hive.scanAll(trade_size=100, n=n, beta=True)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
