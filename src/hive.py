@@ -25,14 +25,14 @@ class Hive:
         self.keypath = "keys/"
         with tqdm(
             total=3, position=1, leave=False, dynamic_ncols=True, desc="total"
-        ) as total_bar:
+        ) as init_bar:
             availables = self.getAvailableExchanges()
-            total_bar.update(1)
+            init_bar.update(1)
             # availables.remove('bittrex')
             self.exchanges = self.loadExchanges(availables)
-            total_bar.update(1)
+            init_bar.update(1)
             self.dynamics = self.getDynamicCommons()
-            total_bar.update(1)
+            init_bar.update(1)
 
     def updateDynamics(self):
         self.dynamics = self.getDynamicCommons()
@@ -383,6 +383,16 @@ class Hive:
             for exc in dic[x]:
                 tqdm.write(f"{exc}: " + "{ ... }")
 
+    def rateLimit(self, waittime):
+        for interval in trange(
+            waittime * 1000,
+            leave=False,
+            desc="timer",
+            dynamic_ncols=True,
+            position=1,
+        ):
+            time.sleep(0.001)
+
     def verify(self, test, sure):
         """
         Verify if test recieved as many responses as sure
@@ -414,6 +424,7 @@ class Hive:
             desc="total",
         ) as total_bar:
             for cmt in range(n):
+                start_time = datetime.now()
                 if beta:
                     props = self.propagate(idynamics=idynamics)
                 # pprint(props)
@@ -447,12 +458,37 @@ class Hive:
                 tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
                 if errors:
                     tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
-                notify(f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%)")
+                notify(
+                    f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {(datetime.now()-start_time)}"
+                )
         notify("Completed!")
+
+    def getBatchTickers(self, exchange, tickers):
+        resp = exchange.fetchTickers(tickers)
+        trans = self.transposeBatchTickers(resp, exchange)
+        return trans
+
+    def divideBatchTickers(self, exchange, tickers):
+        waittime = 4
+        for symbol in tickers:
+            inter = {}
+            ###
+            # fetch ticker for each and merge into props
+            try:
+                inter[symbol] = {exchange: exchange.fetchTicker(symbol)}
+                if exchange.id == "coinbasepro":
+                    time.sleep(0.1)
+            except ccxt.RateLimitExceeded:
+                tqdm.write(
+                    colorBad(
+                        f"Rate limit exceeded on {exchange} ... trying again in {waittime}"
+                    )
+                )
+                self.rateLimit(waittime)
+        return inter
 
     def propagate(self, idynamics=None):
         tqdm.write(colorEh("Fetching tickers ... "))
-        waittime = 4
         if not idynamics:
             idynamics = self.getInvertedDynamicCommons(original=self.dynamics)
         props = {}
@@ -466,43 +502,19 @@ class Hive:
                 if exchange.has["fetchTickers"]:
                     ###
                     # fetch tickers and merge into props
-                    resp = self.transposeBatchTickers(
-                        exchange.fetchTickers(idynamics[exchange]), exchange
-                    )
-                    # pprint(resp)
+                    resp = self.getBatchTickers(exchange, idynamics[exchange])
                     props = self.mergeProps(resp, props)
                     ###
                     total_bar.update(len(idynamics[exchange]))
 
                 elif exchange.has["fetchTicker"]:
-                    for symbol in idynamics[exchange]:
-                        inter = {}
-                        ###
-                        # fetch ticker for each and merge into props
-                        try:
-                            inter[symbol] = {exchange: exchange.fetchTicker(symbol)}
-                            props = self.mergeProps(inter, props)
-
-                            if exchange.id == "coinbasepro":
-                                time.sleep(0.1)
-                        except ccxt.RateLimitExceeded:
-                            tqdm.write(
-                                colorBad(
-                                    f"Rate limit exceeded on {exchange} ... trying again in {waittime}"
-                                )
-                            )
-                            for interval in trange(
-                                waittime * 100,
-                                leave=False,
-                                desc="timer",
-                                dynamic_ncols=True,
-                                position=1,
-                            ):
-                                time.sleep(waittime / 100)
-                        ###
-                        total_bar.update(1)
-                        # pprint(props)
-                        # print(props["AAVE/BTC"])
+                    inter = {}
+                    ###
+                    # fetch ticker for each and merge into props
+                    inter = self.divideBatchTickers(exchange, idynamics[exchange])
+                    props = self.mergeProps(inter, props)
+                    ###
+                    total_bar.update(1)
 
         # pprint(props)
         return props
@@ -515,6 +527,6 @@ if __name__ == "__main__":
 
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    n = 6
+    n = 60
     hive.scanAll(trade_size=100, n=n, beta=True)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
