@@ -464,28 +464,53 @@ class Hive:
         notify("Completed!")
 
     def getBatchTickers(self, exchange, tickers):
+        """
+        Get a batch of tickers from exchange and transpose it.
+        Example return:
+        {
+            'BTC/USD': {
+                ccxt.binance(): {...}
+            },
+            'ETH/USD': {
+                ccxt.binance(): {...}
+            },
+            ... etc
+        }
+        """
         resp = exchange.fetchTickers(tickers)
         trans = self.transposeBatchTickers(resp, exchange)
         return trans
 
     def divideBatchTickers(self, exchange, tickers):
-        waittime = 4
+        inter = {}
         for symbol in tickers:
-            inter = {}
-            ###
-            # fetch ticker for each and merge into props
+            single = self.getSingleSymbol(exchange, symbol)
+            if single:
+                inter[symbol] = {exchange: single}
+        return inter
+
+    def getSingleSymbol(self, exchange, ticker, depth=0):
+        waittime = 4
+        response = None
+        if depth <= 2:  # don't waste too much time
             try:
-                inter[symbol] = {exchange: exchange.fetchTicker(symbol)}
+                response = exchange.fetchTicker(ticker)
                 if exchange.id == "coinbasepro":
                     time.sleep(0.1)
             except ccxt.RateLimitExceeded:
                 tqdm.write(
                     colorBad(
-                        f"Rate limit exceeded on {exchange} ... trying again in {waittime}"
+                        f"Rate limit exceeded on {exchange} for {ticker} ... trying again in {waittime}"
                     )
                 )
                 self.rateLimit(waittime)
-        return inter
+                response = self.getSingleSymbol(exchange, ticker, depth + 1)
+        else:
+            tqdm.write(
+                colorBad(f"Rate limit exceeded on {exchange} for {ticker} ... skipping")
+            )
+
+        return response
 
     def propagate(self, idynamics=None):
         tqdm.write(colorEh("Fetching tickers ... "))
