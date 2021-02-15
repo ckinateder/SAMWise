@@ -337,7 +337,7 @@ class Scanner:
                             spread_w_fee = test_spread - test_fee
 
                             actual_speedup = 0
-                            inc = 0.001
+                            inc = 0.01
                             ran = False
                             while (
                                 spread_w_fee > self.margin + inc

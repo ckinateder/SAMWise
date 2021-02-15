@@ -324,7 +324,7 @@ class Hive:
                     margin=0.01,
                     min_speedup=0.2,
                     speedup=72,
-                    loud=True,
+                    loud=False,
                     position=list(self.dynamics.keys()).index(e)
                     / len(self.dynamics)
                     * 100,
@@ -362,7 +362,6 @@ class Hive:
         idynamics = self.getInvertedDynamicCommons(original=self.dynamics)
         # nested loop with progressbar
         total = len(currencies) * n
-        dd = "d"
         with tqdm(
             total=total,
             position=1,
@@ -394,7 +393,8 @@ class Hive:
                     responses[scan] = {"flip_flop": ff, "error": error}
                     total_bar.update(1)
                 # tqdm.write summary
-                tqdm.write(f"Summary of cycle {cmt+1}:")
+                endtime = datetime.now() - start_time
+                tqdm.write(f"Summary of cycle {cmt+1} in {endtime}:")
                 flops = []
                 errors = []
                 for i in responses:
@@ -406,7 +406,7 @@ class Hive:
                 if errors:
                     tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
                 notify(
-                    f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {(datetime.now()-start_time)}"
+                    f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {endtime}"
                 )
         notify("Completed!")
 

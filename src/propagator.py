@@ -132,6 +132,7 @@ def propagate(idynamics):
         total=total, leave=False, unit="exc", dynamic_ncols=True, desc="cycle"
     ) as total_bar:
         for exchange in exchanges:
+            tqdm.write(f"Querying {exchange.name} ...")
             if exchange.has["fetchTickers"]:
                 ###
                 # fetch tickers and merge into props
