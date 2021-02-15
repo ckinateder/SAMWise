@@ -64,14 +64,12 @@ class Scanner:
         if validated:
             self.symbol = symbol
             if not "/" in symbol:
-                tqdm.write(
-                    colorBad(f"Invalid format for symbol '{symbol}'.\nExiting ...")
-                )
+                self.p(colorBad(f"Invalid format for symbol '{symbol}'.\nExiting ..."))
                 sys.exit(0)
             self.base_coin = symbol.split("/")[0]
             self.quote_coin = symbol.split("/")[1]
         else:
-            tqdm.write(
+            self.p(
                 "Symbol '{}' not supported by all platforms. Exiting ...".format(symbol)
             )
             sys.exit(0)
@@ -121,7 +119,7 @@ class Scanner:
             len(exchanges) * self.quote_order_size * 2
         )  # how much invested total
         if self.loud:
-            tqdm.write(
+            self.p(
                 colorGood(
                     "Scanning for {}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
                 ).format(
@@ -179,7 +177,7 @@ class Scanner:
         out = set(out)
         # for i in out:
         #    if 'USD' in i:
-        #       tqdm.write(i, '1', end=' ')
+        #       self.p(i, '1', end=' ')
         return out
 
     def getWatched(self):
@@ -193,16 +191,14 @@ class Scanner:
                 try:
                     all_responses[exchange] = exchange.fetch_ticker(self.symbol)
                 except ccxt.RateLimitExceeded:
-                    tqdm.write(
-                        colorBad("Rate limit exceeded on {}".format(exchange.name))
-                    )
+                    self.p(colorBad("Rate limit exceeded on {}".format(exchange.name)))
         if len(list(all_responses.keys())) < len(self.exchanges):
             missed = [
                 i
                 for i in self.exchanges + list(all_responses.keys())
                 if i not in self.exchanges or i not in list(all_responses.keys())
             ]
-            tqdm.write(colorBad("Timeout reached on {}".format(stringitizeL(missed))))
+            self.p(colorBad("Timeout reached on {}".format(stringitizeL(missed))))
         return all_responses
 
     def calculateLiquidity(self, test_buy, test_sell):
@@ -238,7 +234,7 @@ class Scanner:
                 if item["buy"] == compared["sell"] and item["sell"] == compared["buy"]:
                     flops_bool = True
                     flops.append([item, compared])
-        # tqdm.write(flops)
+        # self.p(flops)
         return flops_bool, flops
 
     def getSpread(self, responses=[]):
@@ -258,7 +254,7 @@ class Scanner:
         try:
             #
             if responses == []:
-                tqdm.write(
+                self.p(
                     colorEh(
                         f"Querying {len(self.exchanges)} exchanges for {self.symbol} ... (didn't recieve filled dict)"
                     )
@@ -378,7 +374,6 @@ class Scanner:
                                 ran = True
                             if ran:
                                 actual_speedup -= inc  # set after
-
                             # create dictionary
                             spreads[spread_w_fee] = {
                                 "time": t_formatted,
@@ -555,15 +550,15 @@ class Scanner:
                                 intermediate += " #{} & #{},".format(
                                     spreads.index(ff[0]) + 1, spreads.index(ff[1]) + 1
                                 )
-                                # tqdm.write(len(msg_str))
-                                # tqdm.write(msg_str, end=' '*35)
-                                # tqdm.write(
+                                # self.p(len(msg_str))
+                                # self.p(msg_str, end=' '*35)
+                                # self.p(
                                 #    colorGood('max speedup of {}% (found {} profitable pairs ****)'.format(self.max_speedup, len(spreads))))  # .rjust(self.width-6))
                         intermediate = intermediate[:-1] + "]"
                         total_message += msg_str + colorGood(intermediate) + "\n"
                     else:
                         total_message += indicator + "\n"  # , end="")
-                        # tqdm.write(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(self.width + 7))
+                        # self.p(colorGood("max speedup of {}% (found {} profitable pairs ****)".format(self.max_speedup, len(spreads))).rjust(self.width + 7))
                     for i in range(len(spreads)):
                         item = spreads[i]
                         total_message += (
@@ -625,13 +620,13 @@ class Scanner:
                 flip_flop_return = flip_flop
             error_return = False
         except Exception as e:
-            tqdm.write(traceback.format_exc())
+            self.p(traceback.format_exc())
             total_message += (
                 colorBad("Error getting spread for {} ({})".format(self.symbol, e))
             ) + "\n"
 
         # tqdm.write EVERYTHING
-        tqdm.write(total_message, end="")
+        self.p(total_message, end="")
         return spreads_return, error_return, flip_flop_return
 
     def switch(self, new_symbol):
@@ -639,3 +634,6 @@ class Scanner:
 
     def __str__(self):
         return f"Scanner@{self.symbol}"
+
+    def p(self, st, end=""):
+        tqdm.write(st, end=end)

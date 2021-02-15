@@ -373,7 +373,8 @@ class Hive:
             for cmt in range(n):
                 start_time = datetime.now()
                 if beta:
-                    props = propagator.propagate(idynamics)
+                    pgator = propagator.Propagtor()
+                    props = pgator.propagate(idynamics)
                 # pprint(props)
                 responses = {}
                 for scan in tqdm(
@@ -418,6 +419,6 @@ if __name__ == "__main__":
 
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    n = 60
+    n = 10
     hive.scanAll(trade_size=100, n=n, beta=True)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
