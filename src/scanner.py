@@ -237,6 +237,47 @@ class Scanner:
         # self.p(flops)
         return flops_bool, flops
 
+    def calculateSpeedup(self, test_buy, test_sell, spread_with_fee):
+        actual_speedup = 0
+        inc = 0.01
+        ran = False
+
+        while (
+            spread_with_fee > self.margin + inc and actual_speedup <= self.max_speedup
+        ):
+            buy_price = test_buy[1]["bid"] * (1 + (actual_speedup / 200))
+            sell_price = test_sell[1]["ask"] * (1 - (actual_speedup / 200))
+            # recalculate
+            test_spread = (self.quote_order_size / sell_price) * (
+                sell_price - buy_price
+            )
+            test_fee = (
+                test_buy[0].calculateFee(
+                    self.symbol,
+                    "limit",
+                    "buy",
+                    self.quote_order_size / buy_price,
+                    buy_price,
+                    takerOrMaker="taker",
+                    params={},
+                )["cost"]
+                + test_sell[0].calculateFee(
+                    self.symbol,
+                    "limit",
+                    "sell",
+                    self.quote_order_size / sell_price,
+                    sell_price,
+                    takerOrMaker="taker",
+                    params={},
+                )["cost"]
+            )
+            spread_with_fee = test_spread - test_fee
+            actual_speedup = round(actual_speedup + inc, 3)
+            ran = True
+        if ran:
+            actual_speedup -= inc  # set after
+        return actual_speedup, spread_with_fee
+
     def getSpread(self, responses=[]):
         """
         Get tickers for the watched symbols and return exchanges and spread.
@@ -330,50 +371,12 @@ class Scanner:
                                     params={},
                                 )["cost"]
                             )
-                            spread_w_fee = test_spread - test_fee
 
-                            actual_speedup = 0
-                            inc = 0.01
-                            ran = False
-                            while (
-                                spread_w_fee > self.margin + inc
-                                and actual_speedup <= self.max_speedup
-                            ):
-                                buy_price = test_buy[1]["bid"] * (
-                                    1 + (actual_speedup / 200)
-                                )
-                                sell_price = test_sell[1]["ask"] * (
-                                    1 - (actual_speedup / 200)
-                                )
-                                # recalculate
-                                test_spread = (self.quote_order_size / sell_price) * (
-                                    sell_price - buy_price
-                                )
-                                test_fee = (
-                                    test_buy[0].calculateFee(
-                                        self.symbol,
-                                        "limit",
-                                        "buy",
-                                        self.quote_order_size / buy_price,
-                                        buy_price,
-                                        takerOrMaker="taker",
-                                        params={},
-                                    )["cost"]
-                                    + test_sell[0].calculateFee(
-                                        self.symbol,
-                                        "limit",
-                                        "sell",
-                                        self.quote_order_size / sell_price,
-                                        sell_price,
-                                        takerOrMaker="taker",
-                                        params={},
-                                    )["cost"]
-                                )
-                                spread_w_fee = test_spread - test_fee
-                                actual_speedup = round(actual_speedup + inc, 3)
-                                ran = True
-                            if ran:
-                                actual_speedup -= inc  # set after
+                            actual_speedup, spread_w_fee = self.calculateSpeedup(
+                                test_buy=test_buy,
+                                test_sell=test_sell,
+                                spread_with_fee=test_spread - test_fee,
+                            )
                             # create dictionary
                             spreads[spread_w_fee] = {
                                 "time": t_formatted,
