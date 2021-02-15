@@ -102,7 +102,7 @@ class Propagtor:
                 response = exchange.fetchTicker(ticker)
                 if exchange.id == "coinbasepro":
                     time.sleep(0.1)
-            except ccxt._rateLimitExceeded:
+            except ccxt.rateLimitExceeded:
                 tqdm.write(
                     colorBad(
                         f"Rate limit exceeded on {exchange} for {ticker} ... trying again in {waittime}"
