@@ -238,6 +238,10 @@ class Scanner:
         return flops_bool, flops
 
     def calculateSpeedup(self, test_buy, test_sell, spread_with_fee):
+        """
+        Using a loop, calculate the optimal speedup and return the
+        actual_speedup and spread_w_fee corresponding to each other.
+        """
         actual_speedup = 0
         inc = 0.01
         ran = False

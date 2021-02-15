@@ -8,7 +8,7 @@ class Propagtor:
     def __init__(self):
         pass
 
-    def rateLimit(self, waittime):
+    def _rateLimit(self, waittime):
         for interval in trange(
             waittime * 1000,
             leave=False,
@@ -18,7 +18,7 @@ class Propagtor:
         ):
             time.sleep(0.001)
 
-    def mergeProps(self, one, two):
+    def _mergeProps(self, one, two):
         """
         Merge one
         {
@@ -50,7 +50,7 @@ class Propagtor:
                     final_out[symbol][exchange] = one[symbol][exchange]
         return final_out
 
-    def transposeBatchTickers(self, original, exchange):
+    def _transposeBatchTickers(self, original, exchange):
         """
         Flip a dictionary of dictionaries
         """
@@ -61,7 +61,7 @@ class Propagtor:
 
         return inverted
 
-    def getBatchTickers(self, exchange, tickers):
+    def _getBatchTickers(self, exchange, tickers):
         """
         Get a batch of tickers from exchange and transpose it.
         Example return:
@@ -76,22 +76,22 @@ class Propagtor:
         }
         """
         resp = exchange.fetchTickers(tickers)
-        trans = self.transposeBatchTickers(resp, exchange)
+        trans = self._transposeBatchTickers(resp, exchange)
         return trans
 
-    def divideBatchTickers(self, exchange, tickers):
+    def _divideBatchTickers(self, exchange, tickers):
         """
         Divide a bunch of tickers between one exchange
         """
         inter = {}
         for symbol in tickers:
-            single = self.getSingleSymbol(exchange, symbol)
+            single = self._getSingleSymbol(exchange, symbol)
             if single:
                 inter[symbol] = {exchange: single}
             self.cycle_bar.update(1)
         return inter
 
-    def getSingleSymbol(self, exchange, ticker, depth=0):
+    def _getSingleSymbol(self, exchange, ticker, depth=0):
         """
         Recursive function to get a single symbol and handlle errors
         """
@@ -102,14 +102,14 @@ class Propagtor:
                 response = exchange.fetchTicker(ticker)
                 if exchange.id == "coinbasepro":
                     time.sleep(0.1)
-            except ccxt.RateLimitExceeded:
+            except ccxt._rateLimitExceeded:
                 tqdm.write(
                     colorBad(
                         f"Rate limit exceeded on {exchange} for {ticker} ... trying again in {waittime}"
                     )
                 )
-                self.rateLimit(waittime)
-                response = self.getSingleSymbol(exchange, ticker, depth + 1)
+                self._rateLimit(waittime)
+                response = self._getSingleSymbol(exchange, ticker, depth + 1)
         else:
             tqdm.write(
                 colorBad(f"Rate limit exceeded on {exchange} for {ticker} ... skipping")
@@ -134,8 +134,8 @@ class Propagtor:
             if exchange.has["fetchTickers"]:
                 ###
                 # fetch tickers and merge into props
-                resp = self.getBatchTickers(exchange, idynamics[exchange])
-                props = self.mergeProps(resp, props)
+                resp = self._getBatchTickers(exchange, idynamics[exchange])
+                props = self._mergeProps(resp, props)
                 ###
                 self.cycle_bar.update(len(idynamics[exchange]))
 
@@ -143,8 +143,8 @@ class Propagtor:
                 inter = {}
                 ###
                 # fetch ticker for each and merge into props
-                inter = self.divideBatchTickers(exchange, idynamics[exchange])
-                props = self.mergeProps(inter, props)
+                inter = self._divideBatchTickers(exchange, idynamics[exchange])
+                props = self._mergeProps(inter, props)
                 ###
         self.cycle_bar.close()
         # pprint(props)
