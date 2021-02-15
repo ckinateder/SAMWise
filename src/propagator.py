@@ -116,13 +116,30 @@ class Propagtor:
             )
         return response
 
+    def _doTickers(self, exchange, idynamics):
+        if exchange.has["fetchTickers"]:
+            ###
+            # fetch tickers and merge into props
+            resp = self._getBatchTickers(exchange, idynamics[exchange])
+            self.props = self._mergeProps(resp, self.props)
+            ###
+            self.cycle_bar.update(len(idynamics[exchange]))
+
+        elif exchange.has["fetchTicker"]:
+            inter = {}
+            ###
+            # fetch ticker for each and merge into props
+            inter = self._divideBatchTickers(exchange, idynamics[exchange])
+            self.props = self._mergeProps(inter, self.props)
+            ###
+
     def propagate(self, idynamics):
         """
         Build one giant dictionary of dictionaries of all data recieved.
         """
         exchanges = list(idynamics.keys())
         tqdm.write(colorEh("Fetching tickers ... "))
-        props = {}
+        self.props = {}
         total = 0
         for i in idynamics:
             total += len(idynamics[i])
@@ -131,21 +148,7 @@ class Propagtor:
         )
         for exchange in exchanges:
             tqdm.write(f"Querying {exchange.name} ...")
-            if exchange.has["fetchTickers"]:
-                ###
-                # fetch tickers and merge into props
-                resp = self._getBatchTickers(exchange, idynamics[exchange])
-                props = self._mergeProps(resp, props)
-                ###
-                self.cycle_bar.update(len(idynamics[exchange]))
-
-            elif exchange.has["fetchTicker"]:
-                inter = {}
-                ###
-                # fetch ticker for each and merge into props
-                inter = self._divideBatchTickers(exchange, idynamics[exchange])
-                props = self._mergeProps(inter, props)
-                ###
+            self._doTickers(exchange, idynamics)
         self.cycle_bar.close()
         # pprint(props)
-        return props
+        return self.props
