@@ -56,6 +56,7 @@ class Propagtor:
         Flip a dictionary of dictionaries
         """
         inverted = {}
+
         for symbol in original.values():
             act = symbol["symbol"]
             inverted[act] = {exchange: symbol}
@@ -86,13 +87,13 @@ class Propagtor:
         """
         inter = {}
         for symbol in tickers:
-            single = self._getSingleSymbol(exchange, symbol)
-            if single:
-                inter[symbol] = {exchange: single}
+            self._getSingleSymbol(exchange, symbol, inter=inter)
+            # if single:
+            #    inter[symbol] = {exchange: single}
             self.cycle_bar.update(1)
         return inter
 
-    def _getSingleSymbol(self, exchange, ticker, depth=0):
+    def _getSingleSymbol(self, exchange, ticker, depth=0, inter=None):
         """
         Recursive function to get a single symbol and handlle errors
         """
@@ -101,6 +102,8 @@ class Propagtor:
         if depth <= 2:  # don't waste too much time
             try:
                 response = exchange.fetchTicker(ticker)
+                if inter and response:
+                    inter[ticker] = {exchange: response}
                 if exchange.id == "coinbasepro":
                     time.sleep(0.1)
             except ccxt.RateLimitExceeded:
@@ -110,7 +113,9 @@ class Propagtor:
                     )
                 )
                 self._rateLimit(waittime)
-                response = self._getSingleSymbol(exchange, ticker, depth + 1)
+                response = self._getSingleSymbol(
+                    exchange, ticker, depth=depth + 1, inter=inter
+                )
         else:
             tqdm.write(
                 colorBad(f"Rate limit exceeded on {exchange} for {ticker} ... skipping")
