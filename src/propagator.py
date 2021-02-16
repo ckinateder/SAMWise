@@ -86,11 +86,30 @@ class Propagtor:
         Divide a bunch of tickers between one exchange
         """
         inter = {}
+
+        procs = []
         for symbol in tickers:
-            self._getSingleSymbol(exchange, symbol, inter=inter)
+            procs.append(
+                Thread(
+                    target=self._getSingleSymbol,
+                    args=(
+                        exchange,
+                        symbol,
+                        0,
+                        inter,
+                    ),
+                )
+            )
             # if single:
             #    inter[symbol] = {exchange: single}
             self.cycle_bar.update(1)
+
+        # start
+        for proc in procs:
+            proc.start()
+        # join
+        for proc in procs:
+            proc.join()
         return inter
 
     def _getSingleSymbol(self, exchange, ticker, depth=0, inter=None):

@@ -209,7 +209,7 @@ class Hive:
         out = list(set(out))
         return out
 
-    def getDynamicCommons(self, minnum=3):
+    def getDynamicCommons(self, minnum=2):
         """
         Get all symbols in common with minnum or more of the given self.exchanges.
         """
@@ -409,6 +409,8 @@ class Hive:
                 notify(
                     f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {endtime}"
                 )
+                # sleep cause you don't need all that data
+                time.sleep(9)
         notify("Completed!")
 
 
