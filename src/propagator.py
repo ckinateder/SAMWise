@@ -138,7 +138,6 @@ class Propagtor:
         """
         Build one giant dictionary of dictionaries of all data recieved.
         """
-        st = now()
         exchanges = list(idynamics.keys())
         tqdm.write(colorEh("Fetching tickers ... "))
         self.props = {}
@@ -166,7 +165,5 @@ class Propagtor:
         # join
         for proc in procs:
             proc.join()
-        en = now()
-        print(colorGood(f"Got {len(exchanges)} exchanges in {en-st:.2f}"))
         self.cycle_bar.close()
         return self.props

@@ -209,9 +209,9 @@ class Hive:
         out = list(set(out))
         return out
 
-    def getDynamicCommons(self, minnum=4):
+    def getDynamicCommons(self, minnum=3):
         """
-        Get all symbols in common with 3 or more of the given self.exchanges.
+        Get all symbols in common with minnum or more of the given self.exchanges.
         """
         tqdm.write("Getting shared symbols ...")
         alls = list()
@@ -371,10 +371,11 @@ class Hive:
             desc="total",
         ) as total_bar:
             for cmt in range(n):
-                start_time = datetime.now()
                 if beta:
                     pgator = propagator.Propagtor()
+                    start_time = datetime.now()
                     props = pgator.propagate(idynamics)
+                    endtime = datetime.now() - start_time
                 # pprint(props)
                 responses = {}
                 for scan in tqdm(
@@ -394,7 +395,6 @@ class Hive:
                     responses[scan] = {"flip_flop": ff, "error": error}
                     total_bar.update(1)
                 # tqdm.write summary
-                endtime = datetime.now() - start_time
                 tqdm.write(f"Summary of cycle {cmt+1} in {endtime}:")
                 flops = []
                 errors = []
