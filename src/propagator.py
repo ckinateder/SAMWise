@@ -2,6 +2,7 @@ import ccxt
 from tqdm import tqdm
 from tqdm.std import trange
 from helper import *
+from threading import Thread
 
 
 class Propagtor:
@@ -137,6 +138,7 @@ class Propagtor:
         """
         Build one giant dictionary of dictionaries of all data recieved.
         """
+        st = now()
         exchanges = list(idynamics.keys())
         tqdm.write(colorEh("Fetching tickers ... "))
         self.props = {}
@@ -146,9 +148,25 @@ class Propagtor:
         self.cycle_bar = tqdm(
             total=total, leave=False, unit="exc", dynamic_ncols=True, desc="cycle"
         )
+        procs = []
         for exchange in exchanges:
-            tqdm.write(f"Querying {exchange.name} ...")
-            self._doTickers(exchange, idynamics)
+            # tqdm.write(f"Querying {exchange.name} ...")
+            procs.append(
+                Thread(
+                    target=self._doTickers,
+                    args=(
+                        exchange,
+                        idynamics,
+                    ),
+                )
+            )
+        # start
+        for proc in procs:
+            proc.start()
+        # join
+        for proc in procs:
+            proc.join()
+        en = now()
+        print(colorGood(f"Got {len(exchanges)} exchanges in {en-st:.2f}"))
         self.cycle_bar.close()
-        # pprint(props)
         return self.props
