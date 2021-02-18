@@ -128,7 +128,6 @@ class Bouncer(Scanner):
                 self.quote_coin,
             )
         )
-        tqdm.write()
 
     def updateBalances(self, loud=True):
         """
@@ -371,7 +370,9 @@ class Bouncer(Scanner):
             self.trades.to_csv(path_or_buf=self.trades_filename)
 
             # self.blockTrades(5)
-            tqdm.write(colorEh("Trades initiated... disabling arbitrage until completed."))
+            tqdm.write(
+                colorEh("Trades initiated... disabling arbitrage until completed.")
+            )
             # perform calculations for logging
         except ccxt.ExchangeNotAvailable:
             tqdm.write(colorBad("Exchange not available."))

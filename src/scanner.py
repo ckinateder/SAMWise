@@ -410,8 +410,8 @@ class Scanner:
                 spreads = sorted(
                     spreads.values(),
                     key=lambda x: (
-                        getitem(x, "speedup"),
                         getitem(x, "spread_w_fees"),
+                        getitem(x, "speedup"),
                         getitem(x, "liquidity"),
                     ),
                 )  # as a list

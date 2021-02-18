@@ -209,7 +209,7 @@ class Hive:
         out = list(set(out))
         return out
 
-    def getDynamicCommons(self, minnum=2):
+    def getDynamicCommons(self, minnum=3):
         """
         Get all symbols in common with minnum or more of the given self.exchanges.
         """
