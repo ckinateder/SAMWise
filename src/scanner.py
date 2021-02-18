@@ -21,6 +21,10 @@ __email__ = "calvinkinateder@gmail.com"
 
 
 class Scanner:
+    """
+    Scans ONE ticker for prices across given exchanges.
+    """
+
     def __init__(
         self,
         symbol,
@@ -32,6 +36,7 @@ class Scanner:
         loud=True,
         position=None,
         timeout=3,
+        sortbyspread=True,
     ):
         """
         Create the class.
@@ -45,7 +50,16 @@ class Scanner:
             loud: tqdm.write all pairs or just profitable
             position: optional, number assigned to object
             timeout: seconds to wait for a response until canceling
+            sortbyspread: bool, which paramater to sort by
         """
+        # set sortby
+        if sortbyspread:
+            self.sort_priority = "spread_w_fees"
+            self.sort_secondary = "speedup"
+        else:
+            self.sort_priority = "speedup"
+            self.sort_secondary = "spread_w_fees"
+
         self.start_time = datetime.now()
         self.uptime = self.start_time - datetime.now()  # really not necessary
         self.position = position
@@ -410,8 +424,8 @@ class Scanner:
                 spreads = sorted(
                     spreads.values(),
                     key=lambda x: (
-                        getitem(x, "spread_w_fees"),
-                        getitem(x, "speedup"),
+                        getitem(x, self.sort_priority),
+                        getitem(x, self.sort_secondary),
                         getitem(x, "liquidity"),
                     ),
                 )  # as a list

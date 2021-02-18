@@ -20,7 +20,9 @@ QUOTE = "USD"
 
 
 class Hive:
-    """"""
+    """
+    Main class of the program. Handles collecting and controlling the data.
+    """
 
     def __init__(self):
         self.keypath = "keys/"
@@ -410,6 +412,7 @@ class Hive:
                     f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {endtime}"
                 )
                 # sleep cause you don't need all that data
+                tqdm.write("Waiting 9s ...")
                 time.sleep(9)
         notify("Completed!")
 
@@ -421,6 +424,6 @@ if __name__ == "__main__":
 
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    n = 10
+    n = 100
     hive.scanAll(trade_size=100, n=n, beta=True)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
