@@ -3,6 +3,10 @@ from tqdm import tqdm
 from tqdm.std import trange
 from helper import *
 from threading import Thread
+from datetime import datetime
+from pprint import pprint
+import json
+import time
 
 
 class Propagtor:
@@ -32,13 +36,57 @@ class Propagtor:
 
     def prepareSQL(self, response, exchange):
         """
-        Prepare the data for SQL
+            Prepare the data for the database and make sure format fits
+        +---------------+--------------+------+-----+---------+----------------+
+        | Field         | Type         | Null | Key | Default | Extra          |
+        +---------------+--------------+------+-----+---------+----------------+
+        | id            | int          | NO   | PRI | NULL    | auto_increment |
+        | symbol        | varchar(10)  | YES  |     | NULL    |                |
+        | exchange      | varchar(40)  | YES  |     | NULL    |                |
+        | timestamp     | timestamp    | YES  |     | NULL    |                |
+        | ask           | decimal(9,5) | YES  |     | NULL    |                |
+        | askVolume     | decimal(9,5) | YES  |     | NULL    |                |
+        | average       | decimal(9,5) | YES  |     | NULL    |                |
+        | baseVolume    | decimal(9,5) | YES  |     | NULL    |                |
+        | bid           | decimal(9,5) | YES  |     | NULL    |                |
+        | close         | decimal(9,5) | YES  |     | NULL    |                |
+        | datetime      | datetime     | YES  |     | NULL    |                |
+        | dx            | decimal(9,5) | YES  |     | NULL    |                |
+        | high          | decimal(9,5) | YES  |     | NULL    |                |
+        | info          | json         | YES  |     | NULL    |                |
+        | last          | decimal(9,5) | YES  |     | NULL    |                |
+        | low           | decimal(9,5) | YES  |     | NULL    |                |
+        | open          | decimal(9,5) | YES  |     | NULL    |                |
+        | percentage    | decimal(9,5) | YES  |     | NULL    |                |
+        | previousClose | decimal(9,5) | YES  |     | NULL    |                |
+        | quoteVolume   | decimal(9,5) | YES  |     | NULL    |                |
+        | vwap          | decimal(9,5) | YES  |     | NULL    |                |
+        +---------------+--------------+------+-----+---------+----------------+
         """
+        # round to 5 d
+        for k in response:
+            if type(response[k]) == float or type(response[k]) == int:
+                response[k] = round(response[k], 5)
         # add exchange in
         response["exchange"] = exchange
+        response["info"] = json.dumps(response["info"])
         # rename "change" for sql
         if "change" in response:
             response["dx"] = response.pop("change")
+
+        # fix dating
+        if not response["timestamp"] == None:
+            response["datetime"] = datetime.fromtimestamp(
+                response["timestamp"] / 1e3
+            ).strftime(TIME_FORMAT)
+        elif not response["datetime"] == None:
+            # original format: 2021-02-21T04:21:57.585Z
+            response["datetime"] = datetime.strptime(
+                response["datetime"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            ).strftime(TIME_FORMAT)
+        else:
+            response["datetime"] = nowD().strftime(TIME_FORMAT)
+            response["timestamp"] = now() * 1000
 
     def _mergeProps(self, one, two):
         """

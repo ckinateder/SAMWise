@@ -60,8 +60,8 @@ class Scanner:
             self.sort_priority = "speedup"
             self.sort_secondary = "spread_w_fees"
 
-        self.start_time = datetime.now()
-        self.uptime = self.start_time - datetime.now()  # really not necessary
+        self.start_time = nowD()
+        self.uptime = self.start_time - nowD()  # really not necessary
         self.position = position
         # precision to display quotes
         # speedup is used to narrow the price gap to enable trades to finish faster.
@@ -114,15 +114,7 @@ class Scanner:
         self.cycles = 0  # counts cycles
         self.quote_order_size = quote_order_size
         self.pro_filename = "logs/" + self.base_coin + "-" + self.quote_coin + ".csv"
-        self.trades_filename = (
-            "logs/trades/"
-            + datetime.now().strftime("%m-%d-%Y_%H-%M")
-            + "_"
-            + self.base_coin
-            + "-"
-            + self.quote_coin
-            + "_trades.csv"
-        )
+
         self.margin = margin  # for trades
 
         exchanges_str = ""
@@ -162,7 +154,7 @@ class Scanner:
         """
         Updates the uptime and returns a formatted string.
         """
-        self.uptime = datetime.now() - self.start_time
+        self.uptime = nowD() - self.start_time
         return strfdelta(self.uptime, "%H:%M:%S")
 
     def validateSymbol(self, symbol):
@@ -319,7 +311,7 @@ class Scanner:
                     )
                 )
                 responses = self.getWatched()
-                t_formatted = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
+                t_formatted = nowD().strftime(TIME_FORMAT)
                 timestamp = time.time()
             else:
                 t_formatted = "unknown"
@@ -528,7 +520,7 @@ class Scanner:
                     currency_str = f" ({self.currency_name})"
 
                 uptime_str = colorUptime(self.updateUptime())
-                clock_str = colorClock(datetime.now().strftime("%m/%d/%Y-%H:%M:%S:%f"))
+                clock_str = colorClock(nowD().strftime("%m/%d/%Y-%H:%M:%S:%f"))
 
                 total_header_str = (
                     "/"

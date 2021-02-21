@@ -384,9 +384,9 @@ class Hive:
             for cmt in range(n):
 
                 pgator = propagator.Propagtor()
-                start_time = datetime.now()
+                start_time = nowD()
                 props = pgator.propagate(idynamics)
-                endtime = datetime.now() - start_time
+                endtime = nowD() - start_time
                 # pprint(props)
                 responses = {}
                 # multiprocess this ----
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     hive = Hive()
 
     # tableOfAll = hive.getTableOfAll()
-    start_time = datetime.now()
+    start_time = nowD()
     n = 10
     hive.scanAll(trade_size=100, n=n, beta=True)
-    tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
+    tqdm.write(f"Scanned all symbols {n} times in {(nowD()-start_time)}")

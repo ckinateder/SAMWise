@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from tqdm import tqdm
 import subprocess
@@ -20,6 +21,7 @@ def updateSize():
 
 
 HEIGHT, WIDTH = updateSize()
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def intro():
@@ -99,6 +101,13 @@ def now():
     Shortened version of calling time.time()
     """
     return time.time()
+
+
+def nowD():
+    """
+    Shortened version of calling datetime.now()
+    """
+    return datetime.now()
 
 
 def humanFormat(number):

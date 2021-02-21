@@ -61,7 +61,7 @@ class Bouncer(Scanner):
         )
         self.trades_filename = (
             "logs/trades/"
-            + datetime.now().strftime("%m-%d-%Y_%H-%M")
+            + nowD().strftime("%m-%d-%Y_%H-%M")
             + "_"
             + self.base_coin
             + "-"
@@ -234,7 +234,7 @@ class Bouncer(Scanner):
                     )
                     self.trade_count += 1
                     new_row = [
-                        datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                        nowD().strftime(TIME_FORMAT),
                         self.symbol,
                         "buy",
                         price,
@@ -340,7 +340,7 @@ class Bouncer(Scanner):
             buy_ex.create_limit_buy_order(self.symbol, amt, low)
             self.trade_count += 1
             new_row = [
-                datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                nowD().strftime(TIME_FORMAT),
                 self.symbol,
                 "buy",
                 low,
@@ -359,7 +359,7 @@ class Bouncer(Scanner):
             sell_ex.create_limit_sell_order(self.symbol, amt, high)
             self.trade_count += 1
             new_row = [
-                datetime.now().strftime("%m-%d-%Y_%H-%M-%S.%f"),
+                nowD().strftime(TIME_FORMAT),
                 self.symbol,
                 "sell",
                 high,
