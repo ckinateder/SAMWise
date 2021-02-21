@@ -19,6 +19,27 @@ class Propagtor:
         ):
             time.sleep(0.001)
 
+    def distribute(self, procs):
+        """
+        Takes a list of Thread objects and runs them simeultaneous, and waits til the last completion.
+        """
+        # start
+        for proc in procs:
+            proc.start()
+        # join
+        for proc in procs:
+            proc.join()
+
+    def prepareSQL(self, response, exchange):
+        """
+        Prepare the data for SQL
+        """
+        # add exchange in
+        response["exchange"] = exchange
+        # rename "change" for sql
+        if "change" in response:
+            response["dx"] = response.pop("change")
+
     def _mergeProps(self, one, two):
         """
         Merge one
@@ -78,6 +99,8 @@ class Propagtor:
         }
         """
         resp = exchange.fetchTickers(tickers)
+        for i in resp:
+            self.prepareSQL(resp[i], exchange)
         trans = self._transposeBatchTickers(resp, exchange)
         return trans
 
@@ -104,12 +127,7 @@ class Propagtor:
             #    inter[symbol] = {exchange: single}
             self.cycle_bar.update(1)
 
-        # start
-        for proc in procs:
-            proc.start()
-        # join
-        for proc in procs:
-            proc.join()
+        self.distribute(procs)
         return inter
 
     def _getSingleSymbol(self, exchange, ticker, depth=0, inter=None):
@@ -139,6 +157,7 @@ class Propagtor:
             tqdm.write(
                 colorBad(f"Rate limit exceeded on {exchange} for {ticker} ... skipping")
             )
+        self.prepareSQL(response, exchange)
         return response
 
     def _doTickers(self, exchange, idynamics):
@@ -161,6 +180,22 @@ class Propagtor:
     def propagate(self, idynamics):
         """
         Build one giant dictionary of dictionaries of all data recieved.
+        Example return:
+        {
+            'BTC/USD': {
+                ccxt.binance(): {...},
+                ccxt.coinbasepro(): {...},
+                ccxt.binanceus(): {...},
+            },
+            'ETH/USD': {
+                ccxt.bitfinex(): {...},
+                ccxt.coinbasepro(): {...},
+                ccxt.huobipro(): {...},
+                ccxt.binanceus(): {...},
+            },
+            ... etc
+        }
+
         """
         exchanges = list(idynamics.keys())
         tqdm.write(colorEh("Fetching tickers ... "))
@@ -183,11 +218,6 @@ class Propagtor:
                     ),
                 )
             )
-        # start
-        for proc in procs:
-            proc.start()
-        # join
-        for proc in procs:
-            proc.join()
+        self.distribute(procs)
         self.cycle_bar.close()
         return self.props

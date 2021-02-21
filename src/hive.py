@@ -24,21 +24,22 @@ class Hive:
     Main class of the program. Handles collecting and controlling the data.
     """
 
-    def __init__(self):
+    def __init__(self, minnum=3):
         self.keypath = "keys/"
         with tqdm(
             total=3, position=1, leave=False, dynamic_ncols=True, desc="total"
         ) as init_bar:
             availables = self.getAvailableExchanges()
             init_bar.update(1)
-            # availables.remove('bittrex')
+            # create exchanges
             self.exchanges = self.loadExchanges(availables)
             init_bar.update(1)
-            self.dynamics = self.getDynamicCommons()
+            # create dynamics
+            self.dynamic_commons = self.getDynamicCommons(minnum=minnum)
             init_bar.update(1)
 
     def updateDynamics(self):
-        self.dynamics = self.getDynamicCommons()
+        self.dynamic_commons = self.getDynamicCommons()
 
     def getTableOfAll(self):
         """
@@ -216,11 +217,14 @@ class Hive:
         Get all symbols in common with minnum or more of the given self.exchanges.
         """
         tqdm.write("Getting shared symbols ...")
+        # initialize keyset so loadmarkets not called twice
+        keyset = {}
         alls = list()
-        for i in tqdm(
+        for exchange in tqdm(
             self.exchanges, unit="exc", leave=False, dynamic_ncols=True, desc="xchng"
         ):
-            x = list(i.load_markets().keys())
+            keyset[exchange] = list(exchange.load_markets().keys())
+            x = keyset[exchange]
             for j in x:
                 if (
                     QUOTE in j
@@ -233,14 +237,12 @@ class Hive:
 
         compatibles = {}
         for exchange in self.exchanges:
-            possibles = list(exchange.load_markets().keys())
             for symbol in alls:
-                if symbol in possibles:
+                if symbol in keyset[exchange]:
                     if symbol in compatibles:
                         compatibles[symbol].append(exchange)
                     else:  # initialize
                         compatibles[symbol] = [exchange]
-
         multiples = {}
         for key in compatibles:
             if len(compatibles[key]) >= minnum:
@@ -310,30 +312,37 @@ class Hive:
         tqdm.write(
             colorEh(
                 "{} ({} pairs found)".format(
-                    stringitizeL(list(self.dynamics.keys())), len(self.dynamics)
+                    stringitizeL(list(self.dynamic_commons.keys())),
+                    len(self.dynamic_commons),
                 )
             )
         )
-        tqdm.write(colorGood(f"Creating {len(self.dynamics)} scanners ..."))
+        tqdm.write(colorGood(f"Creating {len(self.dynamic_commons)} scanners ..."))
         for e in tqdm(
-            self.dynamics, leave=False, unit="sym", dynamic_ncols=True, desc="symbl"
+            self.dynamic_commons,
+            leave=False,
+            unit="sym",
+            dynamic_ncols=True,
+            desc="symbl",
         ):
             currencies.append(
                 Scanner(
                     e,
                     trade_size,
-                    self.dynamics[e],
+                    self.dynamic_commons[e],
                     margin=0.01,
                     min_speedup=0.2,
                     speedup=72,
                     loud=False,
-                    position=list(self.dynamics.keys()).index(e)
-                    / len(self.dynamics)
+                    position=list(self.dynamic_commons.keys()).index(e)
+                    / len(self.dynamic_commons)
                     * 100,
                 )
             )
         tqdm.write(
-            colorGood(f"Created {len(self.dynamics)} scanners!\nScanning now ...")
+            colorGood(
+                f"Created {len(self.dynamic_commons)} scanners!\nScanning now ..."
+            )
         )
         return currencies
 
@@ -356,12 +365,12 @@ class Hive:
                 verified = False
         return verified
 
-    def scanAll(self, trade_size, n=1, beta=True):
+    def scanAll(self, trade_size, n=1):
         """
         Scan every single exchange n times and print a summary. Set 'beta' to False to run the stable mode.
         """
         currencies = self.createDynamicScanners(trade_size=trade_size)
-        idynamics = self.getInvertedDynamicCommons(original=self.dynamics)
+        idynamics = self.getInvertedDynamicCommons(original=self.dynamic_commons)
         # nested loop with progressbar
         total = len(currencies) * n
         with tqdm(
@@ -373,13 +382,14 @@ class Hive:
             desc="total",
         ) as total_bar:
             for cmt in range(n):
-                if beta:
-                    pgator = propagator.Propagtor()
-                    start_time = datetime.now()
-                    props = pgator.propagate(idynamics)
-                    endtime = datetime.now() - start_time
+
+                pgator = propagator.Propagtor()
+                start_time = datetime.now()
+                props = pgator.propagate(idynamics)
+                endtime = datetime.now() - start_time
                 # pprint(props)
                 responses = {}
+                # multiprocess this ----
                 for scan in tqdm(
                     currencies,
                     leave=False,
@@ -387,32 +397,21 @@ class Hive:
                     dynamic_ncols=True,
                     desc="cycle",
                 ):
-                    if beta:
-                        if scan.symbol in props:
-                            spreads, error, ff = scan.getSpread(props[scan.symbol])
-                        else:
-                            spreads, error, ff = scan.getSpread()
+                    if scan.symbol in props:
+                        spreads, error, ff = scan.getSpread(props[scan.symbol])
                     else:
                         spreads, error, ff = scan.getSpread()
+
                     responses[scan] = {"flip_flop": ff, "error": error}
                     total_bar.update(1)
-                # tqdm.write summary
-                tqdm.write(f"Summary of cycle {cmt+1} in {endtime}:")
-                flops = []
                 errors = []
-                for i in responses:
-                    if responses[i]["flip_flop"]:
-                        flops.append(str(i))
-                    if responses[i]["error"]:
-                        errors.append(str(i))
-                tqdm.write(colorGood(f"Flip flops: {stringitizeL(flops)}"))
                 if errors:
                     tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
                 notify(
                     f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {endtime}"
                 )
                 # sleep cause you don't need all that data
-                tqdm.write("Waiting 9s ...")
+                tqdm.write(f"Waiting 9s (propagated in {endtime}) ...")
                 time.sleep(9)
         notify("Completed!")
 
@@ -424,6 +423,6 @@ if __name__ == "__main__":
 
     # tableOfAll = hive.getTableOfAll()
     start_time = datetime.now()
-    n = 100
+    n = 10
     hive.scanAll(trade_size=100, n=n, beta=True)
     tqdm.write(f"Scanned all symbols {n} times in {(datetime.now()-start_time)}")
