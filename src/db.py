@@ -23,11 +23,11 @@ def resetDatabase():
     db = connect(
         host="localhost",
         user="root",
-        password="MeHTMT02",
+        password="mysqlroot",
     )
     cursor = db.cursor()
 
-    cursor.execute("DROP DATABASE symbols;")
+    cursor.execute("DROP DATABASE IF EXISTS symbols;")
     cursor.execute("CREATE DATABASE symbols;")
     cursor.execute("USE symbols;")
     cursor.execute(
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     db = connect(
         host="localhost",
         user="root",
-        password="MeHTMT02",
+        password="mysqlroot",
         database="symbols",
     )
     cursor = db.cursor()
