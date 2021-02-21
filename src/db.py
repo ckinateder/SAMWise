@@ -33,34 +33,38 @@ def resetDatabase():
     cursor.execute(
         "CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,5), askVolume decimal(20,5), average decimal(20,5), baseVolume decimal(20,5), bid decimal(20,5), bidVolume decimal(20,5), close decimal(20,5), datetime DATETIME, dx decimal(20,5), high decimal(20,5), info JSON, last decimal(20,5), low decimal(20,5), open decimal(20,5), percentage decimal(20,5), previousClose decimal(20,5), quoteVolume decimal(20,5), vwap decimal(20,5));"
     )
+    cursor.execute(
+        "CREATE TABLE latest (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,5), askVolume decimal(20,5), average decimal(20,5), baseVolume decimal(20,5), bid decimal(20,5), bidVolume decimal(20,5), close decimal(20,5), datetime DATETIME, dx decimal(20,5), high decimal(20,5), info JSON, last decimal(20,5), low decimal(20,5), open decimal(20,5), percentage decimal(20,5), previousClose decimal(20,5), quoteVolume decimal(20,5), vwap decimal(20,5));"
+    )
 
 
 def writeProps(cursor, props):
-    counter = 0
     start = now()
+    valueset = []
     for symbol in props:
         for exchange in props[symbol]:
             point = props[symbol][exchange]
             # set query and values dynamically
             values = ()
-            query = "INSERT INTO results ("
+            query = "("
             for k in point:
                 query += k + ", "
                 # check if instance of exchange and fix
                 if isinstance(point[k], ccxt.Exchange):
                     point[k] = point[k].id
                 values += (point[k],)
-
+            valueset.append(values)
             # finish formatting command
             vs = ("%s, " * len(values))[:-2]
             query = query[:-2] + f") VALUES ({vs})"
 
-            cursor.execute(query, values)
-            ## to make final output we have to run the 'commit()' method of the database object
-            db.commit()
-            counter += 1
-
-    print(f"{counter} records inserted in {now()-start}s")
+    cursor.executemany("INSERT INTO results " + query, valueset)
+    # delete whats in latest right now
+    cursor.execute("truncate table latest")
+    cursor.executemany("INSERT INTO latest " + query, valueset)
+    ## to make final output we have to run the 'commit()' method of the database object
+    db.commit()
+    print(f"{cursor.rowcount} records inserted in {now()-start:.2f}s")
 
 
 if __name__ == "__main__":
@@ -70,7 +74,7 @@ if __name__ == "__main__":
     # create propagator
     tool = propagator.Propagtor()
     id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
-    # resetDatabase()
+    resetDatabase()
     db = connect(
         host="localhost",
         user="root",
