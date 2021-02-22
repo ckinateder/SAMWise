@@ -1,4 +1,4 @@
-import time
+import time, sys
 from getpass import getpass
 from pprint import pprint
 
@@ -38,8 +38,10 @@ def resetDatabase():
     )
 
 
-def writeProps(cursor, props):
-    start = now()
+def createPropQuery(props):
+    """
+    Creates a query to be used with the executemany command.
+    """
     valueset = []
     for symbol in props:
         for exchange in props[symbol]:
@@ -57,6 +59,16 @@ def writeProps(cursor, props):
             # finish formatting command
             vs = ("%s, " * len(values))[:-2]
             query = query[:-2] + f") VALUES ({vs})"
+    return query, valueset
+
+
+def writeProps(db, props):
+    """
+    Writes props to both tables
+    """
+    cursor = db.cursor()
+    start = now()
+    query, valueset = createPropQuery(props)
 
     cursor.executemany("INSERT INTO results " + query, valueset)
     # delete whats in latest right now
@@ -67,22 +79,55 @@ def writeProps(cursor, props):
     print(f"{cursor.rowcount} records inserted in {now()-start:.2f}s")
 
 
-if __name__ == "__main__":
-    ###
-    # create hive
+def writePropsLoop(db, interval, times=None):
+    """
+    Loops times times and updates latest every query but results only every interval (in min)
+
+    """
+
     hivee = hive.Hive(minnum=3)
     # create propagator
     tool = propagator.Propagtor()
     id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
-    resetDatabase()
+
+    fstart = 0
+    cursor = db.cursor()
+    interval = interval
+    if times == None:
+        times = sys.maxsize
+    for i in range(times):
+        props = tool.propagate(id)
+        start = now()
+
+        query, valueset = createPropQuery(props)
+        if now() - fstart >= interval * 60:
+            cursor.executemany("INSERT INTO results " + query, valueset)
+            print(f"{cursor.rowcount} records inserted into 'results' ")
+            fstart = now()
+        # delete whats in latest right now
+        cursor.execute("truncate table latest")
+        cursor.executemany("INSERT INTO latest " + query, valueset)
+        ## to make final output we have to run the 'commit()' method of the database object
+        db.commit()
+        print(
+            f"{cursor.rowcount} records overwritten to 'latest' in {now()-start:.2f}s"
+        )
+        time.sleep(10)
+
+
+if __name__ == "__main__":
+    ###
+    # create hive
+    # hivee = hive.Hive(minnum=3)
+    # create propagator
+    # tool = propagator.Propagtor()
+    # id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
+    # resetDatabase()
     db = connect(
         host="localhost",
         user="root",
         password="mysqlroot",
         database="symbols",
     )
-    cursor = db.cursor()
-    for i in range(10):
-        props = tool.propagate(id)
-        writeProps(cursor, props)
-        time.sleep(10)
+    # props = tool.propagate(id)
+    writePropsLoop(db, interval=1)
