@@ -30,7 +30,7 @@ def resetDatabase():
     )
     cursor = db.cursor()
 
-    cursor.execute("DROP DATABASE [IF EXISTS] symbols;")
+    cursor.execute("DROP DATABASE symbols;")
     cursor.execute("CREATE DATABASE symbols;")
     cursor.execute("USE symbols;")
     cursor.execute(
