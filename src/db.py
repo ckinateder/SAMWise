@@ -15,7 +15,7 @@ Command to create database:
 Command to check if database exists:
     show databases like 'symbols';
 Command to create results table:
-    CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,5), askVolume decimal(20,5), average decimal(20,5), baseVolume decimal(20,5), bid decimal(20,5), bidVolume decimal(20,5), close decimal(20,5), datetime DATETIME, dx decimal(20,5), high decimal(20,5), info JSON, last decimal(20,5), low decimal(20,5), open decimal(20,5), percentage decimal(20,5), previousClose decimal(20,5), quoteVolume decimal(20,5), vwap decimal(20,5));
+    CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, dx decimal(20,8), high decimal(20,8), info JSON, last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));
 """
 
 USER = "test"
@@ -34,10 +34,10 @@ def resetDatabase():
     cursor.execute("CREATE DATABASE symbols;")
     cursor.execute("USE symbols;")
     cursor.execute(
-        "CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,5), askVolume decimal(20,5), average decimal(20,5), baseVolume decimal(20,5), bid decimal(20,5), bidVolume decimal(20,5), close decimal(20,5), datetime DATETIME, dx decimal(20,5), high decimal(20,5), info JSON, last decimal(20,5), low decimal(20,5), open decimal(20,5), percentage decimal(20,5), previousClose decimal(20,5), quoteVolume decimal(20,5), vwap decimal(20,5));"
+        "CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, dx decimal(20,8), high decimal(20,8), info JSON, last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
     )
     cursor.execute(
-        "CREATE TABLE latest (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,5), askVolume decimal(20,5), average decimal(20,5), baseVolume decimal(20,5), bid decimal(20,5), bidVolume decimal(20,5), close decimal(20,5), datetime DATETIME, dx decimal(20,5), high decimal(20,5), info JSON, last decimal(20,5), low decimal(20,5), open decimal(20,5), percentage decimal(20,5), previousClose decimal(20,5), quoteVolume decimal(20,5), vwap decimal(20,5));"
+        "CREATE TABLE latest (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, dx decimal(20,8), high decimal(20,8), info JSON, last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
     )
 
 
@@ -88,7 +88,7 @@ def writePropsLoop(db, interval, times=None):
 
     """
 
-    hivee = hive.Hive(minnum=3)
+    hivee = hive.Hive(minnum=2)
     # create propagator
     tool = propagator.Propagtor()
     id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # create propagator
     # tool = propagator.Propagtor()
     # id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
-    resetDatabase()
+    # resetDatabase()
     db = connect(
         host="localhost",
         user=USER,
