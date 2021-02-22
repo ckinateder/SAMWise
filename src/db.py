@@ -18,16 +18,19 @@ Command to create results table:
     CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,5), askVolume decimal(20,5), average decimal(20,5), baseVolume decimal(20,5), bid decimal(20,5), bidVolume decimal(20,5), close decimal(20,5), datetime DATETIME, dx decimal(20,5), high decimal(20,5), info JSON, last decimal(20,5), low decimal(20,5), open decimal(20,5), percentage decimal(20,5), previousClose decimal(20,5), quoteVolume decimal(20,5), vwap decimal(20,5));
 """
 
+USER = "test"
+PASS = "test"
+
 
 def resetDatabase():
     db = connect(
         host="localhost",
-        user="root",
-        password="mysqlroot",
+        user=USER,
+        password=PASS,
     )
     cursor = db.cursor()
 
-    cursor.execute("DROP DATABASE IF EXISTS symbols;")
+    cursor.execute("DROP DATABASE [IF EXISTS] symbols;")
     cursor.execute("CREATE DATABASE symbols;")
     cursor.execute("USE symbols;")
     cursor.execute(
@@ -122,11 +125,11 @@ if __name__ == "__main__":
     # create propagator
     # tool = propagator.Propagtor()
     # id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
-    # resetDatabase()
+    resetDatabase()
     db = connect(
         host="localhost",
-        user="root",
-        password="mysqlroot",
+        user=USER,
+        password=PASS,
         database="symbols",
     )
     # props = tool.propagate(id)
