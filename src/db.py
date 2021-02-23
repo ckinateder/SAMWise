@@ -133,11 +133,9 @@ def writePropsLoop(db=None, interval=1, times=None):
     Loops times times and updates latest every query but results only every interval (in min)
 
     """
-
-    hivee = hive.Hive(minnum=2)
     # create propagator
     tool = propagator.Propagtor()
-    id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
+    id = tool.getInvertedDynamicCommons()
 
     last = 0
     interval = interval

@@ -13,6 +13,26 @@ class Propagtor:
     def __init__(self):
         pass
 
+    def getInvertedDynamicCommons(self, original=None, minnum=3):
+        """
+        Get all symbols in common with 3 or more of the given self.exchanges.
+        """
+        if not self.exchanges:
+            self.exchanges = self.loadExchanges(self.getAvailableExchanges())
+        if not original:
+            original = self.getDynamicCommons(minnum)
+
+        inverted = {}
+        for symbol in original:
+            for exchange in self.exchanges:
+                if exchange in original[symbol]:
+                    if exchange in inverted:
+                        inverted[exchange].append(symbol)
+                    else:
+                        inverted[exchange] = [symbol]
+
+        return inverted
+
     def _rateLimit(self, waittime):
         for interval in trange(
             waittime * 1000,
