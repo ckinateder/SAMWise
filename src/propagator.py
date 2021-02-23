@@ -184,7 +184,7 @@ class Propagtor:
                 multiples[key] = compatibles[key]
         return multiples
 
-    def getInvertedDynamicCommons(self, original=None, minnum=3):
+    def getInvertedDynamicCommons(self, original=None, minnum=1):
         """
         Get all symbols in common with 3 or more of the given self.exchanges.
         """
