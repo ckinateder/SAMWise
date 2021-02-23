@@ -24,6 +24,19 @@ USER = "test"
 PASS = "test"
 
 
+def convertListOfTuples(ld):
+    """
+    Convert a list of single tuples to just a list
+    Ex:
+        input = [("results",),("latest",)]
+        output = ["results", "latest"]
+    """
+    raws = []
+    for i in ld:
+        raws.append(i[0])
+    return raws
+
+
 def resetDatabase():
     db = connect(
         host="localhost",
@@ -32,7 +45,13 @@ def resetDatabase():
     )
     cursor = db.cursor()
 
-    cursor.execute("DROP DATABASE symbols;")
+    # see if exists
+    cursor.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA")
+    raws = convertListOfTuples(cursor.fetchall())
+    # drop if exists
+    if "symbols" in raws:
+        cursor.execute("DROP DATABASE symbols;")
+
     cursor.execute("CREATE DATABASE symbols;")
     cursor.execute("USE symbols;")
     cursor.execute(
@@ -104,7 +123,7 @@ def getTableLength(db, table):
     return number_of_rows
 
 
-def writePropsLoop(db, interval, times=None):
+def writePropsLoop(db=None, interval=1, times=None):
     """
     Loops times times and updates latest every query but results only every interval (in min)
 
@@ -118,6 +137,13 @@ def writePropsLoop(db, interval, times=None):
     last = 0
     cursor = db.cursor()
     interval = interval
+    if db == None:
+        db = connect(
+            host="localhost",
+            user=USER,
+            password=PASS,
+            database="symbols",
+        )
     if times == None:
         times = sys.maxsize
     for i in range(times):
@@ -162,11 +188,5 @@ if __name__ == "__main__":
         if "-r" in sys.argv[1]:
             resetDatabase()
     # resetDatabase()
-    db = connect(
-        host="localhost",
-        user=USER,
-        password=PASS,
-        database="symbols",
-    )
     # props = tool.propagate(id)
-    writePropsLoop(db, interval=1)
+    writePropsLoop(interval=1)
