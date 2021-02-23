@@ -135,7 +135,6 @@ def writePropsLoop(db=None, interval=1, times=None):
     id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
 
     last = 0
-    cursor = db.cursor()
     interval = interval
     if db == None:
         db = connect(
@@ -144,6 +143,8 @@ def writePropsLoop(db=None, interval=1, times=None):
             password=PASS,
             database="symbols",
         )
+
+    cursor = db.cursor()
     if times == None:
         times = sys.maxsize
     for i in range(times):
