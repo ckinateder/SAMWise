@@ -1,10 +1,12 @@
+from os import write
 import time, sys
 from getpass import getpass
 from pprint import pprint
 
 import ccxt
+from decimal import *
 from mysql.connector import Error, connect
-
+import tqdm
 import hive
 import propagator
 from helper import *
@@ -82,6 +84,26 @@ def writeProps(db, props):
     print(f"{cursor.rowcount} records inserted in {now()-start:.2f}s")
 
 
+def getDBSize(db):
+    # get table size
+    cursor = db.cursor()
+    cursor.execute(
+        'SELECT table_name AS "Table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)" FROM information_schema.TABLES WHERE table_schema = "symbols" ORDER BY (data_length + index_length) DESC'
+    )
+    db_size = 0
+    for i in cursor.fetchall():
+        db_size += float(i[1])
+    return round(db_size, 2)
+
+
+def getTableLength(db, table):
+    # get table length
+    cursor = db.cursor()
+    cursor.execute("SELECT id FROM results ORDER BY id DESC LIMIT 1")
+    number_of_rows = cursor.fetchall()[0][0]
+    return number_of_rows
+
+
 def writePropsLoop(db, interval, times=None):
     """
     Loops times times and updates latest every query but results only every interval (in min)
@@ -93,7 +115,7 @@ def writePropsLoop(db, interval, times=None):
     tool = propagator.Propagtor()
     id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
 
-    fstart = 0
+    last = 0
     cursor = db.cursor()
     interval = interval
     if times == None:
@@ -103,17 +125,28 @@ def writePropsLoop(db, interval, times=None):
         start = now()
 
         query, valueset = createPropQuery(props)
-        if now() - fstart >= interval * 60:
+        if now() - last >= interval * 60:
             cursor.executemany("INSERT INTO results " + query, valueset)
-            print(f"{cursor.rowcount} records inserted into 'results' ")
-            fstart = now()
+            write_count = cursor.rowcount
+
+            number_of_rows = getTableLength(db, "results")
+            db_size = getDBSize(db)
+
+            tqdm.write(
+                colorGood(
+                    f"{write_count} records inserted into 'results'; database now {db_size} MB and {number_of_rows:,} rows long."
+                )
+            )
+            last = now()
         # delete whats in latest right now
         cursor.execute("truncate table latest")
         cursor.executemany("INSERT INTO latest " + query, valueset)
         ## to make final output we have to run the 'commit()' method of the database object
         db.commit()
-        print(
-            f"{cursor.rowcount} records overwritten to 'latest' in {now()-start:.2f}s"
+        tqdm.write(
+            colorGood(
+                f"{cursor.rowcount} records overwritten to 'latest' in {now()-start:.2f}s"
+            )
         )
         time.sleep(10)
 
