@@ -1,7 +1,6 @@
 from datetime import *
 from os import error, listdir, path
 from pprint import pprint
-from typing import final
 
 import ccxt
 import pandas as pd

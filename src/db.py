@@ -158,6 +158,9 @@ if __name__ == "__main__":
     # create propagator
     # tool = propagator.Propagtor()
     # id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
+    if len(sys.argv) >= 2:
+        if "-r" in sys.argv[1]:
+            resetDatabase()
     # resetDatabase()
     db = connect(
         host="localhost",
