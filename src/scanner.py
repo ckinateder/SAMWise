@@ -9,7 +9,7 @@ from math import log, floor
 import traceback
 from collections import OrderedDict
 from operator import getitem
-
+import statistics
 import ccxt
 import pandas as pd
 from pprint import pformat, pprint
@@ -311,11 +311,24 @@ class Scanner:
                     )
                 )
                 responses = self.getWatched()
+            # compute average timestamps for the spreads dict
+            stamps = []
+            for exchange in responses:
+                if "timestamp" in responses[exchange]:
+                    if responses[exchange]["timestamp"] != None:
+                        stamps.append(responses[exchange]["timestamp"])
+            if len(stamps) > 0:
+                timestamp = statistics.mean(stamps)
+                # divide by 1000 because milliseconds is recieved
+                t_formatted = datetime.fromtimestamp(timestamp / 1000).strftime(
+                    TIME_FORMAT
+                )
+                tqdm.write(t_formatted)
+            else:
+                # fallback
                 t_formatted = nowD().strftime(TIME_FORMAT)
                 timestamp = time.time()
-            else:
-                t_formatted = "unknown"
-                timestamp = "unknown"
+
             # not necessary to sort but it helps
             # pprint(responses)
             got_zero = False
