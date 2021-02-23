@@ -38,6 +38,9 @@ def convertListOfTuples(ld):
 
 
 def resetDatabase():
+    """
+    Reset the database.
+    """
     db = connect(
         host="localhost",
         user=USER,
@@ -78,6 +81,8 @@ def createPropQuery(props):
                 # check if instance of exchange and fix
                 if isinstance(point[k], ccxt.Exchange):
                     point[k] = point[k].id
+                if k == "info":  # don't insert info to save space
+                    point[k] = None
                 values += (point[k],)
             valueset.append(values)
             # finish formatting command
@@ -104,7 +109,7 @@ def writeProps(db, props):
 
 
 def getDBSize(db):
-    # get table size
+    # get table size in mb
     cursor = db.cursor()
     cursor.execute(
         'SELECT table_name AS "Table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)" FROM information_schema.TABLES WHERE table_schema = "symbols" ORDER BY (data_length + index_length) DESC'
@@ -152,6 +157,7 @@ def writePropsLoop(db=None, interval=1, times=None):
         start = now()
 
         query, valueset = createPropQuery(props)
+
         if now() - last >= interval * 60:
             cursor.executemany("INSERT INTO results " + query, valueset)
             write_count = cursor.rowcount
@@ -179,15 +185,8 @@ def writePropsLoop(db=None, interval=1, times=None):
 
 
 if __name__ == "__main__":
-    ###
-    # create hive
-    # hivee = hive.Hive(minnum=3)
-    # create propagator
-    # tool = propagator.Propagtor()
-    # id = hivee.getInvertedDynamicCommons(hivee.dynamic_commons)
-    if len(sys.argv) >= 2:
-        if "-r" in sys.argv[1]:
-            resetDatabase()
-    # resetDatabase()
-    # props = tool.propagate(id)
+    # commandline args
+    if "-r" in sys.argv:
+        resetDatabase()
+
     writePropsLoop(interval=1)
