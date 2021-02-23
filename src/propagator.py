@@ -7,11 +7,182 @@ from datetime import datetime
 from pprint import pprint
 import json
 import time
+from os import error, listdir, path
 
 
 class Propagtor:
     def __init__(self):
-        pass
+        self.exchanges = None
+
+    def getAvailableExchanges(self):
+        """
+        Get all existing exchanges
+        """
+        # find exchanges from file structure
+        file_list = listdir(KEYPATH)
+        end = len(file_list) - 1
+
+        for i in trange(0, len(file_list), unit="exc", leave=False, dynamic_ncols=True):
+            x = file_list[i]
+            if "_public" in x:
+                file_list[i] = x.replace("_public", "")
+            elif "_private" in x:
+                file_list[i] = x.replace("_private", "")
+            elif "_password" in x:
+                file_list[i] = x.replace("_password", "")
+            elif "_uid" in x:
+                file_list[i] = x.replace("_uid", "")
+            else:
+                file_list[i] = "bad"
+        if "bad" in file_list:
+            file_list = [x for x in file_list if not x == "bad"]
+        all_ex = list(set(file_list))
+        return all_ex
+
+    def loadExchanges(self, all_ex):
+        """
+        Create self.exchanges objects for all existing ones
+        """
+
+        self.exchanges = list()
+        tqdm.write("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
+        verified = []
+        if path.exists(KEYPATH + "verified"):
+            with open(KEYPATH + "verified", "r") as verified_f:
+                verified = [i.strip() for i in verified_f.readlines()]
+                tqdm.write(
+                    colorGood(
+                        f"Verified exchanges {stringitizeL(verified)}; skipping validation on these."
+                    )
+                )
+        else:
+            tqdm.write(colorBad("No verified keys."))
+        # create objs
+        for exchstr in tqdm(
+            all_ex, leave=False, dynamic_ncols=True, unit="exc", desc="xchng"
+        ):
+            if exchstr in ccxt.exchanges:  # j to be safe
+                try:
+                    public = open(KEYPATH + exchstr + "_public").read().strip()
+                    private = open(KEYPATH + exchstr + "_private").read().strip()
+
+                    exchange_class = getattr(ccxt, exchstr)
+
+                    if path.exists(KEYPATH + exchstr + "_password") and path.exists(
+                        KEYPATH + exchstr + "_uid"
+                    ):
+                        password = open(KEYPATH + exchstr + "_password").read().strip()
+                        uid = open(KEYPATH + exchstr + "_uid").read().strip()
+
+                        current = exchange_class(
+                            {
+                                "apiKey": public,
+                                "secret": private,
+                                "password": password,
+                                "uid": uid,
+                            }
+                        )
+                    elif path.exists(KEYPATH + exchstr + "_uid"):
+                        uid = open(KEYPATH + exchstr + "_uid").read().strip()
+
+                        current = exchange_class(
+                            {
+                                "apiKey": public,
+                                "secret": private,
+                                "uid": uid,
+                            }
+                        )
+                    elif path.exists(KEYPATH + exchstr + "_password"):
+                        password = open(KEYPATH + exchstr + "_password").read().strip()
+
+                        current = exchange_class(
+                            {
+                                "apiKey": public,
+                                "secret": private,
+                                "password": password,
+                            }
+                        )
+                    else:
+                        current = exchange_class(
+                            {
+                                "apiKey": public,
+                                "secret": private,
+                            }
+                        )
+                    # if not verified
+                    if not exchstr in verified:
+                        current.fetch_balance()
+                        # save to file
+                        with open(KEYPATH + "verified", "a+") as verified_f:
+                            verified_f.write(exchstr + "\n")
+
+                    # tqdm.write(
+                    #    colorGood("Exchange {} added successfully!").format(exchstr)
+                    # )
+                    self.exchanges.append(current)
+                except ccxt.AuthenticationError:
+                    tqdm.write(
+                        colorBad("Invalid credentials for {} ... moving on.").format(
+                            exchstr
+                        )
+                    )
+                except FileNotFoundError:
+                    tqdm.write(
+                        colorBad(
+                            "Keys for {} not found in {} ... moving on.".format(
+                                exchstr, KEYPATH
+                            )
+                        )
+                    )
+            else:
+                tqdm.write(
+                    colorBad("Sorry, {} is not supported yet :(").format(exchstr)
+                )
+
+        tqdm.write(
+            colorGood(
+                "Done! Added exchanges {}.".format(stringitizeExc(self.exchanges))
+            )
+        )
+        notify("Loaded {}".format(stringitizeExc(self.exchanges)))
+        return self.exchanges
+
+    def getDynamicCommons(self, minnum=3):
+        """
+        Get all symbols in common with minnum or more of the given self.exchanges.
+        """
+        tqdm.write("Getting shared symbols ...")
+        # initialize keyset so loadmarkets not called twice
+        keyset = {}
+        alls = list()
+        for exchange in tqdm(
+            self.exchanges, unit="exc", leave=False, dynamic_ncols=True, desc="xchng"
+        ):
+            keyset[exchange] = list(exchange.load_markets().keys())
+            x = keyset[exchange]
+            for j in x:
+                if (
+                    QUOTE in j
+                    or "BTC" in j
+                    or "ETH" in j
+                    and not ("GBP" in j or not "EUR" in j)
+                ):
+                    alls.append(j)
+        alls = list(set(alls))
+
+        compatibles = {}
+        for exchange in self.exchanges:
+            for symbol in alls:
+                if symbol in keyset[exchange]:
+                    if symbol in compatibles:
+                        compatibles[symbol].append(exchange)
+                    else:  # initialize
+                        compatibles[symbol] = [exchange]
+        multiples = {}
+        for key in compatibles:
+            if len(compatibles[key]) >= minnum:
+                multiples[key] = compatibles[key]
+        return multiples
 
     def getInvertedDynamicCommons(self, original=None, minnum=3):
         """

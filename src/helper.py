@@ -24,6 +24,10 @@ HEIGHT, WIDTH = updateSize()
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
+QUOTE = "USD"
+KEYPATH = "keys/"
+
+
 def intro():
     """
     tqdm.write the intro string.
