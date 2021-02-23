@@ -41,7 +41,7 @@ $ cd SAMWise
 All you have to do is run the main class and follow the prompts.
 
 ```Bash
-(SAMWise)$ py3 src/main.py
+(SAMWise)$ python3 src/main.py
 ```
 
 Sample progress bar output:
@@ -52,6 +52,16 @@ total:   2%|█▉                                                   | 109/6540 
 ```
 
 The cycle is for the current cycle, and the total is for the total including all repeats through the list.
+
+## Running From a Server
+
+If you are running from a remote session, run through a screen to make sure it won't disconnect.
+```Bash
+(SAMWise)$ screen
+(SAMWise)$ python3 src/main.py
+```
+
+Then, Ctrl + A and then Ctrl + D to detach from the session. You can exit the ssh session and it will continue to run. You can also run `screen -r` to reconnect to the screen.
 
 ## Console Output
 
