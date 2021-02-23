@@ -244,7 +244,6 @@ class Propagtor:
         | datetime      | datetime     | YES  |     | NULL    |                |
         | dx            | decimal(9,5) | YES  |     | NULL    |                |
         | high          | decimal(9,5) | YES  |     | NULL    |                |
-        | info          | json         | YES  |     | NULL    |                |
         | last          | decimal(9,5) | YES  |     | NULL    |                |
         | low           | decimal(9,5) | YES  |     | NULL    |                |
         | open          | decimal(9,5) | YES  |     | NULL    |                |
@@ -260,7 +259,8 @@ class Propagtor:
                 response[k] = round(response[k], 5)
         # add exchange in
         response["exchange"] = exchange
-        response["info"] = json.dumps(response["info"])
+        # delete info
+        response.pop("info")
         # rename "change" for sql
         if "change" in response:
             response["dx"] = response.pop("change")
