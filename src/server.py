@@ -85,9 +85,8 @@ if __name__ == "__main__":
     # create threads
     apiThread = threading.Thread(target=runAPI, name="api")
     dataThread = threading.Thread(target=runDatabase, name="data")
-
     # start threads
-    apiThread.start()
-    tqdm.write("Started API server ...")
     dataThread.start()
     tqdm.write("Started DATA server ...")
+    apiThread.start()
+    tqdm.write("Started API server ...")

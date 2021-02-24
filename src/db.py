@@ -127,7 +127,7 @@ def getBatchNearestTo(db, table, dt):
     """
     Get batch nearest to given time.
     """
-    limit = getTableLength(db, "latest")
+    limit = 2388
     cursor = db.cursor(dictionary=True)
     query = f"SELECT * FROM {table} WHERE batch <= '{dt}' ORDER BY abs(TIMESTAMPDIFF(second, batch, '{dt}')) LIMIT {limit}"
     cursor.execute(query)
@@ -172,9 +172,9 @@ def getDBSize(db):
 
 def getTableLength(db, table):
     # get table length
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
     cursor.execute(f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1")
-    number_of_rows = cursor.fetchall()[0][0]
+    number_of_rows = cursor.fetchall()[0]["id"]
     return number_of_rows
 
 
@@ -236,4 +236,4 @@ def runDatabase():
 
 
 if __name__ == "__main__":
-    print("db.py is meant to be a static class")
+    runDatabase()
