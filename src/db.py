@@ -1,3 +1,4 @@
+from datetime import date
 import sys
 import time
 from decimal import *
@@ -7,6 +8,7 @@ from pprint import pprint
 import ccxt
 import tqdm
 from mysql.connector import Error, connect
+from werkzeug import datastructures
 
 import hive
 import propagator
@@ -120,40 +122,22 @@ def parseQuery(c):
     return output
 
 
-def getRowByID(db, table, id=1, special=None):
+def getRowInRange(db, table, key, rang, special=None):
     """
-    Gets a row by index or range and returns it as a dict. If all is passed as special, returns everything.
+    Gets a row by range and returns it as a dict. If all is passed as special, returns everything.
     EX:
-        getRowByID(db, "results", 1)
-        returns row 1
-        getRowByID(db, "results", [5,10])
-        returns rows 5-10
+        getRowInRange(db, "results", "id", [5,10])
+        returns rows with id in range 5-10
 
         Anything outside of said format will throw an error.
 
     """
     cursor = db.cursor(dictionary=True)
     if special == "all":
-        cursor.execute(f"SELECT * FROM {table}")
-
+        query = f"SELECT * FROM {table}"
     else:
-        # setup types
-        if type(id) == list and len(id) == 2:
-            for x in range(len(id)):
-                id[x] = int(id[x])
-            if id[0] == id[1]:
-                id = id[0]
-
-        if type(id) == int:
-            cursor.execute(f"SELECT * FROM {table} WHERE id={id}")
-        elif type(id) == list:
-            cursor.execute(
-                f"SELECT * FROM {table} WHERE id between {id[0]} and {id[1]}"
-            )
-        else:
-            # return none if wrong format
-            raise TypeError
-
+        query = f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
+    cursor.execute(query)
     c = cursor.fetchall()
     output = parseQuery(c)
     return output
@@ -178,6 +162,12 @@ def getTableLength(db, table):
     cursor.execute(f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1")
     number_of_rows = cursor.fetchall()[0][0]
     return number_of_rows
+
+
+def getTables(db):
+    cursor = db.cursor()
+    cursor.execute("show tables")
+    return convertListOfTuples(cursor.fetchall())
 
 
 def initializeDB(db_name):
@@ -209,7 +199,10 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         props = tool.propagate(id)
         if now() - last >= interval * 60:
             writeProps(db, props, "results")
-            print(getRowByID(db, "results", 1))
+            # print(getRowByID(db, "results", 1))
+            # oldest = datetime(2021, 2, 24, 11, 0, 0, 0)
+            # newest = nowD()
+            # pprint(getRowInRange(db, "results", "datetime", [oldest, newest]))
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
             tqdm.write(
