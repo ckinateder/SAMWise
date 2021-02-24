@@ -227,7 +227,7 @@ class Propagtor:
 
     def prepareSQL(self, response, exchange):
         """
-            Prepare the data for the database and make sure format fits
+            Prepare the data for the database inplace and make sure format fits
         +---------------+--------------+------+-----+---------+----------------+
         | Field         | Type         | Null | Key | Default | Extra          |
         +---------------+--------------+------+-----+---------+----------------+

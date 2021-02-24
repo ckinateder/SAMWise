@@ -28,7 +28,7 @@ def convertListOfTuples(ld):
     return raws
 
 
-def resetDatabase():
+def resetDatabase(db_name):
     """
     Reset the database.
     """
@@ -44,10 +44,10 @@ def resetDatabase():
     raws = convertListOfTuples(cursor.fetchall())
     # drop if exists
     if "symbols" in raws:
-        cursor.execute("DROP DATABASE symbols;")
+        cursor.execute(f"DROP DATABASE {db_name};")
 
-    cursor.execute("CREATE DATABASE symbols;")
-    cursor.execute("USE symbols;")
+    cursor.execute(f"CREATE DATABASE {db_name};")
+    cursor.execute(f"USE {db_name};")
     cursor.execute(
         "CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, dx decimal(20,8), high decimal(20,8), last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
     )
@@ -82,7 +82,7 @@ def createPropQuery(props):
     return query, valueset
 
 
-def writeProps(db, props):
+def writeProps(db, props, table, overwrite=False):
     """
     Writes props to both tables
     """
@@ -90,13 +90,34 @@ def writeProps(db, props):
     start = now()
     query, valueset = createPropQuery(props)
 
-    cursor.executemany("INSERT INTO results " + query, valueset)
-    # delete whats in latest right now
-    cursor.execute("truncate table latest")
-    cursor.executemany("INSERT INTO latest " + query, valueset)
-    ## to make final output we have to run the 'commit()' method of the database object
+    if overwrite:
+        cursor.execute("truncate table latest")
+    cursor.executemany(f"INSERT INTO {table} {query}", valueset)
     db.commit()
-    print(f"{cursor.rowcount} records inserted in {now()-start:.2f}s")
+    tqdm.write(
+        colorGood(
+            f"{cursor.rowcount} records inserted into '{table}' in {now()-start:.2f}s"
+        )
+    )
+
+
+def getRow(db, table):
+    """
+    Gets a row by index and returns it as a dict
+    """
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(f"SELECT * FROM {table} WHERE id between 10 and 15")
+    c = cursor.fetchall()
+    output = []
+    for row in c:
+        row_data = {}
+        for key in row:
+            if type(row[key]) is Decimal:
+                row_data[key] = float(row[key])
+            else:
+                row_data[key] = row[key]
+        output.append(row_data)
+    return output
 
 
 def getDBSize(db):
@@ -114,12 +135,12 @@ def getDBSize(db):
 def getTableLength(db, table):
     # get table length
     cursor = db.cursor()
-    cursor.execute("SELECT id FROM results ORDER BY id DESC LIMIT 1")
+    cursor.execute(f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1")
     number_of_rows = cursor.fetchall()[0][0]
     return number_of_rows
 
 
-def writePropsLoop(db=None, interval=1, times=None):
+def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
     """
     Loops times times and updates latest every query but results only every interval (in min)
 
@@ -135,47 +156,39 @@ def writePropsLoop(db=None, interval=1, times=None):
             host="localhost",
             user=USER,
             password=PASS,
-            database="symbols",
+            database=db_name,
         )
 
-    cursor = db.cursor()
     if times == None:
         times = sys.maxsize
     for i in range(times):
         props = tool.propagate(id)
-        start = now()
-
-        query, valueset = createPropQuery(props)
-
         if now() - last >= interval * 60:
-            cursor.executemany("INSERT INTO results " + query, valueset)
-            write_count = cursor.rowcount
-
+            writeProps(db, props, "results")
+            # pprint(getRow(db, "results"))
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
 
-            tqdm.write(
-                colorGood(
-                    f"{write_count} records inserted into 'results'; database now {db_size} MB and {number_of_rows:,} rows long."
-                )
-            )
             last = now()
-        # delete whats in latest right now
-        cursor.execute("truncate table latest")
-        cursor.executemany("INSERT INTO latest " + query, valueset)
-        ## to make final output we have to run the 'commit()' method of the database object
-        db.commit()
+
+        writeProps(db, props, "latest", overwrite=True)
         tqdm.write(
-            colorGood(
-                f"{cursor.rowcount} records overwritten to 'latest' in {now()-start:.2f}s"
-            )
+            colorGood(f"'results' now {db_size} MB and {number_of_rows:,} rows long.")
         )
         time.sleep(10)
+
+
+def main():
+    """
+    Main function
+    """
+    writePropsLoop(interval=1)
 
 
 if __name__ == "__main__":
     # commandline args
     if "-r" in sys.argv:
-        resetDatabase()
-
-    writePropsLoop(interval=1)
+        confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
+        if "y" in confirm:
+            resetDatabase("symbols")
+    main()
