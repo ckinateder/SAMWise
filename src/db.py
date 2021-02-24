@@ -101,12 +101,27 @@ def writeProps(db, props, table, overwrite=False):
     )
 
 
-def getRow(db, table):
+def getRowByID(db, table, id):
     """
-    Gets a row by index and returns it as a dict
+    Gets a row by index or range and returns it as a dict
+    EX:
+        getRowByID(db, "results", 1)
+        returns row 1
+        getRowByID(db, "results", [5,10])
+        returns rows 5-10
+
+        Anything outside of said format will throw an error.
+
     """
     cursor = db.cursor(dictionary=True)
-    cursor.execute(f"SELECT * FROM {table} WHERE id between 10 and 15")
+    if type(id) == int:
+        cursor.execute(f"SELECT * FROM {table} WHERE id={id}")
+    elif type(id) == list and len(list) == 2:
+        cursor.execute(f"SELECT * FROM {table} WHERE id between {id[0]} and {id[1]}")
+    else:
+        # return none if wrong format
+        return None
+
     c = cursor.fetchall()
     output = []
     for row in c:
@@ -165,7 +180,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         props = tool.propagate(id)
         if now() - last >= interval * 60:
             writeProps(db, props, "results")
-            # pprint(getRow(db, "results"))
+            pprint(getRowByID(db, "results", 1))
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
 

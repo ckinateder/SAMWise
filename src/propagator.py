@@ -228,30 +228,30 @@ class Propagtor:
     def prepareSQL(self, response, exchange):
         """
             Prepare the data for the database inplace and make sure format fits
-        +---------------+--------------+------+-----+---------+----------------+
-        | Field         | Type         | Null | Key | Default | Extra          |
-        +---------------+--------------+------+-----+---------+----------------+
-        | id            | int          | NO   | PRI | NULL    | auto_increment |
-        | symbol        | varchar(10)  | YES  |     | NULL    |                |
-        | exchange      | varchar(40)  | YES  |     | NULL    |                |
-        | timestamp     | timestamp    | YES  |     | NULL    |                |
-        | ask           | decimal(9,5) | YES  |     | NULL    |                |
-        | askVolume     | decimal(9,5) | YES  |     | NULL    |                |
-        | average       | decimal(9,5) | YES  |     | NULL    |                |
-        | baseVolume    | decimal(9,5) | YES  |     | NULL    |                |
-        | bid           | decimal(9,5) | YES  |     | NULL    |                |
-        | close         | decimal(9,5) | YES  |     | NULL    |                |
-        | datetime      | datetime     | YES  |     | NULL    |                |
-        | dx            | decimal(9,5) | YES  |     | NULL    |                |
-        | high          | decimal(9,5) | YES  |     | NULL    |                |
-        | last          | decimal(9,5) | YES  |     | NULL    |                |
-        | low           | decimal(9,5) | YES  |     | NULL    |                |
-        | open          | decimal(9,5) | YES  |     | NULL    |                |
-        | percentage    | decimal(9,5) | YES  |     | NULL    |                |
-        | previousClose | decimal(9,5) | YES  |     | NULL    |                |
-        | quoteVolume   | decimal(9,5) | YES  |     | NULL    |                |
-        | vwap          | decimal(9,5) | YES  |     | NULL    |                |
-        +---------------+--------------+------+-----+---------+----------------+
+        +---------------+---------------+------+-----+---------+----------------+
+        | Field         | Type          | Null | Key | Default | Extra          |
+        +---------------+---------------+------+-----+---------+----------------+
+        | id            | int           | NO   | PRI | NULL    | auto_increment |
+        | symbol        | varchar(20)   | YES  |     | NULL    |                |
+        | exchange      | varchar(40)   | YES  |     | NULL    |                |
+        | timestamp     | bigint        | YES  |     | NULL    |                |
+        | ask           | decimal(20,8) | YES  |     | NULL    |                |
+        | askVolume     | decimal(20,8) | YES  |     | NULL    |                |
+        | average       | decimal(20,8) | YES  |     | NULL    |                |
+        | baseVolume    | decimal(20,8) | YES  |     | NULL    |                |
+        | bid           | decimal(20,8) | YES  |     | NULL    |                |
+        | close         | decimal(20,8) | YES  |     | NULL    |                |
+        | datetime      | datetime      | YES  |     | NULL    |                |
+        | dx            | decimal(20,8) | YES  |     | NULL    |                |
+        | high          | decimal(20,8) | YES  |     | NULL    |                |
+        | last          | decimal(20,8) | YES  |     | NULL    |                |
+        | low           | decimal(20,8) | YES  |     | NULL    |                |
+        | open          | decimal(20,8) | YES  |     | NULL    |                |
+        | percentage    | decimal(20,8) | YES  |     | NULL    |                |
+        | previousClose | decimal(20,8) | YES  |     | NULL    |                |
+        | quoteVolume   | decimal(20,8) | YES  |     | NULL    |                |
+        | vwap          | decimal(20,8) | YES  |     | NULL    |                |
+        +---------------+---------------+------+-----+---------+----------------+
         """
         # round to 5 d
         for k in response:
