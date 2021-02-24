@@ -27,19 +27,24 @@ class Historical(Resource):
         bottom = request.args.get("bottom")
         top = request.args.get("top")
         sortby = request.args.get("sortby")
+        closest_to = request.args.get("closest_to")  # optional
 
-        if not bottom:
-            top = nowD()
-
-        if not bottom and not top:
-            return {"data": "No range provided"}, 400  # return data with 400 BAD
-        elif not sortby:
-            sortby = "datetime"
-        rows = getRowInRange(
-            db=db_client, table="results", key=sortby, rang=[bottom, top]
-        )
-        # print(len(rows))
-        return {"data": rows}, 200  # return data with 200 OK
+        if closest_to:
+            rows = getBatchNearestTo(db_client, "results", closest_to)
+            # print(len(rows))
+            return {"data": rows}, 200  # return data with 200 OK
+        else:
+            if not sortby:
+                sortby = "batch"
+            if not bottom:
+                top = nowD()
+            if not top:
+                return {"data": "No range provided"}, 400  # return data with 400 BAD
+            rows = getRowInRange(
+                db=db_client, table="results", key=sortby, rang=[bottom, top]
+            )
+            # print(len(rows))
+            return {"data": rows}, 200  # return data with 200 OK
 
 
 class Latest(Resource):

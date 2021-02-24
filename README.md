@@ -30,7 +30,7 @@ Current endpoints:
 | bottom     | same type as `row[key]` | bottom end of range                     |
 | top        | same type as `row[key]` | top end of range                        |
 
-NOTE: if key is a datetime, top and bottom format MUST be `YY-MM-DD HH:MM:SS`
+NOTE: if key is a datetime, top and bottom format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
 
 ## Adding Exchanges
 

@@ -8,7 +8,7 @@ from pprint import pprint
 import ccxt
 from mysql.connector.errors import DatabaseError
 import tqdm
-from mysql.connector import Error, connect
+from mysql.connector import Error, connect, cursor
 from werkzeug import datastructures
 
 import hive
@@ -120,6 +120,19 @@ def parseQuery(c):
             else:
                 row_data[key] = row[key]
         output.append(row_data)
+    return output
+
+
+def getBatchNearestTo(db, table, dt):
+    """
+    Get batch nearest to given time.
+    """
+    limit = getTableLength(db, "latest")
+    cursor = db.cursor(dictionary=True)
+    query = f"SELECT * FROM {table} WHERE batch <= '{dt}' ORDER BY abs(TIMESTAMPDIFF(second, batch, '{dt}')) LIMIT {limit}"
+    cursor.execute(query)
+    c = cursor.fetchall()
+    output = parseQuery(c)
     return output
 
 
