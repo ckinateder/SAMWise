@@ -8,7 +8,7 @@ import pandas as pd
 from flask import Flask, request
 from flask_restful import Api, Resource
 from mysql.connector import Error, connect
-
+import threading
 import hive
 import propagator
 from db import *
@@ -37,7 +37,7 @@ class Historical(Resource):
         elif not sortby:
             sortby = "datetime"
         row = getRowInRange(
-            db=database, table="results", key=sortby, rang=[bottom, top]
+            db=db_client, table="results", key=sortby, rang=[bottom, top]
         )
         return {"data": row}, 200  # return data with 200 OK
 
@@ -46,7 +46,7 @@ class Latest(Resource):
     # methods go here
     def get(self):
         row = getRowInRange(
-            db=database, table="latest", key="datetime", rang=None, special="all"
+            db=db_client, table="latest", key="datetime", rang=None, special="all"
         )
 
         return {"data": row}, 200  # return data with 200 OK
@@ -63,7 +63,20 @@ api.add_resource(Latest, "/api/latest")  # '/latest' is our entry point
 api.add_resource(Spreads, "/api/spreads")  # '/spreads' is our entry point
 
 
-if __name__ == "__main__":
-    # start database
-    database = initializeDB("symbols")
+def runAPI():
     app.run()
+
+
+if __name__ == "__main__":
+    # start db_client
+    db_client = initializeDB("symbols")
+
+    # create threads
+    apiThread = threading.Thread(target=runAPI, name="api")
+    dataThread = threading.Thread(target=runDatabase, name="data")
+
+    # start threads
+    apiThread.start()
+    tqdm.write("Started API server ...")
+    dataThread.start()
+    tqdm.write("Started DATA server ...")

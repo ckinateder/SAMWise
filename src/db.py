@@ -199,10 +199,6 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         props = tool.propagate(id)
         if now() - last >= interval * 60:
             writeProps(db, props, "results")
-            # print(getRowByID(db, "results", 1))
-            # oldest = datetime(2021, 2, 24, 11, 0, 0, 0)
-            # newest = nowD()
-            # pprint(getRowInRange(db, "results", "datetime", [oldest, newest]))
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
             tqdm.write(
@@ -218,7 +214,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         time.sleep(10)
 
 
-def main():
+def runDatabase():
     """
     Main function
     """
@@ -231,4 +227,4 @@ if __name__ == "__main__":
         confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
         if "y" in confirm:
             resetDatabase("symbols")
-    main()
+    runDatabase()
