@@ -156,6 +156,16 @@ def getTableLength(db, table):
     return number_of_rows
 
 
+def initializeDB(db_name):
+    db = connect(
+        host="localhost",
+        user=USER,
+        password=PASS,
+        database=db_name,
+    )
+    return db
+
+
 def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
     """
     Loops times times and updates latest every query but results only every interval (in min)
@@ -168,13 +178,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
     last = 0
     interval = interval
     if db == None:
-        db = connect(
-            host="localhost",
-            user=USER,
-            password=PASS,
-            database=db_name,
-        )
-
+        db = initializeDB(db_name)
     if times == None:
         times = sys.maxsize
     for i in range(times):
