@@ -102,35 +102,10 @@ def writeProps(db, props, table, overwrite=False):
     )
 
 
-def getRowByID(db, table, id):
+def parseQuery(c):
     """
-    Gets a row by index or range and returns it as a dict
-    EX:
-        getRowByID(db, "results", 1)
-        returns row 1
-        getRowByID(db, "results", [5,10])
-        returns rows 5-10
-
-        Anything outside of said format will throw an error.
-
+    Parse the query obj to dict
     """
-    cursor = db.cursor(dictionary=True)
-    # setup types
-    if type(id) == list and len(id) == 2:
-        for x in range(len(id)):
-            id[x] = int(id[x])
-        if id[0] == id[1]:
-            id = id[0]
-
-    if type(id) == int:
-        cursor.execute(f"SELECT * FROM {table} WHERE id={id}")
-    elif type(id) == list:
-        cursor.execute(f"SELECT * FROM {table} WHERE id between {id[0]} and {id[1]}")
-    else:
-        # return none if wrong format
-        raise TypeError
-
-    c = cursor.fetchall()
     output = []
     for row in c:
         row_data = {}
@@ -142,6 +117,45 @@ def getRowByID(db, table, id):
             else:
                 row_data[key] = row[key]
         output.append(row_data)
+    return output
+
+
+def getRowByID(db, table, id=1, special=None):
+    """
+    Gets a row by index or range and returns it as a dict. If all is passed as special, returns everything.
+    EX:
+        getRowByID(db, "results", 1)
+        returns row 1
+        getRowByID(db, "results", [5,10])
+        returns rows 5-10
+
+        Anything outside of said format will throw an error.
+
+    """
+    cursor = db.cursor(dictionary=True)
+    if special == "all":
+        cursor.execute(f"SELECT * FROM {table}")
+
+    else:
+        # setup types
+        if type(id) == list and len(id) == 2:
+            for x in range(len(id)):
+                id[x] = int(id[x])
+            if id[0] == id[1]:
+                id = id[0]
+
+        if type(id) == int:
+            cursor.execute(f"SELECT * FROM {table} WHERE id={id}")
+        elif type(id) == list:
+            cursor.execute(
+                f"SELECT * FROM {table} WHERE id between {id[0]} and {id[1]}"
+            )
+        else:
+            # return none if wrong format
+            raise TypeError
+
+    c = cursor.fetchall()
+    output = parseQuery(c)
     return output
 
 

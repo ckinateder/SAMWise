@@ -18,9 +18,14 @@ api = Api(app)
 
 
 class Historical(Resource):
-    # methods go here
+    # methods go heredef
     def get(self):
-        return {"data": "OK (historical)"}, 200  # return data and 200 OK code
+        table = request.args.get("table")
+        idstart = request.args.get("idstart")
+        idend = request.args.get("idend")
+        row = getRowByID(db=database, table=table, id=[idstart, idend])
+
+        return {"data": row}, 200  # return data with 200 OK
 
 
 class Latest(Resource):
@@ -29,10 +34,7 @@ class Latest(Resource):
     #    return {"data": "OK (latest)"}, 200  # return data and 200 OK code
 
     def get(self):
-        table = request.args.get("table")
-        idstart = request.args.get("idstart")
-        idend = request.args.get("idend")
-        row = getRowByID(database, table, [idstart, idend])
+        row = getRowByID(db=database, table="latest", special="all")
 
         return {"data": row}, 200  # return data with 200 OK
 
