@@ -27,7 +27,6 @@ class Historical(Resource):
         bottom = request.args.get("bottom")
         top = request.args.get("top")
         sortby = request.args.get("sortby")
-        print(bottom, top)
 
         if not bottom:
             top = nowD()
@@ -36,10 +35,11 @@ class Historical(Resource):
             return {"data": "No range provided"}, 400  # return data with 400 BAD
         elif not sortby:
             sortby = "datetime"
-        row = getRowInRange(
+        rows = getRowInRange(
             db=db_client, table="results", key=sortby, rang=[bottom, top]
         )
-        return {"data": row}, 200  # return data with 200 OK
+        print(len(rows))
+        return {"data": rows}, 200  # return data with 200 OK
 
 
 class Latest(Resource):
