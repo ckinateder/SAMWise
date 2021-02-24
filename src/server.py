@@ -64,10 +64,16 @@ api.add_resource(Spreads, "/api/spreads")  # '/spreads' is our entry point
 
 
 def runAPI():
-    app.run()
+    app.run(host="0.0.0.0", port=5000, debug=False)
 
 
 if __name__ == "__main__":
+    # commandline args
+    if "-r" in sys.argv:
+        confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
+        if "y" in confirm:
+            resetDatabase("symbols")
+
     # start db_client
     db_client = initializeDB("symbols")
 

@@ -6,6 +6,7 @@ from getpass import getpass
 from os import write
 from pprint import pprint
 import ccxt
+from mysql.connector.errors import DatabaseError
 import tqdm
 from mysql.connector import Error, connect
 from werkzeug import datastructures
@@ -222,9 +223,4 @@ def runDatabase():
 
 
 if __name__ == "__main__":
-    # commandline args
-    if "-r" in sys.argv:
-        confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
-        if "y" in confirm:
-            resetDatabase("symbols")
-    runDatabase()
+    print("db.py is meant to be a static class")
