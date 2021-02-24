@@ -1,14 +1,17 @@
-import json, ccxt
+import ast
+import json
 from datetime import datetime
 from pprint import pprint
 
+import ccxt
+import pandas as pd
+from flask import Flask, request
+from flask_restful import Api, Resource
+from mysql.connector import Error, connect
+
 import hive
 import propagator
-import db
-from flask import Flask
-from flask_restful import Resource, Api, reqparse
-import pandas as pd
-import ast
+from db import *
 
 app = Flask(__name__)
 api = Api(app)
@@ -22,8 +25,16 @@ class Historical(Resource):
 
 class Latest(Resource):
     # methods go here
+    # def get(self):
+    #    return {"data": "OK (latest)"}, 200  # return data and 200 OK code
+
     def get(self):
-        return {"data": "OK (latest)"}, 200  # return data and 200 OK code
+        table = request.args.get("table")
+        idstart = request.args.get("idstart")
+        idend = request.args.get("idend")
+        row = getRowByID(database, table, [idstart, idend])
+
+        return {"data": row}, 200  # return data with 200 OK
 
 
 class Spreads(Resource):
@@ -38,4 +49,6 @@ api.add_resource(Spreads, "/spreads")  # '/spreads' is our entry point
 
 
 if __name__ == "__main__":
+    # start database
+    database = initializeDB("symbols")
     app.run()

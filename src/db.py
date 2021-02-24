@@ -1,12 +1,13 @@
-from os import write
-import time, sys
-from getpass import getpass
-from pprint import pprint
-
-import ccxt
+import sys
+import time
 from decimal import *
-from mysql.connector import Error, connect
+from getpass import getpass
+from os import write
+from pprint import pprint
+import ccxt
 import tqdm
+from mysql.connector import Error, connect
+
 import hive
 import propagator
 from helper import *
@@ -114,13 +115,20 @@ def getRowByID(db, table, id):
 
     """
     cursor = db.cursor(dictionary=True)
+    # setup types
+    if type(id) == list and len(id) == 2:
+        for x in range(len(id)):
+            id[x] = int(id[x])
+        if id[0] == id[1]:
+            id = id[0]
+
     if type(id) == int:
         cursor.execute(f"SELECT * FROM {table} WHERE id={id}")
-    elif type(id) == list and len(list) == 2:
+    elif type(id) == list:
         cursor.execute(f"SELECT * FROM {table} WHERE id between {id[0]} and {id[1]}")
     else:
         # return none if wrong format
-        return None
+        raise TypeError
 
     c = cursor.fetchall()
     output = []
@@ -129,6 +137,8 @@ def getRowByID(db, table, id):
         for key in row:
             if type(row[key]) is Decimal:
                 row_data[key] = float(row[key])
+            elif isinstance(row[key], datetime):
+                row_data[key] = row[key].strftime(TIME_FORMAT)
             else:
                 row_data[key] = row[key]
         output.append(row_data)
@@ -185,6 +195,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         props = tool.propagate(id)
         if now() - last >= interval * 60:
             writeProps(db, props, "results")
+            print(getRowByID(db, "results", 1))
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
             tqdm.write(
