@@ -142,6 +142,7 @@ def getDBSize(db):
         'SELECT table_name AS "Table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)" FROM information_schema.TABLES WHERE table_schema = "symbols" ORDER BY (data_length + index_length) DESC'
     )
     db_size = 0
+    # print(cursor.fetchall())
     for i in cursor.fetchall():
         db_size += float(i[1])
     return round(db_size, 2)
@@ -180,16 +181,18 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         props = tool.propagate(id)
         if now() - last >= interval * 60:
             writeProps(db, props, "results")
-            pprint(getRowByID(db, "results", 1))
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
+            tqdm.write(
+                colorGood(
+                    f"* 'results' now {db_size} MB and {number_of_rows:,} rows long."
+                )
+            )
 
             last = now()
 
         writeProps(db, props, "latest", overwrite=True)
-        tqdm.write(
-            colorGood(f"'results' now {db_size} MB and {number_of_rows:,} rows long.")
-        )
+
         time.sleep(10)
 
 
