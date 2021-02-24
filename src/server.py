@@ -38,7 +38,7 @@ class Historical(Resource):
         rows = getRowInRange(
             db=db_client, table="results", key=sortby, rang=[bottom, top]
         )
-        print(len(rows))
+        # print(len(rows))
         return {"data": rows}, 200  # return data with 200 OK
 
 

@@ -22,8 +22,6 @@ def updateSize():
 
 HEIGHT, WIDTH = updateSize()
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-
 QUOTE = "USD"
 KEYPATH = "keys/"
 

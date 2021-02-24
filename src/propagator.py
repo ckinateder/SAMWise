@@ -3,7 +3,7 @@ from tqdm import tqdm
 from tqdm.std import trange
 from helper import *
 from threading import Thread
-from datetime import datetime
+from datetime import datetime, timezone
 from pprint import pprint
 import json
 import time
@@ -242,6 +242,7 @@ class Propagtor:
         | bid           | decimal(20,8) | YES  |     | NULL    |                |
         | close         | decimal(20,8) | YES  |     | NULL    |                |
         | datetime      | datetime      | YES  |     | NULL    |                |
+        | batch         | datetime      | YES  |     | NULL    |                |
         | dx            | decimal(20,8) | YES  |     | NULL    |                |
         | high          | decimal(20,8) | YES  |     | NULL    |                |
         | last          | decimal(20,8) | YES  |     | NULL    |                |
@@ -259,6 +260,8 @@ class Propagtor:
                 response[k] = round(response[k], 5)
         # add exchange in
         response["exchange"] = exchange
+        # add batch in AND fix initial dating
+        response["batch"] = self.batch.strftime(TIME_FORMAT)
         # delete info
         response.pop("info")
         # rename "change" for sql
@@ -266,18 +269,16 @@ class Propagtor:
             response["dx"] = response.pop("change")
 
         # fix dating
-        if not response["timestamp"] == None:
-            response["datetime"] = datetime.fromtimestamp(
-                response["timestamp"] / 1e3
-            ).strftime(TIME_FORMAT)
-        elif not response["datetime"] == None:
+        # handle timezone
+        if response["datetime"]:
             # original format: 2021-02-21T04:21:57.585Z
             response["datetime"] = datetime.strptime(
                 response["datetime"], "%Y-%m-%dT%H:%M:%S.%fZ"
             ).strftime(TIME_FORMAT)
         else:
-            response["datetime"] = nowD().strftime(TIME_FORMAT)
-            response["timestamp"] = now() * 1000
+            response["datetime"] = self.batch.strftime(TIME_FORMAT)
+        if not response["timestamp"]:
+            response["timestamp"] = self.batch.timestamp() * 1000
 
     def _mergeProps(self, one, two):
         """
@@ -450,6 +451,7 @@ class Propagtor:
         }
 
         """
+        self.batch = nowD().astimezone(tz=timezone.utc)
         exchanges = list(idynamics.keys())
         tqdm.write(colorEh("Fetching tickers ... "))
         self.props = {}
