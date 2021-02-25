@@ -212,8 +212,9 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         times = sys.maxsize
     for i in range(times):
         props = tool.propagate(id)
-        if now() - last >= interval * 60:
+        if now() - last >= (interval * 60):
             writeProps(db, props, "results")
+            last = now()
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
             tqdm.write(
@@ -222,11 +223,9 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
                 )
             )
 
-            last = now()
-
         writeProps(db, props, "latest", overwrite=True)
 
-        for interval in trange(
+        for i in trange(
             10 * 1000,
             leave=False,
             desc="timer",
@@ -239,7 +238,7 @@ def runDatabase():
     """
     Main function
     """
-    writePropsLoop(interval=1)
+    writePropsLoop(interval=0.16)
 
 
 if __name__ == "__main__":
