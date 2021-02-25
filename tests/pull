@@ -1,1 +1,1 @@
-nohup python3 src/db.py &
+nohup python3 src/db.py
