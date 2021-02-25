@@ -203,7 +203,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
     # create propagator
     tool = propagator.Propagtor()
     id = tool.getInvertedDynamicCommons()
-
+    start = nowD()
     last = 0
     interval = interval
     if db == None:
@@ -217,9 +217,10 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
             last = now()
             number_of_rows = getTableLength(db, "results")
             db_size = getDBSize(db)
+            uptime = strfdelta(nowD() - start, "%H:%M:%S")
             tqdm.write(
                 colorGood(
-                    f"* 'results' now {db_size} MB and {number_of_rows:,} rows long."
+                    f"* 'results' now {db_size} MB and {number_of_rows:,} rows long (uptime: {uptime})"
                 )
             )
 
