@@ -10,7 +10,7 @@ from mysql.connector.errors import DatabaseError
 import tqdm
 from mysql.connector import Error, connect, cursor
 from werkzeug import datastructures
-
+from tqdm import trange
 import hive
 import propagator
 from helper import *
@@ -225,7 +225,13 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
 
         writeProps(db, props, "latest", overwrite=True)
 
-        time.sleep(10)
+        for interval in trange(
+            10 * 1000,
+            leave=False,
+            desc="timer",
+            dynamic_ncols=True,
+        ):
+            time.sleep(0.001)
 
 
 def runDatabase():

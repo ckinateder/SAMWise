@@ -30,11 +30,41 @@ Current endpoints:
 | bottom     | same type as `row[key]` | bottom end of range                     |
 | top        | same type as `row[key]` | top end of range                        |
 
+<br>
+
 NOTE: if key is a datetime, top and bottom format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
 
-## Adding Exchanges
+## Database
 
-SAMWise supports all exchanges supported by ccxt. To add a new exchange, follow the prompts when running the program.
+The API is run off of a database updated every 10 seconds. The description of each row is as follows:
+
+| Field         | Type          | Null | Key | Default | Extra          |
+| ------------- | ------------- | ---- | --- | ------- | -------------- |
+| id            | int           | NO   | PRI | NULL    | auto_increment |
+| symbol        | varchar(20)   | YES  |     | NULL    |                |
+| exchange      | varchar(40)   | YES  |     | NULL    |                |
+| timestamp     | bigint        | YES  |     | NULL    |                |
+| ask           | decimal(20,8) | YES  |     | NULL    |                |
+| askVolume     | decimal(20,8) | YES  |     | NULL    |                |
+| average       | decimal(20,8) | YES  |     | NULL    |                |
+| baseVolume    | decimal(20,8) | YES  |     | NULL    |                |
+| bid           | decimal(20,8) | YES  |     | NULL    |                |
+| close         | decimal(20,8) | YES  |     | NULL    |                |
+| datetime      | datetime      | YES  |     | NULL    |                |
+| batch         | datetime      | YES  |     | NULL    |                |
+| dx            | decimal(20,8) | YES  |     | NULL    |                |
+| high          | decimal(20,8) | YES  |     | NULL    |                |
+| last          | decimal(20,8) | YES  |     | NULL    |                |
+| low           | decimal(20,8) | YES  |     | NULL    |                |
+| open          | decimal(20,8) | YES  |     | NULL    |                |
+| percentage    | decimal(20,8) | YES  |     | NULL    |                |
+| previousClose | decimal(20,8) | YES  |     | NULL    |                |
+| quoteVolume   | decimal(20,8) | YES  |     | NULL    |                |
+| vwap          | decimal(20,8) | YES  |     | NULL    |                |
+
+## Exchanges
+
+SAMWise supports all exchanges supported by ccxt.
 
 ## Installation
 
