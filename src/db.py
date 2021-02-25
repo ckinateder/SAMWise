@@ -148,10 +148,11 @@ def getRowInRange(db, table, key, rang, special=None):
     """
     cursor = db.cursor(dictionary=True)
     if special == "all":
-        query = f"SELECT * FROM {table}"
+        cursor.execute(f"SELECT * FROM {table}")
     else:
-        query = f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
-    cursor.execute(query)
+        cursor.execute(
+            f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
+        )
     c = cursor.fetchall()
     output = parseQuery(c)
     return output
