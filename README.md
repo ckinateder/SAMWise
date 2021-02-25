@@ -24,6 +24,7 @@ Current endpoints:
 * `/api/spreads` (not usable yet, will be integrated with hive)
 
 `/api/historical/` params:
+
 | identifier | format and type         | description                             |
 | ---------- | ----------------------- | --------------------------------------- |
 | key        | string                  | identifier of column to pick range from |
