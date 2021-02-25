@@ -343,13 +343,14 @@ class Propagtor:
             for i in resp:
                 self.prepareSQL(resp[i], exchange)
             trans = self._transposeBatchTickers(resp, exchange)
+            return trans
         except:
             tqdm.write(
                 colorBad(
                     f"Unknown error occured fetching batch tickers on {exchange.id}"
                 )
             )
-        return trans
+        return None
 
     def _divideBatchTickers(self, exchange, tickers):
         """
@@ -406,7 +407,6 @@ class Propagtor:
                         f"Unknown error occured fetching single symbol on {exchange.id}"
                     )
                 )
-                return None
         else:
             tqdm.write(
                 colorBad(f"Rate limit exceeded on {exchange} for {ticker} ... skipping")

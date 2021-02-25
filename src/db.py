@@ -19,6 +19,14 @@ USER = "test"
 PASS = "test"
 
 
+def fetch(cursor):
+    try:
+        return cursor.fetchall()
+    except:
+        tqdm.write("Error getting response from database")
+        return None
+
+
 def convertListOfTuples(ld):
     """
     Convert a list of single tuples to just a list
@@ -41,23 +49,22 @@ def resetDatabase(db_name):
         user=USER,
         password=PASS,
     )
-    cursor = db.cursor()
+    with db.cursor() as cursor:
+        # see if exists
+        cursor.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA")
+        raws = convertListOfTuples(fetch(cursor))
+        # drop if exists
+        if "symbols" in raws:
+            cursor.execute(f"DROP DATABASE {db_name};")
 
-    # see if exists
-    cursor.execute("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA")
-    raws = convertListOfTuples(cursor.fetchall())
-    # drop if exists
-    if "symbols" in raws:
-        cursor.execute(f"DROP DATABASE {db_name};")
-
-    cursor.execute(f"CREATE DATABASE {db_name};")
-    cursor.execute(f"USE {db_name};")
-    cursor.execute(
-        "CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, batch DATETIME, dx decimal(20,8), high decimal(20,8), last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
-    )
-    cursor.execute(
-        "CREATE TABLE latest (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, batch DATETIME, dx decimal(20,8), high decimal(20,8), last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
-    )
+        cursor.execute(f"CREATE DATABASE {db_name};")
+        cursor.execute(f"USE {db_name};")
+        cursor.execute(
+            "CREATE TABLE results (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, batch DATETIME, dx decimal(20,8), high decimal(20,8), last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
+        )
+        cursor.execute(
+            "CREATE TABLE latest (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(20), exchange VARCHAR(40), timestamp BIGINT, ask decimal(20,8), askVolume decimal(20,2), average decimal(20,8), baseVolume decimal(20,2), bid decimal(20,8), bidVolume decimal(20,2), close decimal(20,8), datetime DATETIME, batch DATETIME, dx decimal(20,8), high decimal(20,8), last decimal(20,8), low decimal(20,8), open decimal(20,8), percentage decimal(20,8), previousClose decimal(20,8), quoteVolume decimal(20,2), vwap decimal(20,2));"
+        )
 
 
 def createPropQuery(props):
@@ -128,20 +135,20 @@ def getBatchNearestTo(db, table, dt):
     Get batch nearest to given time.
     """
     limit = 2388
-    cursor = db.cursor(dictionary=True)
-    query = f"SELECT * FROM {table} WHERE batch <= '{dt}' ORDER BY abs(TIMESTAMPDIFF(second, batch, '{dt}')) LIMIT {limit}"
-    cursor.execute(query)
-    c = cursor.fetchall()
-    output = parseQuery(c)
-    return output
+    with db.cursor(dictionary=True) as cursor:
+        query = f"SELECT * FROM {table} WHERE batch <= '{dt}' ORDER BY abs(TIMESTAMPDIFF(second, batch, '{dt}')) LIMIT {limit}"
+        cursor.execute(query)
+        c = fetch(cursor)
+        output = parseQuery(c)
+        return output
 
 
 def getLatest(db):
-    cursor = db.cursor(dictionary=True)
-    cursor.execute(f"SELECT * FROM latest")
-    c = cursor.fetchall()
-    output = parseQuery(c)
-    return output
+    with db.cursor(dictionary=True) as cursor:
+        cursor.execute(f"SELECT * FROM latest")
+        c = fetch(cursor)
+        output = parseQuery(c)
+        return output
 
 
 def getRowInRange(db, table, key, rang):
@@ -154,40 +161,40 @@ def getRowInRange(db, table, key, rang):
         Anything outside of said format will throw an error.
 
     """
-    cursor = db.cursor(dictionary=True)
-    cursor.execute(
-        f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
-    )
-    c = cursor.fetchall()
-    output = parseQuery(c)
-    return output
+    with db.cursor(dictionary=True) as cursor:
+        cursor.execute(
+            f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
+        )
+        c = fetch(cursor)
+        output = parseQuery(c)
+        return output
 
 
 def getDBSize(db):
     # get table size in mb
-    cursor = db.cursor()
-    cursor.execute(
-        'SELECT table_name AS "Table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)" FROM information_schema.TABLES WHERE table_schema = "symbols" ORDER BY (data_length + index_length) DESC'
-    )
-    db_size = 0
-    # print(cursor.fetchall())
-    for i in cursor.fetchall():
-        db_size += float(i[1])
-    return round(db_size, 2)
+    with db.cursor() as cursor:
+        cursor.execute(
+            'SELECT table_name AS "Table", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS "Size (MB)" FROM information_schema.TABLES WHERE table_schema = "symbols" ORDER BY (data_length + index_length) DESC'
+        )
+        db_size = 0
+        # print(fetch(cursor))
+        for i in fetch(cursor):
+            db_size += float(i[1])
+        return round(db_size, 2)
 
 
 def getTableLength(db, table):
     # get table length
-    cursor = db.cursor(dictionary=True)
-    cursor.execute(f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1")
-    number_of_rows = cursor.fetchall()[0]["id"]
-    return number_of_rows
+    with db.cursor(dictionary=True) as cursor:
+        cursor.execute(f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1")
+        number_of_rows = fetch(cursor)[0]["id"]
+        return number_of_rows
 
 
 def getTables(db):
-    cursor = db.cursor()
-    cursor.execute("show tables")
-    return convertListOfTuples(cursor.fetchall())
+    with db.cursor() as cursor:
+        cursor.execute("show tables")
+        return convertListOfTuples(fetch(cursor))
 
 
 def initializeDB(db_name):
