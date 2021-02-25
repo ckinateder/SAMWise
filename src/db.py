@@ -136,7 +136,15 @@ def getBatchNearestTo(db, table, dt):
     return output
 
 
-def getRowInRange(db, table, key, rang, special=None):
+def getLatest(db):
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(f"SELECT * FROM latest")
+    c = cursor.fetchall()
+    output = parseQuery(c)
+    return output
+
+
+def getRowInRange(db, table, key, rang):
     """
     Gets a row by range and returns it as a dict. If all is passed as special, returns everything.
     EX:
@@ -147,12 +155,9 @@ def getRowInRange(db, table, key, rang, special=None):
 
     """
     cursor = db.cursor(dictionary=True)
-    if special == "all":
-        cursor.execute(f"SELECT * FROM {table}")
-    else:
-        cursor.execute(
-            f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
-        )
+    cursor.execute(
+        f"SELECT * FROM {table} WHERE {key} between '{rang[0]}' and '{rang[1]}'"
+    )
     c = cursor.fetchall()
     output = parseQuery(c)
     return output
@@ -227,7 +232,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
         writeProps(db, props, "latest", overwrite=True)
 
         for i in trange(
-            10 * 1000,
+            7 * 1000,
             leave=False,
             desc="timer",
             dynamic_ncols=True,

@@ -50,10 +50,7 @@ class Historical(Resource):
 class Latest(Resource):
     # methods go here
     def get(self):
-        row = getRowInRange(
-            db=db_client, table="latest", key="datetime", rang=None, special="all"
-        )
-
+        row = getLatest(db_client)
         return {"data": row}, 200  # return data with 200 OK
 
 
