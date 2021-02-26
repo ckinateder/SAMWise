@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import subprocess
 import time
 from math import floor, log
@@ -48,6 +48,17 @@ def clear():
     """
     os.system("cls" if os.name == "nt" else "clear")
     tqdm.write("\n" * (HEIGHT - 1))
+
+
+def timer(waittime):
+    for interval in trange(
+        waittime * 1000,
+        leave=False,
+        desc="timer",
+        dynamic_ncols=True,
+        position=1,
+    ):
+        time.sleep(0.001)
 
 
 def stringitizeL(l):

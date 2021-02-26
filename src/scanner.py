@@ -299,7 +299,7 @@ class Scanner:
         # only tqdm.write ONCE
         total_message = ""
         # return statements
-        spreads_return = None
+        spreads_return = []
         error_return = True
         flip_flop_return = False
         try:
@@ -323,7 +323,6 @@ class Scanner:
                 t_formatted = datetime.fromtimestamp(timestamp / 1000).strftime(
                     TIME_FORMAT
                 )
-                tqdm.write(t_formatted)
             else:
                 # fallback
                 t_formatted = nowD().strftime(TIME_FORMAT)

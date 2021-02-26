@@ -1,12 +1,12 @@
 from datetime import *
+from statistics import mean
 from os import error, listdir, path
-from pprint import pprint
+from pprint import pformat, pprint
 
 import ccxt
 import pandas as pd
 from tqdm import tqdm
 from tqdm.std import trange
-
 import propagator
 from bouncer import Bouncer
 from helper import *
@@ -163,6 +163,8 @@ class Hive:
         idynamics = self.pgator.getInvertedDynamicCommons(original=self.dynamic_commons)
         # nested loop with progressbar
         total = len(currencies) * n
+        total_profitables = []
+        total_ff = []
         with tqdm(
             total=total,
             position=1,
@@ -172,12 +174,14 @@ class Hive:
             desc="total",
         ) as total_bar:
             for cmt in range(n):
-                start_time = nowD()
+                propagation_time = nowD()
                 props = self.pgator.propagate(idynamics)
-                endtime = nowD() - start_time
+                propagation_time = nowD() - propagation_time
                 # pprint(props)
                 responses = {}
                 # multiprocess this ----
+
+                solve_time = nowD()
                 for scan in tqdm(
                     currencies,
                     leave=False,
@@ -189,18 +193,36 @@ class Hive:
                         spreads, error, ff = scan.getSpread(props[scan.symbol])
                     else:
                         spreads, error, ff = scan.getSpread()
-
-                    responses[scan] = {"flip_flop": ff, "error": error}
+                    responses[scan] = {
+                        "flip_flop": ff,
+                        "error": error,
+                        "profitables": len(spreads),
+                    }
                     total_bar.update(1)
-                errors = []
-                if errors:
-                    tqdm.write(colorBad(f"Errors: {stringitizeL(errors)}"))
+
+                solve_time = nowD() - solve_time
+                # summarize
+                cycle_profit_pairs = 0
+                cycle_ff_pairs = 0
+                for i in currencies:
+                    cycle_profit_pairs += responses[i]["profitables"]
+                    cycle_ff_pairs += responses[i]["flip_flop"]
+                total_profitables.append(cycle_profit_pairs)
+                total_ff.append(cycle_ff_pairs)
+                # notify
                 notify(
-                    f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {endtime}"
+                    f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {propagation_time}"
                 )
                 # sleep cause you don't need all that data
-                tqdm.write(f"Waiting 9s (propagated in {endtime}) ...")
-                time.sleep(9)
+                tqdm.write(
+                    f"Waiting 9s (propagated in {propagation_time}, solved in {solve_time}) ..."
+                )
+                timer(9)
+        tqdm.write(
+            colorGood(
+                f"Average profitable pairs per cycle: {mean(total_profitables)}\nAverage flip flop pairs per cycle: {mean(total_ff)}"
+            )
+        )
         notify("Completed!")
 
 
@@ -211,6 +233,6 @@ if __name__ == "__main__":
 
     # tableOfAll = hive.getTableOfAll()
     start_time = nowD()
-    n = 10
+    n = 100
     hive.scanAll(trade_size=100, n=n)
     tqdm.write(f"Scanned all symbols {n} times in {(nowD()-start_time)}")

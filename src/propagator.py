@@ -204,16 +204,6 @@ class Propagtor:
 
         return inverted
 
-    def _rateLimit(self, waittime):
-        for interval in trange(
-            waittime * 1000,
-            leave=False,
-            desc="timer",
-            dynamic_ncols=True,
-            position=1,
-        ):
-            time.sleep(0.001)
-
     def distribute(self, procs):
         """
         Takes a list of Thread objects and runs them simeultaneous, and waits til the last completion.
@@ -397,7 +387,7 @@ class Propagtor:
                         f"Rate limit exceeded on {exchange} for {ticker} ... trying again in {waittime}"
                     )
                 )
-                self._rateLimit(waittime)
+                self.timer(waittime)
                 response = self._getSingleSymbol(
                     exchange, ticker, depth=depth + 1, inter=inter
                 )

@@ -50,7 +50,7 @@ class Historical(Resource):
 class Latest(Resource):
     # methods go here
     def get(self):
-        row = getLatest(db_client)
+        row = "not yet supported"
         return {"data": row}, 200  # return data with 200 OK
 
 

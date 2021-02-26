@@ -143,14 +143,6 @@ def getBatchNearestTo(db, table, dt):
         return output
 
 
-def getLatest(db):
-    with db.cursor(dictionary=True) as cursor:
-        cursor.execute(f"SELECT * FROM latest")
-        c = fetch(cursor)
-        output = parseQuery(c)
-        return output
-
-
 def getRowInRange(db, table, key, rang):
     """
     Gets a row by range and returns it as a dict. If all is passed as special, returns everything.
@@ -223,8 +215,10 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
     if times == None:
         times = sys.maxsize
     for i in range(times):
+        # propagate
         props = tool.propagate(id)
         if now() - last >= (interval * 60):
+            # write to db
             writeProps(db, props, "results")
             last = now()
             number_of_rows = getTableLength(db, "results")
@@ -238,13 +232,7 @@ def writePropsLoop(db=None, db_name="symbols", interval=1, times=None):
 
         writeProps(db, props, "latest", overwrite=True)
 
-        for i in trange(
-            7 * 1000,
-            leave=False,
-            desc="timer",
-            dynamic_ncols=True,
-        ):
-            time.sleep(0.001)
+        timer(7)
 
 
 def runDatabase():
