@@ -175,19 +175,42 @@ class Hive:
         propagation_time = nowD() - propagation_time
         responses = {}
 
+        procs = []
         solve_time = nowD()
         for scan in tqdm(
             self.currencies,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
-            desc="solve",
+            desc="create",
         ):
             if scan.symbol in props:
-                scan.wrapGetSpreadToResults(responses, props[scan.symbol])
+                procs.append(
+                    Thread(
+                        target=scan.wrapGetSpreadToResults,
+                        args=(responses, props[scan.symbol]),
+                    )
+                )
             else:
                 tqdm.write(colorBad(f"Symbol {scan.symbol} not found in props!"))
-                scan.wrapGetSpreadToResults(responses)
+                procs.append(
+                    Thread(
+                        target=scan.wrapGetSpreadToResults,
+                        args=(responses),
+                    )
+                )
+        # start
+        for proc in tqdm(
+            procs,
+            leave=False,
+            unit="sym",
+            dynamic_ncols=True,
+            desc="solve",
+        ):
+            proc.start()
+        # join
+        for proc in procs:
+            proc.join()
 
         solve_time = nowD() - solve_time
         return responses
