@@ -37,7 +37,7 @@ def resetTables(engine):
     """
     Drop all tables and create them again
     """
-    print("Resetting database ...")
+    tqdm.write(colorBad("Resetting database ..."))
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
@@ -158,7 +158,7 @@ def saveProps(props, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {countNestedDicts(props)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long. DB now {getDBSize(session,'symbols')}."
+            f"Wrote {countNestedDicts(props)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long). DB now {getDBSize(session,'symbols')}."
         )
     )
 
@@ -174,6 +174,27 @@ def saveSpreads(spreads, session):
     tqdm.write(
         colorGood(
             f"Wrote {countNestedDicts(spreads)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'symbols')}."
+        )
+    )
+
+
+def saveBoth(props, spreads, session):
+    """
+    Save spreads to database
+    """
+    proptime = now()
+    rows = convertSpreadsToORM(spreads)
+    session.bulk_save_objects(rows)
+
+    rows = convertPropsToORM(props)
+    session.bulk_save_objects(rows)
+
+    session.commit()
+
+    proptime = now() - proptime
+    tqdm.write(
+        colorGood(
+            f"Wrote {countNestedDicts(spreads)} records to 'spreads' (now {getTableLength(session,'spreads'):,} records long).\nWrote {countNestedDicts(props)} records to 'results' (now {getTableLength(session,'results'):,} records long).\n* Took {proptime:.2f}s, DB now {getDBSize(session,'symbols')}."
         )
     )
 
@@ -195,13 +216,12 @@ def saveIndefinitely(session, interval=10):
         interval = 3
     beehive = hive.Hive(2)
     while True:
-        # create props and save to db
+        # create props
         props = beehive.pgator.propagate(beehive.idynamics)
-        saveProps(props, session)
-
-        # scan
+        # scan one cycle
         spreads = beehive.scanFull(props)
-        saveSpreads(spreads, session)
+        # save both
+        saveBoth(props, spreads, session)
         timer(interval - 3)
 
 
