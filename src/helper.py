@@ -50,6 +50,16 @@ def clear():
     tqdm.write("\n" * (HEIGHT - 1))
 
 
+def countProps(props):
+    """
+    Count the entries in a dict of dicts
+    """
+    total = 0
+    for i in props:
+        total += len(props[i])
+    return total
+
+
 def timer(waittime):
     for interval in trange(
         waittime * 1000,

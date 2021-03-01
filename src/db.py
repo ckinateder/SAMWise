@@ -3,7 +3,9 @@ import time
 from datetime import date
 from pprint import pprint
 
-import ccxt
+import ccxt, decimal
+import json
+from sqlalchemy.sql.sqltypes import DateTime
 import tqdm
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
@@ -11,7 +13,7 @@ from tqdm import *
 import hive
 import propagator
 from helper import *
-from tables import TickerInfo, Base
+from tables import Results, Base
 
 USER = "test"
 PASS = "test"
@@ -23,7 +25,7 @@ def buildEngine(connection, username, password, host, port, database):
     props[sym] call: createSession("mysql", "test", "test", "localhost", "3306", "symbols")
     """
     engine = create_engine(
-        f"{connection}://{username}:{password}@{host}:{port}/{database}", echo=True
+        f"{connection}://{username}:{password}@{host}:{port}/{database}"  # , echo=True
     )
     return engine
 
@@ -32,6 +34,7 @@ def resetTables(engine):
     """
     Drop all tables and create them again
     """
+    print("Resetting database ...")
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
@@ -46,20 +49,18 @@ def createSessionMaker(engine):
 
 def convertPropsToORM(props):
     """
-    Converts props to set of TickerInfo's
+    Converts props to set of Results's
     """
     tqdm.write("Packaging props ...")
     rows = []
-    total = 0
-    for i in props:
-        total += len(props[i])
+    total = countProps(props)
     with tqdm(
         total=total, leave=False, unit="tic", dynamic_ncols=True, desc="cycle"
     ) as bar:
         for sym in props:
             for exc in props[sym]:
                 # create row object
-                row = TickerInfo(
+                result = Results(
                     symbol=props[sym][exc]["symbol"],
                     exchange=props[sym][exc]["exchange"],
                     timestamp=props[sym][exc]["timestamp"],
@@ -81,9 +82,37 @@ def convertPropsToORM(props):
                     quoteVolume=props[sym][exc]["quoteVolume"],
                     vwap=props[sym][exc]["vwap"],
                 )
-                rows.append(row)
+                rows.append(result)
                 bar.update(1)
         return rows
+
+
+def saveProps(props, session):
+    """
+    Save props to database
+    """
+    start = now()
+    rows = convertPropsToORM(props)
+    session.bulk_save_objects(rows)
+    session.commit()
+    tqdm.write(f"Wrote {countProps(props)} records to DB in {now()-start:.2f}s.")
+
+
+def serializeQuery(query):
+    """
+    take the RESPONSE from a query and convert to json
+    """
+    result = []
+    for q in query:
+        pre = q.__dict__
+        pre.pop("_sa_instance_state")
+        for post in pre:
+            if type(pre[post]) == decimal.Decimal:
+                pre[post] = float(pre[post])
+            elif isinstance(pre[post], datetime):
+                pre[post] = pre[post].strftime(TIME_FORMAT)
+        result.append(pre)
+    return result
 
 
 # create engine
@@ -96,21 +125,21 @@ engine = buildEngine(
     database="symbols",
 )
 
-# reset database
-# resetTables(engine)
-
-# create session maker
-Session = createSessionMaker(engine)
-session = Session()
-
 # create propagator
 pgator = propagator.Propagtor()
 inverteds = pgator.getInvertedDynamicCommons()
 
+# reset database
+resetTables(engine)
+
+# create session maker and session
+Session = createSessionMaker(engine)
+session = Session()
+
 # create props
 props = pgator.propagate(inverteds)
-rows = convertPropsToORM(props)
+saveProps(props, session)
 
-# bulk save
-session.bulk_save_objects(rows)
-session.commit()
+query = session.query(Results).filter_by(symbol="ETH/USD")
+
+pprint(serializeQuery(query.all()))

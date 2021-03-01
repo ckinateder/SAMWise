@@ -1,12 +1,11 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.sqltypes import BIGINT, DECIMAL, DateTime, VARCHAR
-from beautifultable import BeautifulTable
 
 Base = declarative_base()
 
 
-class TickerInfo(Base):
+class Results(Base):
     __tablename__ = "results"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -83,11 +82,5 @@ class TickerInfo(Base):
         self.vwap = vwap
 
     def __repr__(self):
-        tostr = BeautifulTable()
-        tostr.rows.append(["ID", self.id])
-        tostr.rows.append(["symbol", self.symbol])
-        tostr.rows.append(["exchange", self.exchange])
-        tostr.rows.append(["ask", self.ask])
-        tostr.rows.append(["bid", self.bid])
-        tostr.columns.header = ["key", "value"]
-        return str(tostr)
+        tostr = f"<RESULTS @ id={self.id}, symbol={self.symbol}, exchange={self.exchange}, ask={float(self.ask)}, bid={float(self.bid)}>"
+        return tostr
