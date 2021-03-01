@@ -1,5 +1,6 @@
 import ast
 import json
+import threading
 from datetime import datetime
 from pprint import pprint
 
@@ -8,7 +9,7 @@ import pandas as pd
 from flask import Flask, request
 from flask_restful import Api, Resource
 from mysql.connector import Error, connect
-import threading
+
 import hive
 import propagator
 from db import *

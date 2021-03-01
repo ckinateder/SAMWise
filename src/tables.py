@@ -1,11 +1,12 @@
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.sql.sqltypes import BIGINT, DECIMAL, DateTime, VARCHAR
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.sqltypes import BIGINT, DECIMAL, Float, VARCHAR, DateTime
 
 Base = declarative_base()
 import decimal
-from helper import *
 from datetime import *
+
+from helper import *
 
 
 class Results(Base):
@@ -94,3 +95,35 @@ class Results(Base):
     def __repr__(self):
         tostr = f"<RESULTS @ id={self.id}, symbol={self.symbol}, exchange={self.exchange}, ask={float(self.ask)}, bid={float(self.bid)}>"
         return tostr
+
+
+class Spread(Base):
+    __tablename__ = "spreads"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    symbol = Column(VARCHAR(20))
+
+    buy = Column(VARCHAR(40))
+    sell = Column(VARCHAR(40))
+
+    time = Column(DateTime)
+    batch = Column(DateTime)
+    timestamp = Column(BIGINT)
+
+    buy_ask = Column(DECIMAL(20, 8))
+    buy_bid = Column(DECIMAL(20, 8))
+    buy_price = Column(DECIMAL(20, 8))
+
+    sell_ask = Column(DECIMAL(20, 8))
+    sell_bid = Column(DECIMAL(20, 8))
+    sell_price = Column(DECIMAL(20, 8))
+
+    fees = Column(DECIMAL(20, 8))
+    no_fees = Column(DECIMAL(20, 8))
+    spread_w_fees = Column(DECIMAL(20, 8))
+
+    liquidity = Column(DECIMAL(20, 8))
+
+    quote_order_size = Column(Integer)
+    speedup = Column(Float)

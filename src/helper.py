@@ -51,9 +51,9 @@ def clear():
     tqdm.write("\n" * (HEIGHT - 1))
 
 
-def countProps(props):
+def countNestedDicts(props):
     """
-    Count the entries in a dict of dicts
+    Count the entries in a dict of dicts.
     """
     total = 0
     for i in props:
@@ -156,6 +156,8 @@ def humanFormat(number):
     Shorten a long number with abbreviations
     """
     if type(number) == str:
+        return colorEh(number)
+    elif number <= 0:
         return colorEh(number)
     units = ["", "K", "M", "G", "T", "P"]
     k = 1000.0

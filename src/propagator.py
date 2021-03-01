@@ -147,7 +147,7 @@ class Propagtor:
         notify("Loaded {}".format(stringitizeExc(self.exchanges)))
         return self.exchanges
 
-    def getDynamicCommons(self, minnum=3):
+    def getDynamicCommons(self):
         """
         Get all symbols in common with minnum or more of the given self.exchanges.
         """
@@ -180,18 +180,18 @@ class Propagtor:
                         compatibles[symbol] = [exchange]
         multiples = {}
         for key in compatibles:
-            if len(compatibles[key]) >= minnum:
+            if len(compatibles[key]) >= 1:
                 multiples[key] = compatibles[key]
         return multiples
 
-    def getInvertedDynamicCommons(self, original=None, minnum=1):
+    def getInvertedDynamicCommons(self, original=None):
         """
         Get all symbols in common with 3 or more of the given self.exchanges.
         """
         if not self.exchanges:
             self.exchanges = self.loadExchanges(self.getAvailableExchanges())
         if not original:
-            original = self.getDynamicCommons(minnum)
+            original = self.getDynamicCommons(1)
 
         inverted = {}
         for symbol in original:

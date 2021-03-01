@@ -1,12 +1,13 @@
 from datetime import *
-from statistics import mean
 from os import error, listdir, path
 from pprint import pformat, pprint
+from statistics import mean
 
 import ccxt
 import pandas as pd
 from tqdm import tqdm
 from tqdm.std import trange
+
 import propagator
 from bouncer import Bouncer
 from helper import *
@@ -18,13 +19,13 @@ __email__ = "calvinkinateder@gmail.com"
 
 class Hive:
     """
-    Main class of the program. Handles collecting and controlling the data.
+    Handles collecting and controlling the data.
     """
 
     def __init__(self, minnum=3):
         self.pgator = propagator.Propagtor()
         with tqdm(
-            total=3, position=1, leave=False, dynamic_ncols=True, desc="total"
+            total=5, position=1, leave=False, dynamic_ncols=True, desc="total"
         ) as init_bar:
             availables = self.pgator.getAvailableExchanges()
             init_bar.update(1)
@@ -32,7 +33,13 @@ class Hive:
             self.exchanges = self.pgator.loadExchanges(availables)
             init_bar.update(1)
             # create dynamics
-            self.dynamic_commons = self.pgator.getDynamicCommons(minnum=minnum)
+            self.dynamic_commons = self.pgator.getDynamicCommons()
+            init_bar.update(1)
+            self.idynamics = self.pgator.getInvertedDynamicCommons(
+                original=self.dynamic_commons
+            )
+            init_bar.update(1)
+            self.currencies = self.createDynamicScanners(trade_size=100, minnum=minnum)
             init_bar.update(1)
 
     def getTableOfAll(self):
@@ -94,11 +101,11 @@ class Hive:
         out = list(set(out))
         return out
 
-    def createDynamicScanners(self, trade_size=100):
+    def createDynamicScanners(self, trade_size=100, minnum=2):
         """
         Create scanners for all the dynamic exchanges
         """
-        currencies = []
+        self.currencies = []
         tqdm.write(
             colorEh(
                 "{} ({} pairs found)".format(
@@ -115,26 +122,27 @@ class Hive:
             dynamic_ncols=True,
             desc="symbl",
         ):
-            currencies.append(
-                Scanner(
-                    e,
-                    trade_size,
-                    self.dynamic_commons[e],
-                    margin=0.01,
-                    min_speedup=0.2,
-                    speedup=72,
-                    loud=False,
-                    position=list(self.dynamic_commons.keys()).index(e)
-                    / len(self.dynamic_commons)
-                    * 100,
+            if len(self.dynamic_commons[e]) >= minnum:
+                self.currencies.append(
+                    Scanner(
+                        e,
+                        trade_size,
+                        self.dynamic_commons[e],
+                        margin=0.01,
+                        min_speedup=0.2,
+                        speedup=72,
+                        loud=False,
+                        position=list(self.dynamic_commons.keys()).index(e)
+                        / len(self.dynamic_commons)
+                        * 100,
+                    )
                 )
-            )
         tqdm.write(
             colorGood(
                 f"Created {len(self.dynamic_commons)} scanners!\nScanning now ..."
             )
         )
-        return currencies
+        return self.currencies
 
     def myPrint(self, dic):
         for x in dic:
@@ -155,16 +163,41 @@ class Hive:
                 verified = False
         return verified
 
-    def scanAll(self, trade_size, n=1):
+    def scanFull(self, props=None):
         """
-        Scan every single exchange n times and print a summary. Set 'beta' to False to run the stable mode.
+        Scan every currency once.
         """
-        currencies = self.createDynamicScanners(trade_size=trade_size)
-        idynamics = self.pgator.getInvertedDynamicCommons(original=self.dynamic_commons)
+        propagation_time = nowD()
+        if not props:
+            props = self.pgator.propagate(self.idynamics)
+        propagation_time = nowD() - propagation_time
+        responses = {}
+        # multiprocess this ----
+
+        solve_time = nowD()
+        for scan in tqdm(
+            self.currencies,
+            leave=False,
+            unit="sym",
+            dynamic_ncols=True,
+            desc="cycle",
+        ):
+            if scan.symbol in props:
+                spreads, error, ff = scan.getSpread(props[scan.symbol])
+            else:
+                tqdm.write(colorBad(f"Symbol {scan.symbol} not found in props!"))
+                spreads, error, ff = scan.getSpread()
+            responses[scan.symbol] = spreads
+
+        solve_time = nowD() - solve_time
+        return responses
+
+    def scanNTimes(self, n=1):
+        """
+        Scan every single exchange n times and print a summary.
+        """
         # nested loop with progressbar
-        total = len(currencies) * n
-        total_profitables = []
-        total_ff = []
+        total = len(self.currencies) * n
         with tqdm(
             total=total,
             position=1,
@@ -174,56 +207,15 @@ class Hive:
             desc="total",
         ) as total_bar:
             for cmt in range(n):
-                propagation_time = nowD()
-                props = self.pgator.propagate(idynamics)
-                # save props to database here
-                propagation_time = nowD() - propagation_time
-                # pprint(props)
-                responses = {}
-                # multiprocess this ----
-
-                solve_time = nowD()
-                for scan in tqdm(
-                    currencies,
-                    leave=False,
-                    unit="sym",
-                    dynamic_ncols=True,
-                    desc="cycle",
-                ):
-                    if scan.symbol in props:
-                        spreads, error, ff = scan.getSpread(props[scan.symbol])
-                    else:
-                        spreads, error, ff = scan.getSpread()
-                    responses[scan] = {
-                        "flip_flop": ff,
-                        "error": error,
-                        "profitables": len(spreads),
-                    }
-                    total_bar.update(1)
-
-                solve_time = nowD() - solve_time
-                # summarize
-                cycle_profit_pairs = 0
-                cycle_ff_pairs = 0
-                for i in currencies:
-                    cycle_profit_pairs += responses[i]["profitables"]
-                    cycle_ff_pairs += responses[i]["flip_flop"]
-                total_profitables.append(cycle_profit_pairs)
-                total_ff.append(cycle_ff_pairs)
+                start = nowD()
+                self.scanFull()
+                message = f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {nowD()-start}"
                 # notify
-                notify(
-                    f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {propagation_time}"
-                )
+                tqdm.write(message)
+                notify(message)
                 # sleep cause you don't need all that data
-                tqdm.write(
-                    f"Waiting 9s (propagated in {propagation_time}, solved in {solve_time}) ..."
-                )
-                timer(9)
-        tqdm.write(
-            colorGood(
-                f"Average profitable pairs per cycle: {mean(total_profitables)}\nAverage flip flop pairs per cycle: {mean(total_ff)}"
-            )
-        )
+                total_bar.update(1)
+                timer(7)
         notify("Completed!")
 
 
@@ -235,5 +227,5 @@ if __name__ == "__main__":
     # tableOfAll = hive.getTableOfAll()
     start_time = nowD()
     n = 100
-    hive.scanAll(trade_size=100, n=n)
+    hive.scanNTimes(n=n)
     tqdm.write(f"Scanned all symbols {n} times in {(nowD()-start_time)}")

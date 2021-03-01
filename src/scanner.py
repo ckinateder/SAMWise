@@ -77,7 +77,7 @@ class Scanner:
         ####
         if validated:
             self.symbol = symbol
-            if not "/" in symbol:
+            if not "/" in symbol and not symbol[:-2] == ".d":
                 self.p(colorBad(f"Invalid format for symbol '{symbol}'.\nExiting ..."))
                 sys.exit(0)
             self.base_coin = symbol.split("/")[0]
@@ -211,7 +211,7 @@ class Scanner:
         """
         Calculate the liquidity metric for two exchanges
         """
-        l = "unknown"
+        l = -1
         try:
             buy_volume = test_buy[1]["quoteVolume"]
             sell_volume = test_sell[1]["quoteVolume"]
@@ -224,9 +224,9 @@ class Scanner:
             l1 = (buy_volume * buy_close) / (buy_high - buy_low)
             l2 = (sell_volume * sell_close) / (sell_high - sell_low)
             # l = f'b{l1}  s{l2}'
-            l = 0.5 * l1 + 0.5 * l2
+            l = min(l1, l2)
         except:
-            l = "unknown"
+            l = -1
         return l
 
     def findFlipFlop(self, spreadlist):
@@ -328,6 +328,10 @@ class Scanner:
                 t_formatted = nowD().strftime(TIME_FORMAT)
                 timestamp = time.time()
 
+            # set batch
+            for exchange in responses:
+                batch = responses[exchange]["batch"]
+
             # not necessary to sort but it helps
             # pprint(responses)
             got_zero = False
@@ -421,6 +425,7 @@ class Scanner:
                                 "liquidity": liquidity,
                                 "no_fees": test_spread,  # a percent
                                 "timestamp": timestamp,
+                                "batch": batch,
                             }
                         else:
                             got_zero = True

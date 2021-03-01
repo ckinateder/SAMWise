@@ -1,19 +1,22 @@
+import argparse
+import decimal
+import json
 import sys
 import time
 from datetime import date
 from pprint import pprint
-import argparse
-import ccxt, decimal
-import json
-from sqlalchemy.sql.sqltypes import DateTime
+
+import ccxt
 import tqdm
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.sqltypes import DateTime
 from tqdm import *
+
 import hive
 import propagator
 from helper import *
-from tables import Results, Base
+from tables import Base, Results, Spread
 
 USER = "test"
 PASS = "test"
@@ -73,7 +76,7 @@ def convertPropsToORM(props):
     """
     tqdm.write("Packaging props ...")
     rows = []
-    total = countProps(props)
+    total = countNestedDicts(props)
     with tqdm(
         total=total, leave=False, unit="tic", dynamic_ncols=True, desc="cycle"
     ) as bar:
@@ -107,6 +110,44 @@ def convertPropsToORM(props):
         return rows
 
 
+def convertSpreadsToORM(spreads):
+    """
+    Converts spreads to set of spread table rows
+    """
+    tqdm.write("Packaging spreads ...")
+    rows = []
+    total = countNestedDicts(spreads)
+    with tqdm(
+        total=total, leave=False, unit="tic", dynamic_ncols=True, desc="cycle"
+    ) as bar:
+        for sym in spreads:
+            for combo in spreads[sym]:
+                # create row object
+                result = Spread(
+                    symbol=combo["symbol"],
+                    buy=combo["buy"],
+                    sell=combo["sell"],
+                    time=combo["time"],
+                    batch=combo["batch"],
+                    timestamp=combo["timestamp"],
+                    buy_ask=combo["buy_ask"],
+                    buy_bid=combo["buy_bid"],
+                    buy_price=combo["buy_price"],
+                    sell_ask=combo["sell_ask"],
+                    sell_bid=combo["sell_bid"],
+                    sell_price=combo["sell_price"],
+                    fees=combo["fees"],
+                    no_fees=combo["no_fees"],
+                    spread_w_fees=combo["spread_w_fees"],
+                    liquidity=combo["liquidity"],
+                    quote_order_size=combo["quote_order_size"],
+                    speedup=combo["speedup"],
+                )
+                rows.append(result)
+                bar.update(1)
+        return rows
+
+
 def saveProps(props, session):
     """
     Save props to database
@@ -116,7 +157,20 @@ def saveProps(props, session):
     session.bulk_save_objects(rows)
     session.commit()
     tqdm.write(
-        f"Wrote {countProps(props)} records to DB in {now()-start:.2f}s. DB now {getDBSize(session,'symbols')} and {getTableLength(session,'results'):,} records long."
+        f"Wrote {countNestedDicts(props)} records to DB in {now()-start:.2f}s. DB now {getDBSize(session,'symbols')} and {getTableLength(session,'results'):,} records long."
+    )
+
+
+def saveSpreads(spreads, session):
+    """
+    Save spreads to database
+    """
+    start = now()
+    rows = convertSpreadsToORM(spreads)
+    session.bulk_save_objects(rows)
+    session.commit()
+    tqdm.write(
+        f"Wrote {countNestedDicts(spreads)} records to DB in {now()-start:.2f}s. DB now {getDBSize(session,'symbols')} and {getTableLength(session,'results'):,} records long."
     )
 
 
@@ -127,8 +181,6 @@ def filterResults(session, **kwargs):
     query = session.query(Results).filter_by(**kwargs)
     return query
 
-    return number_of_rows
-
 
 def saveIndefinitely(session, interval=10):
     """
@@ -137,12 +189,15 @@ def saveIndefinitely(session, interval=10):
     # create propagator
     if interval < 3:
         interval = 3
-    pgator = propagator.Propagtor()
-    inverteds = pgator.getInvertedDynamicCommons()
+    beehive = hive.Hive(2)
     while True:
-        # create props
-        props = pgator.propagate(inverteds)
+        # create props and save to db
+        props = beehive.pgator.propagate(beehive.idynamics)
         saveProps(props, session)
+
+        # scan
+        spreads = beehive.scanFull(props)
+        saveSpreads(spreads, session)
         timer(interval - 3)
 
 
