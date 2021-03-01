@@ -176,6 +176,7 @@ class Hive:
             for cmt in range(n):
                 propagation_time = nowD()
                 props = self.pgator.propagate(idynamics)
+                # save props to database here
                 propagation_time = nowD() - propagation_time
                 # pprint(props)
                 responses = {}
