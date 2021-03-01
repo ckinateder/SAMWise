@@ -153,7 +153,7 @@ def nowD():
 
 def humanFormat(number):
     """
-    Shorten a long number with abbreversediations
+    Shorten a long number with abbreviations
     """
     if type(number) == str:
         return colorEh(number)

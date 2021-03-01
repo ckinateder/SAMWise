@@ -47,6 +47,26 @@ def createSessionMaker(engine):
     return maker
 
 
+def getDBSize(session, dbname):
+    # get table size in mb
+    x = session.execute(
+        f'SELECT table_name AS "Table", (data_length + index_length) AS "Size (B)" FROM information_schema.TABLES WHERE table_schema = "{dbname}" ORDER BY (data_length + index_length) DESC'
+    ).fetchall()
+    db_size = 0
+    for tup in x:
+        db_size += tup[1]
+    formatted = humanFormat(db_size) + "B"
+    return formatted
+
+
+def getTableLength(session, table):
+    # get table length
+    number_of_rows = session.execute(
+        f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1"
+    ).fetchall()[0][0]
+    return number_of_rows
+
+
 def convertPropsToORM(props):
     """
     Converts props to set of Results's
@@ -95,7 +115,9 @@ def saveProps(props, session):
     rows = convertPropsToORM(props)
     session.bulk_save_objects(rows)
     session.commit()
-    tqdm.write(f"Wrote {countProps(props)} records to DB in {now()-start:.2f}s.")
+    tqdm.write(
+        f"Wrote {countProps(props)} records to DB in {now()-start:.2f}s. DB now {getDBSize(session,'symbols')} and {getTableLength(session,'results'):,} records long."
+    )
 
 
 def filterResults(session, **kwargs):
@@ -104,6 +126,8 @@ def filterResults(session, **kwargs):
     """
     query = session.query(Results).filter_by(**kwargs)
     return query
+
+    return number_of_rows
 
 
 def saveIndefinitely(session, interval=10):
@@ -155,7 +179,6 @@ if __name__ == "__main__":
     # create session maker and session
     Session = createSessionMaker(engine)
     session = Session()
-
     # save indef
     saveIndefinitely(session)
 
