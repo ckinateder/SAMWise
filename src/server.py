@@ -8,7 +8,6 @@ import ccxt
 import pandas as pd
 from flask import Flask, request
 from flask_restful import Api, Resource
-from mysql.connector import Error, connect
 
 import hive
 import propagator

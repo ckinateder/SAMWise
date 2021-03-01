@@ -157,7 +157,9 @@ def saveProps(props, session):
     session.bulk_save_objects(rows)
     session.commit()
     tqdm.write(
-        f"Wrote {countNestedDicts(props)} records to DB in {now()-start:.2f}s. DB now {getDBSize(session,'symbols')} and {getTableLength(session,'results'):,} records long."
+        colorGood(
+            f"Wrote {countNestedDicts(props)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long. DB now {getDBSize(session,'symbols')}."
+        )
     )
 
 
@@ -170,7 +172,9 @@ def saveSpreads(spreads, session):
     session.bulk_save_objects(rows)
     session.commit()
     tqdm.write(
-        f"Wrote {countNestedDicts(spreads)} records to DB in {now()-start:.2f}s. DB now {getDBSize(session,'symbols')} and {getTableLength(session,'results'):,} records long."
+        colorGood(
+            f"Wrote {countNestedDicts(spreads)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'symbols')}."
+        )
     )
 
 
