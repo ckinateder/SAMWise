@@ -106,6 +106,22 @@ def filterResults(session, **kwargs):
     return query
 
 
+def saveIndefinitely(session, interval=10):
+    """
+    Takes a session object and save every interval seconds
+    """
+    # create propagator
+    if interval < 3:
+        interval = 3
+    pgator = propagator.Propagtor()
+    inverteds = pgator.getInvertedDynamicCommons()
+    while True:
+        # create props
+        props = pgator.propagate(inverteds)
+        saveProps(props, session)
+        timer(interval - 3)
+
+
 if __name__ == "__main__":
     # Create the parser
     parser = argparse.ArgumentParser(
@@ -116,8 +132,12 @@ if __name__ == "__main__":
     parser.add_argument("-H", "--host", help="host", default="localhost")
     parser.add_argument("-P", "--port", help="port", default="3306")
     parser.add_argument("-d", "--database", help="database", default="symbols")
+    parser.add_argument(
+        "-r", "--reset", help="reset the database", default=False, action="store_true"
+    )
 
     args = parser.parse_args()
+
     # create engine
     engine = buildEngine(
         connection="mysql",
@@ -128,23 +148,20 @@ if __name__ == "__main__":
         database=args.database,
     )
 
-    # create propagator
-    pgator = propagator.Propagtor()
-    inverteds = pgator.getInvertedDynamicCommons()
-
     # reset database
-    resetTables(engine)
+    if args.reset:
+        resetTables(engine)
 
     # create session maker and session
     Session = createSessionMaker(engine)
     session = Session()
 
-    # create props
-    props = pgator.propagate(inverteds)
-    saveProps(props, session)
+    # save indef
+    saveIndefinitely(session)
 
     query = Results.findBy(
-        session, True, symbol="ETH/USD", exchange="Kraken"
+        session, True, batch="2021-03-01 18:25:55"
     )  # filterResults(session, symbol="ETH/USD", exchange="Kraken")
 
     pprint(query)
+    print(f"Fetched {len(query)} items.")
