@@ -320,14 +320,16 @@ class Scanner:
             if len(stamps) > 0:
                 timestamp = statistics.mean(stamps)
                 # divide by 1000 because milliseconds is recieved
-                t_formatted = datetime.fromtimestamp(timestamp / 1000).strftime(
-                    TIME_FORMAT
+                t_formatted = (
+                    datetime.fromtimestamp(timestamp / 1000)
+                    .astimezone(tz=timezone.utc)
+                    .strftime(TIME_FORMAT)
                 )
             else:
                 # fallback
-                t_formatted = nowD().strftime(TIME_FORMAT)
+                t_formatted = nowD().astimezone(tz=timezone.utc).strftime(TIME_FORMAT)
                 timestamp = time.time()
-            t_formatted = t_formatted.astimezone(tz=timezone.utc)
+            t_formatted = t_formatted
             # set batch
             for exchange in responses:
                 batch = responses[exchange]["batch"]
