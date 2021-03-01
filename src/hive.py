@@ -174,44 +174,20 @@ class Hive:
             props = self.pgator.propagate(self.idynamics)
         propagation_time = nowD() - propagation_time
         responses = {}
-        # multiprocess this ----
 
-        procs = []
         solve_time = nowD()
         for scan in tqdm(
             self.currencies,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
-            desc="create",
-        ):
-            if scan.symbol in props:
-                procs.append(
-                    Thread(
-                        target=scan.wrapGetSpreadToResults,
-                        args=(responses, props[scan.symbol]),
-                    )
-                )
-            else:
-                tqdm.write(colorBad(f"Symbol {scan.symbol} not found in props!"))
-                procs.append(
-                    Thread(
-                        target=scan.wrapGetSpreadToResults,
-                        args=(responses),
-                    )
-                )
-        # start
-        for proc in tqdm(
-            procs,
-            leave=False,
-            unit="sym",
-            dynamic_ncols=True,
             desc="solve",
         ):
-            proc.start()
-        # join
-        for proc in procs:
-            proc.join()
+            if scan.symbol in props:
+                scan.wrapGetSpreadToResults(responses, props[scan.symbol])
+            else:
+                tqdm.write(colorBad(f"Symbol {scan.symbol} not found in props!"))
+                scan.wrapGetSpreadToResults(responses)
 
         solve_time = nowD() - solve_time
         return responses
