@@ -3,6 +3,9 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.sqltypes import BIGINT, DECIMAL, DateTime, VARCHAR
 
 Base = declarative_base()
+import decimal
+from helper import *
+from datetime import *
 
 
 class Results(Base):
@@ -80,6 +83,11 @@ class Results(Base):
         self.previousClose = previousClose
         self.quoteVolume = quoteVolume
         self.vwap = vwap
+
+    @classmethod
+    def findBy(cls, session, **kwargs):
+        q = session.query(cls).filter_by(**kwargs).all()
+        return q
 
     def __repr__(self):
         tostr = f"<RESULTS @ id={self.id}, symbol={self.symbol}, exchange={self.exchange}, ask={float(self.ask)}, bid={float(self.bid)}>"

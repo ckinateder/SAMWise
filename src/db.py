@@ -160,6 +160,8 @@ if __name__ == "__main__":
     props = pgator.propagate(inverteds)
     saveProps(props, session)
 
-    query = filterResults(session, symbol="ETH/USD", exchange="Kraken")
+    query = Results.findBy(
+        session, symbol="ETH/USD", exchange="Kraken"
+    )  # filterResults(session, symbol="ETH/USD", exchange="Kraken")
 
-    pprint(serializeQuery(query.all()))
+    pprint(serializeQuery(query))
