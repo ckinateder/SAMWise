@@ -1,12 +1,13 @@
-from datetime import datetime
+import decimal
 import os
-from tqdm import tqdm, trange
 import subprocess
 import time
+from datetime import datetime
 from math import floor, log
 from string import Template
 
 from termcolor import colored
+from tqdm import tqdm, trange
 
 try:
     import pync
@@ -83,6 +84,23 @@ def stringitizeL(l):
     else:
         out = l[0]
     return out
+
+
+def serializeQuery(query):
+    """
+    take the RESPONSE from a query and convert to json
+    """
+    result = []
+    for q in query:
+        pre = q.__dict__
+        pre.pop("_sa_instance_state")
+        for post in pre:
+            if type(pre[post]) == decimal.Decimal:
+                pre[post] = float(pre[post])
+            elif isinstance(pre[post], datetime):
+                pre[post] = pre[post].strftime(TIME_FORMAT)
+        result.append(pre)
+    return result
 
 
 def stringitizeExc(list_of_exchanges):

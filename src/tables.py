@@ -85,8 +85,10 @@ class Results(Base):
         self.vwap = vwap
 
     @classmethod
-    def findBy(cls, session, **kwargs):
+    def findBy(cls, session, serialize, **kwargs):
         q = session.query(cls).filter_by(**kwargs).all()
+        if serialize:
+            q = serializeQuery(q)
         return q
 
     def __repr__(self):

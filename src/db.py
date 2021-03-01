@@ -98,23 +98,6 @@ def saveProps(props, session):
     tqdm.write(f"Wrote {countProps(props)} records to DB in {now()-start:.2f}s.")
 
 
-def serializeQuery(query):
-    """
-    take the RESPONSE from a query and convert to json
-    """
-    result = []
-    for q in query:
-        pre = q.__dict__
-        pre.pop("_sa_instance_state")
-        for post in pre:
-            if type(pre[post]) == decimal.Decimal:
-                pre[post] = float(pre[post])
-            elif isinstance(pre[post], datetime):
-                pre[post] = pre[post].strftime(TIME_FORMAT)
-        result.append(pre)
-    return result
-
-
 def filterResults(session, **kwargs):
     """
     filter results by given kwargs
@@ -161,7 +144,7 @@ if __name__ == "__main__":
     saveProps(props, session)
 
     query = Results.findBy(
-        session, symbol="ETH/USD", exchange="Kraken"
+        session, True, symbol="ETH/USD", exchange="Kraken"
     )  # filterResults(session, symbol="ETH/USD", exchange="Kraken")
 
-    pprint(serializeQuery(query))
+    pprint(query)
