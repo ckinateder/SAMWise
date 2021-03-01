@@ -2,7 +2,7 @@ import sys
 import time
 from datetime import date
 from pprint import pprint
-
+import argparse
 import ccxt, decimal
 import json
 from sqlalchemy.sql.sqltypes import DateTime
@@ -115,31 +115,51 @@ def serializeQuery(query):
     return result
 
 
-# create engine
-engine = buildEngine(
-    connection="mysql",
-    username="test",
-    password="test",
-    host="localhost",
-    port="3306",
-    database="symbols",
-)
+def filterResults(session, **kwargs):
+    """
+    filter results by given kwargs
+    """
+    query = session.query(Results).filter_by(**kwargs)
+    return query
 
-# create propagator
-pgator = propagator.Propagtor()
-inverteds = pgator.getInvertedDynamicCommons()
 
-# reset database
-resetTables(engine)
+if __name__ == "__main__":
+    # Create the parser
+    parser = argparse.ArgumentParser(
+        description="Handle database connections for SAMWise"
+    )
+    parser.add_argument("-u", "--user", help="username", default="test")
+    parser.add_argument("-p", "--pwd", help="password", default="test")
+    parser.add_argument("-H", "--host", help="host", default="localhost")
+    parser.add_argument("-P", "--port", help="port", default="3306")
+    parser.add_argument("-d", "--database", help="database", default="symbols")
 
-# create session maker and session
-Session = createSessionMaker(engine)
-session = Session()
+    args = parser.parse_args()
+    # create engine
+    engine = buildEngine(
+        connection="mysql",
+        username=args.user,
+        password=args.pwd,
+        host=args.host,
+        port=args.port,
+        database=args.database,
+    )
 
-# create props
-props = pgator.propagate(inverteds)
-saveProps(props, session)
+    # create propagator
+    pgator = propagator.Propagtor()
+    inverteds = pgator.getInvertedDynamicCommons()
 
-query = session.query(Results).filter_by(symbol="ETH/USD")
+    # reset database
+    resetTables(engine)
 
-pprint(serializeQuery(query.all()))
+    # create session maker and session
+    Session = createSessionMaker(engine)
+    session = Session()
+
+    # create props
+    props = pgator.propagate(inverteds)
+    saveProps(props, session)
+
+    query = filterResults(session, symbol="ETH/USD", exchange="Kraken")
+
+    pprint(serializeQuery(query.all()))
