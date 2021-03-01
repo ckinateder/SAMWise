@@ -3,7 +3,7 @@ from tqdm import tqdm
 import sys
 import csv
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from os import path
 from math import log, floor
 import traceback
@@ -327,7 +327,7 @@ class Scanner:
                 # fallback
                 t_formatted = nowD().strftime(TIME_FORMAT)
                 timestamp = time.time()
-
+            t_formatted = t_formatted.astimezone(tz=timezone.utc)
             # set batch
             for exchange in responses:
                 batch = responses[exchange]["batch"]
