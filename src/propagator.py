@@ -449,7 +449,7 @@ class Propagtor:
         for i in idynamics:
             total += len(idynamics[i])
         self.cycle_bar = tqdm(
-            total=total, leave=False, unit="exc", dynamic_ncols=True, desc="cycle"
+            total=total, leave=False, unit="exc", dynamic_ncols=True, desc="fetch"
         )
         procs = []
         for exchange in exchanges:

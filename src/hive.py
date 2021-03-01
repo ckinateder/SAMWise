@@ -2,6 +2,7 @@ from datetime import *
 from os import error, listdir, path
 from pprint import pformat, pprint
 from statistics import mean
+from threading import Thread
 
 import ccxt
 import pandas as pd
@@ -132,6 +133,7 @@ class Hive:
                         min_speedup=0.2,
                         speedup=72,
                         loud=False,
+                        silent=True,
                         position=list(self.dynamic_commons.keys()).index(e)
                         / len(self.dynamic_commons)
                         * 100,
@@ -174,20 +176,42 @@ class Hive:
         responses = {}
         # multiprocess this ----
 
+        procs = []
         solve_time = nowD()
         for scan in tqdm(
             self.currencies,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
-            desc="cycle",
+            desc="create",
         ):
             if scan.symbol in props:
-                spreads, error, ff = scan.getSpread(props[scan.symbol])
+                procs.append(
+                    Thread(
+                        target=scan.wrapGetSpreadToResults,
+                        args=(responses, props[scan.symbol]),
+                    )
+                )
             else:
                 tqdm.write(colorBad(f"Symbol {scan.symbol} not found in props!"))
-                spreads, error, ff = scan.getSpread()
-            responses[scan.symbol] = spreads
+                procs.append(
+                    Thread(
+                        target=scan.wrapGetSpreadToResults,
+                        args=(responses),
+                    )
+                )
+        # start
+        for proc in tqdm(
+            procs,
+            leave=False,
+            unit="sym",
+            dynamic_ncols=True,
+            desc="solve",
+        ):
+            proc.start()
+        # join
+        for proc in procs:
+            proc.join()
 
         solve_time = nowD() - solve_time
         return responses

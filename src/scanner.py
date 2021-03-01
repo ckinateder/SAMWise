@@ -33,7 +33,8 @@ class Scanner:
         speedup=10,
         margin=0.01,
         min_speedup=1,
-        loud=True,
+        loud=False,
+        silent=False,
         position=None,
         timeout=3,
         sortbyspread=True,
@@ -48,6 +49,7 @@ class Scanner:
             margin: min trade profit
             min_speedup: min percentage value of how tight the margin may be squeezed
             loud: tqdm.write all pairs or just profitable
+            silent: print NO output
             position: optional, number assigned to object
             timeout: seconds to wait for a response until canceling
             sortbyspread: bool, which paramater to sort by
@@ -59,7 +61,7 @@ class Scanner:
         else:
             self.sort_priority = "speedup"
             self.sort_secondary = "spread_w_fees"
-
+        self.silent = silent
         self.start_time = nowD()
         self.uptime = self.start_time - nowD()  # really not necessary
         self.position = position
@@ -661,6 +663,10 @@ class Scanner:
         self.p(total_message, end="")
         return spreads_return, error_return, flip_flop_return
 
+    def wrapGetSpreadToResults(self, results, prop_slice=[]):
+        spreads, error, flip = self.getSpread(prop_slice)
+        results[self.symbol] = spreads
+
     def switch(self, new_symbol):
         self.symbol = new_symbol
 
@@ -668,4 +674,5 @@ class Scanner:
         return f"Scanner@{self.symbol}"
 
     def p(self, st, end=""):
-        tqdm.write(st, end=end)
+        if not self.silent:
+            tqdm.write(st, end=end)
