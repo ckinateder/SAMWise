@@ -207,24 +207,25 @@ def filterResults(session, **kwargs):
     return query
 
 
-def saveIndefinitely(session, interval=10):
+def saveIndefinitely(session, interval=0):
     """
     Takes a session object and save every interval seconds
     """
     # create propagator
-    if interval < 3:
-        interval = 3
+    if interval < 10 and interval != 0:
+        interval = 10
     beehive = hive.Hive(2)
     while True:
         # create props
-        props = beehive.pgator.propagate(beehive.idynamics)
+        props, globals()["latest_batch"] = beehive.pgator.propagate(beehive.idynamics)
         # scan one cycle
         spreads = beehive.scanFull(props)
-        # save both
+
         saveBoth(props, spreads, session)
-        timer(interval - 3)
+        timer(interval)
 
 
+latest_batch = 0
 if __name__ == "__main__":
     # Create the parser
     parser = argparse.ArgumentParser(

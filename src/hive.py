@@ -171,10 +171,11 @@ class Hive:
         """
         propagation_time = nowD()
         if not props:
-            props = self.pgator.propagate(self.idynamics)
+            props, latest_batch = self.pgator.propagate(self.idynamics)
         propagation_time = nowD() - propagation_time
         responses = {}
 
+        # multithreaded for speed
         procs = []
         solve_time = nowD()
         for scan in tqdm(

@@ -465,4 +465,4 @@ class Propagtor:
             )
         self.distribute(procs)
         self.cycle_bar.close()
-        return self.props
+        return self.props, self.batch
