@@ -199,42 +199,52 @@ def saveBoth(props, spreads, session):
     )
 
 
-def filterResults(session, **kwargs):
+def saveIndefinitely(Session, interval=0):
     """
-    filter results by given kwargs
+    Takes a sessionmaker object, create session, and save every interval seconds
     """
-    query = session.query(Results).filter_by(**kwargs)
-    return query
-
-
-def saveIndefinitely(session, interval=0):
-    """
-    Takes a session object and save every interval seconds
-    """
+    session = Session()
     # create propagator
     if interval < 10 and interval != 0:
         interval = 10
     beehive = hive.Hive(2)
     while True:
         # create props
-        props, globals()["latest_batch"] = beehive.pgator.propagate(beehive.idynamics)
+        props, globals()["latest_raw_batch"] = beehive.pgator.propagate(
+            beehive.idynamics
+        )
         saveProps(props, session)
         # scan one cycle
         spreads = beehive.scanFull(props)
         saveSpreads(spreads, session)
+        globals()["latest_solved_batch"] = globals()[
+            "latest_raw_batch"
+        ]  # set latest batch once solved
         # saveBoth(props, spreads, session)
         timer(interval)
 
 
-def getLatest(session):
-    latest = Results.findBy(
-        session, True, batch=globals()["latest_batch"].strftime(TIME_FORMAT)
-    )
+def getRawLatest(session):
+    latest = None
+    if globals()["latest_raw_batch"]:
+        latest = Results.findBy(
+            session, True, batch=globals()["latest_raw_batch"].strftime(TIME_FORMAT)
+        )
     return latest
 
 
-latest_batch = 0
+def getSpreadsLatest(session):
+    latest = None
+    if globals()["latest_solved_batch"]:
+        latest = Spread.findBy(
+            session, True, batch=globals()["latest_solved_batch"].strftime(TIME_FORMAT)
+        )
+    return latest
+
+
 if __name__ == "__main__":
+
+    latest_batch = None
     # Create the parser
     parser = argparse.ArgumentParser(
         description="Handle database connections for SAMWise"

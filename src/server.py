@@ -17,12 +17,12 @@ app = Flask(__name__)
 api = Api(app)
 
 
-class Historical(Resource):
+class RawFlex(Resource):
     # methods go heredef
     def get(self):
         """
         Calls
-        GET 127.0.0.1:5000/api/historical?bottom=2021-02-23 21:00:00&top=2021-02-24 11:34:07.495980&sortby=datetime
+        GET 127.0.0.1:5000/api/flex?bottom=2021-02-23 21:00:00&top=2021-02-24 11:34:07.495980&sortby=datetime
 
         bottom = request.args.get("bottom")
         top = request.args.get("top")
@@ -48,22 +48,34 @@ class Historical(Resource):
         pass
 
 
-class Latest(Resource):
+class RawLatest(Resource):
     # methods go here
     def get(self):
-        row = getLatest(session)
+        query_session = Session()  # for querying
+        row = getRawLatest(query_session)
         return {"data": row}, 200  # return data with 200 OK
 
 
-class Spreads(Resource):
+class SpreadsFlex(Resource):
     # methods go here
     def get(self):
         return {"data": "OK (spreads)"}, 200  # return data and 200 OK code
 
 
-api.add_resource(Historical, "/api/historical")  # '/historical' is our entry point
-api.add_resource(Latest, "/api/latest")  # '/latest' is our entry point
-api.add_resource(Spreads, "/api/spreads")  # '/spreads' is our entry point
+class SpreadsLatest(Resource):
+    # methods go here
+    def get(self):
+        query_session = Session()  # for querying
+        row = getSpreadsLatest(query_session)
+        return {"data": row}, 200  # return data and 200 OK code
+
+
+api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
+api.add_resource(RawLatest, "/api/raw/latest")  # '/raw/latest' is our entry point
+api.add_resource(SpreadsFlex, "/api/spreads/flex")  # '/spreads/flex' is our entry point
+api.add_resource(
+    SpreadsLatest, "/api/spreads/latest"
+)  # '/spreads/latest' is our entry point
 
 
 def runAPI():
@@ -102,12 +114,11 @@ if __name__ == "__main__":
             resetTables("symbols")
 
     # create session maker and session
-    Session = createSessionMaker(engine)
-    session = Session()
+    Session = createSessionMaker(engine)  # for saving
 
     # create threads
     apiThread = threading.Thread(target=runAPI, name="api")
-    dataThread = threading.Thread(target=saveIndefinitely, args=(session,), name="data")
+    dataThread = threading.Thread(target=saveIndefinitely, args=(Session,), name="data")
     # start threads
     dataThread.start()
     tqdm.write("Started DATA server ...")

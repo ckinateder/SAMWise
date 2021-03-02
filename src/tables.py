@@ -127,3 +127,10 @@ class Spread(Base):
 
     quote_order_size = Column(Integer)
     speedup = Column(Float)
+
+    @classmethod
+    def findBy(cls, session, serialize, **kwargs):
+        q = session.query(cls).filter_by(**kwargs).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
