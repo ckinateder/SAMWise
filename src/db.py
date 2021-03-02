@@ -22,13 +22,13 @@ USER = "test"
 PASS = "test"
 
 
-def buildEngine(connection, username, password, host, port, database):
+def buildEngine(connection, username, password, host, port, database, echo=False):
     """
-    Takes string params and returns a session.
+    Takes string params and returns an engine.
     props[sym] call: createSession("mysql", "test", "test", "localhost", "3306", "symbols")
     """
     engine = create_engine(
-        f"{connection}://{username}:{password}@{host}:{port}/{database}"  # , echo=True
+        f"{connection}://{username}:{password}@{host}:{port}/{database}", echo=echo
     )
     return engine
 
@@ -51,7 +51,9 @@ def createSessionMaker(engine):
 
 
 def getDBSize(session, dbname):
-    # get table size in mb
+    """
+    Get dbname size
+    """
     x = session.execute(
         f'SELECT table_name AS "Table", (data_length + index_length) AS "Size (B)" FROM information_schema.TABLES WHERE table_schema = "{dbname}" ORDER BY (data_length + index_length) DESC'
     ).fetchall()
@@ -225,6 +227,9 @@ def saveIndefinitely(Session, interval=0):
 
 
 def getRawLatest(session):
+    """
+    Get latest data from the price tickers.
+    """
     latest = None
     if globals()["latest_raw_batch"]:
         latest = Results.findBy(
@@ -234,6 +239,9 @@ def getRawLatest(session):
 
 
 def getSpreadsLatest(session):
+    """
+    Get latest data from the
+    """
     latest = None
     if globals()["latest_solved_batch"]:
         latest = Spread.findBy(
@@ -243,7 +251,6 @@ def getSpreadsLatest(session):
 
 
 if __name__ == "__main__":
-
     latest_batch = None
     # Create the parser
     parser = argparse.ArgumentParser(
@@ -279,10 +286,3 @@ if __name__ == "__main__":
     session = Session()
     # save indef
     saveIndefinitely(session)
-
-    query = Results.findBy(
-        session, True, batch="2021-03-01 18:25:55"
-    )  # filterResults(session, symbol="ETH/USD", exchange="Kraken")
-
-    pprint(query)
-    print(f"Fetched {len(query)} items.")

@@ -167,7 +167,7 @@ class Hive:
 
     def scanFull(self, props=None):
         """
-        Scan every currency once.
+        Scan every currency once and return as nested dict.
         """
         propagation_time = nowD()
         if not props:

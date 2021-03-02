@@ -664,15 +664,27 @@ class Scanner:
         return spreads_return, error_return, flip_flop_return
 
     def wrapGetSpreadToResults(self, results, prop_slice=[]):
+        """
+        Used for multithreading, is passed a large nested dict to self assign to, rather than returning something.
+        """
         spreads, error, flip = self.getSpread(prop_slice)
         results[self.symbol] = spreads
 
     def switch(self, new_symbol):
+        """
+        Switch tracked symbol
+        """
         self.symbol = new_symbol
 
     def __str__(self):
-        return f"Scanner@{self.symbol}"
+        """
+        Custom string representation
+        """
+        return f"Scanner @ {self.symbol}"
 
     def p(self, st, end=""):
+        """
+        Print function.
+        """
         if not self.silent:
             tqdm.write(st, end=end)

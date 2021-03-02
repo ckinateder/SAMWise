@@ -23,6 +23,10 @@ from tqdm import tqdm
 
 
 class Bouncer(Scanner):
+    """
+    Extends the Scanner class to be able to actually make trades.
+    """
+
     def __init__(
         self,
         symbol,

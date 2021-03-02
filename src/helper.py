@@ -1,3 +1,6 @@
+"""
+Helper class with custom functions used by multiple other classes.
+"""
 import decimal
 import os
 import subprocess
