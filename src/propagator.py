@@ -387,7 +387,7 @@ class Propagtor:
                         f"Rate limit exceeded on {exchange} for {ticker} ... trying again in {waittime}"
                     )
                 )
-                self.timer(waittime)
+                timer(waittime)
                 response = self._getSingleSymbol(
                     exchange, ticker, depth=depth + 1, inter=inter
                 )

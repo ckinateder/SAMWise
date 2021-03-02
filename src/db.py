@@ -218,11 +218,19 @@ def saveIndefinitely(session, interval=0):
     while True:
         # create props
         props, globals()["latest_batch"] = beehive.pgator.propagate(beehive.idynamics)
+        saveProps(props, session)
         # scan one cycle
         spreads = beehive.scanFull(props)
-
-        saveBoth(props, spreads, session)
+        saveSpreads(spreads, session)
+        # saveBoth(props, spreads, session)
         timer(interval)
+
+
+def getLatest(session):
+    latest = Results.findBy(
+        session, True, batch=globals()["latest_batch"].strftime(TIME_FORMAT)
+    )
+    return latest
 
 
 latest_batch = 0
