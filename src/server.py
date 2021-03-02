@@ -23,7 +23,7 @@ class Historical(Resource):
         """
         Calls
         GET 127.0.0.1:5000/api/historical?bottom=2021-02-23 21:00:00&top=2021-02-24 11:34:07.495980&sortby=datetime
-        """
+
         bottom = request.args.get("bottom")
         top = request.args.get("top")
         sortby = request.args.get("sortby")
@@ -44,13 +44,14 @@ class Historical(Resource):
                 db=db_client, table="results", key=sortby, rang=[bottom, top]
             )
             # print(len(rows))
-            return {"data": rows}, 200  # return data with 200 OK
+            return {"data": rows}, 200  # return data with 200 OK"""
+        pass
 
 
 class Latest(Resource):
     # methods go here
     def get(self):
-        row = "not yet supported"
+        row = getLatest(session)
         return {"data": row}, 200  # return data with 200 OK
 
 
@@ -70,18 +71,43 @@ def runAPI():
 
 
 if __name__ == "__main__":
+    # Create the parser
+    parser = argparse.ArgumentParser(
+        description="Handle database connections for SAMWise"
+    )
+    parser.add_argument("-u", "--user", help="username", default="test")
+    parser.add_argument("-p", "--pwd", help="password", default="test")
+    parser.add_argument("-H", "--host", help="host", default="localhost")
+    parser.add_argument("-P", "--port", help="port", default="3306")
+    parser.add_argument("-d", "--database", help="database", default="symbols")
+    parser.add_argument(
+        "-r", "--reset", help="reset the database", default=False, action="store_true"
+    )
+
+    args = parser.parse_args()
+
+    # create engine
+    engine = buildEngine(
+        connection="mysql",
+        username=args.user,
+        password=args.pwd,
+        host=args.host,
+        port=args.port,
+        database=args.database,
+    )
     # commandline args
-    if "-r" in sys.argv:
+    if args.reset:
         confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
         if "y" in confirm:
-            resetDatabase("symbols")
+            resetTables("symbols")
 
-    # start db_client
-    db_client = initializeDB("symbols")
+    # create session maker and session
+    Session = createSessionMaker(engine)
+    session = Session()
 
     # create threads
     apiThread = threading.Thread(target=runAPI, name="api")
-    dataThread = threading.Thread(target=runDatabase, name="data")
+    dataThread = threading.Thread(target=saveIndefinitely, args=(session,), name="data")
     # start threads
     dataThread.start()
     tqdm.write("Started DATA server ...")
