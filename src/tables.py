@@ -38,59 +38,18 @@ class Results(Base):
     quoteVolume = Column(Float)
     vwap = Column(Float)
 
-    def __init__(
-        self,
-        symbol,
-        exchange,
-        timestamp,
-        ask,
-        askVolume,
-        average,
-        baseVolume,
-        bid,
-        close,
-        datetime,
-        batch,
-        dx,
-        high,
-        last,
-        low,
-        open,
-        percentage,
-        previousClose,
-        quoteVolume,
-        vwap,
-    ):
-        self.symbol = symbol
-        self.exchange = exchange
-        self.timestamp = timestamp
-
-        self.ask = ask
-        self.askVolume = askVolume
-        self.average = average
-        self.baseVolume = baseVolume
-        self.bid = bid
-        self.close = close
-
-        self.datetime = datetime
-        self.batch = batch
-
-        self.dx = dx
-        self.high = high
-        self.last = last
-        self.low = low
-        self.open = open
-        self.percentage = percentage
-        self.previousClose = previousClose
-        self.quoteVolume = quoteVolume
-        self.vwap = vwap
-
     @classmethod
     def findBy(cls, session, serialize, **kwargs):
         q = session.query(cls).filter_by(**kwargs).all()
         if serialize:
             q = serializeQuery(q)
         return q
+
+    @classmethod
+    def findUniqueBatches(cls, session):
+        query = session.query(cls.batch.distinct().label("batch"))
+        uniques = [row.batch for row in query.all()]
+        return uniques
 
     def __repr__(self):
         tostr = f"<RESULTS @ id={self.id}, symbol={self.symbol}, exchange={self.exchange}, ask={float(self.ask)}, bid={float(self.bid)}>"
@@ -134,3 +93,9 @@ class Spread(Base):
         if serialize:
             q = serializeQuery(q)
         return q
+
+    @classmethod
+    def findUniqueBatches(cls, session):
+        query = session.query(cls.batch.distinct().label("batch"))
+        uniques = [row.batch for row in query.all()]
+        return uniques

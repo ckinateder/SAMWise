@@ -250,6 +250,22 @@ def getSpreadsLatest(session):
     return latest
 
 
+def findNearestBatchTo(session, cls, batch):
+    # batch must be in datetime string format
+    batch = datetime.strptime(batch, TIME_FORMAT)
+    uniques = cls.findUniqueBatches(session)
+    closest = min(uniques, key=lambda d: abs(d - batch))
+    return closest
+
+
+def getNearestBatchTo(session, cls, batch):
+    # batch must be in datetime string format
+    closest = findNearestBatchTo(session, cls, batch)
+    print(closest, closest.strftime(TIME_FORMAT))
+    closest_record = cls.findBy(session, True, batch=closest.strftime(TIME_FORMAT))
+    return closest_record
+
+
 if __name__ == "__main__":
     latest_batch = None
     # Create the parser

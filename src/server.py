@@ -45,7 +45,10 @@ class RawFlex(Resource):
             )
             # print(len(rows))
             return {"data": rows}, 200  # return data with 200 OK"""
-        pass
+        closest_to = request.args.get("closest_to")
+        query_session = Session()  # for querying
+        closest_record = getNearestBatchTo(query_session, Results, closest_to)
+        return {"data": closest_record}, 200  # return data with 200 OK
 
 
 class RawLatest(Resource):
