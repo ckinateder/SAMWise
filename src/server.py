@@ -21,8 +21,8 @@ class Status(Resource):
     # methods go here
     def get(self):
         query_session = Session()
-        rrows = query_session.query(Results).count()
-        srows = query_session.query(Spread).count()
+        rrows = getTableLength(query_session, "results")
+        srows = getTableLength(query_session, "spreads")
 
         strin = f"'results' length: {rrows:,}\n'spreads' length: {srows:,}"
         return {"data": strin}, 200  # return data and 200 OK code
