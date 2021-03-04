@@ -31,7 +31,7 @@ class Status(Resource):
                 "results": rrows,
                 "spreads": srows,
                 "size": size,
-                "uptime": uptime,
+                "uptime": str(uptime),
             }
         }, 200  # return data and 200 OK code
 
