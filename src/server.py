@@ -23,32 +23,18 @@ class RawFlex(Resource):
         """
         Calls
         GET 127.0.0.1:5000/api/flex?bottom=2021-02-23 21:00:00&top=2021-02-24 11:34:07.495980&sortby=datetime
-
+        """
+        query_session = Session()  # for querying
         bottom = request.args.get("bottom")
         top = request.args.get("top")
-        sortby = request.args.get("sortby")
         closest_to = request.args.get("closest_to")  # optional
 
         if closest_to:
-            rows = getBatchNearestTo(db_client, "results", closest_to)
-            # print(len(rows))
-            return {"data": rows}, 200  # return data with 200 OK
+            closest_record = getNearestBatchTo(query_session, Results, closest_to)
+            return {"data": closest_record}, 200  # return data with 200 OK
         else:
-            if not sortby:
-                sortby = "batch"
-            if not bottom:
-                top = nowD()
-            if not top:
-                return {"data": "No range provided"}, 400  # return data with 400 BAD
-            rows = getRowInRange(
-                db=db_client, table="results", key=sortby, rang=[bottom, top]
-            )
-            # print(len(rows))
-            return {"data": rows}, 200  # return data with 200 OK"""
-        closest_to = request.args.get("closest_to")
-        query_session = Session()  # for querying
-        closest_record = getNearestBatchTo(query_session, Results, closest_to)
-        return {"data": closest_record}, 200  # return data with 200 OK
+            rows = getBatchesInRange(query_session, Results, bottom, top)
+            return {"data": rows}, 200  # return data with 200 OK
 
 
 class RawLatest(Resource):

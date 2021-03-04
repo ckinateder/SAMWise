@@ -261,9 +261,13 @@ def findNearestBatchTo(session, cls, batch):
 def getNearestBatchTo(session, cls, batch):
     # batch must be in datetime string format
     closest = findNearestBatchTo(session, cls, batch)
-    print(closest, closest.strftime(TIME_FORMAT))
     closest_record = cls.findBy(session, True, batch=closest.strftime(TIME_FORMAT))
     return closest_record
+
+
+def getBatchesInRange(session, cls, start, end):
+    betweens = cls.findBetweenDatetimes(session, True, start=start, end=end)
+    return betweens
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.elements import and_
 from sqlalchemy.sql.sqltypes import BIGINT, DECIMAL, Float, VARCHAR, DateTime
 
 Base = declarative_base()
@@ -51,6 +52,13 @@ class Results(Base):
         uniques = [row.batch for row in query.all()]
         return uniques
 
+    @classmethod
+    def findBetweenDatetimes(cls, session, serialize, start, end):
+        q = session.query(cls).filter(and_(cls.batch >= start, cls.batch <= end)).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
+
     def __repr__(self):
         tostr = f"<RESULTS @ id={self.id}, symbol={self.symbol}, exchange={self.exchange}, ask={float(self.ask)}, bid={float(self.bid)}>"
         return tostr
@@ -95,7 +103,18 @@ class Spread(Base):
         return q
 
     @classmethod
+    def findBetweenDatetimes(cls, session, serialize, start, end):
+        q = session.query(cls).filter(and_(cls.batch >= start, cls.batch <= end)).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
+
+    @classmethod
     def findUniqueBatches(cls, session):
         query = session.query(cls.batch.distinct().label("batch"))
         uniques = [row.batch for row in query.all()]
         return uniques
+
+    def __repr__(self):
+        tostr = f"<SPREAD @ id={self.id}, symbol={self.symbol}, buy={self.buy}, sell={self.sell}, net spread={float(self.spread_w_fees)}>"
+        return tostr
