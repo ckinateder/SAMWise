@@ -206,8 +206,7 @@ def saveIndefinitely(Session, interval=0):
     Takes a sessionmaker object, create session, and save every interval seconds
     """
     session = Session()
-    if interval < 10 and interval != 0:
-        interval = 10
+
     start_time = nowD()
     # create propagator
     beehive = hive.Hive(2)
