@@ -3,10 +3,11 @@ Helper class with custom functions used by multiple other classes.
 """
 import decimal
 import os
+import socket
 import subprocess
 import time
 from datetime import datetime
-from math import floor, log10, log
+from math import floor, log, log10
 from string import Template
 
 from termcolor import colored
@@ -52,6 +53,19 @@ def clear():
     """
     os.system("cls" if os.name == "nt" else "clear")
     tqdm.write("\n" * (HEIGHT - 1))
+
+
+def getIP():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(("10.255.255.255", 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = "127.0.0.1"
+    finally:
+        s.close()
+    return IP
 
 
 def countNestedDicts(props):
@@ -130,7 +144,7 @@ class DeltaTemplate(Template):
     delimiter = "%"
 
 
-def strfdelta(tdelta, fmt):
+def strfdelta(tdelta, fmt="%D days %H:%M:%S"):
     d = {"D": tdelta.days}
     hours, rem = divmod(tdelta.seconds, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -138,7 +152,11 @@ def strfdelta(tdelta, fmt):
     d["M"] = "{:02d}".format(minutes)
     d["S"] = "{:02d}".format(seconds)
     t = DeltaTemplate(fmt)
-    return t.substitute(**d)
+    formatted = t.substitute(**d)
+    # get rid of 0 days
+    if tdelta.days == 0:
+        formatted = formatted.replace("0 days ", "")
+    return formatted
 
 
 def notify(message):

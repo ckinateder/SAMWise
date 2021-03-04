@@ -12,6 +12,7 @@ from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql.sqltypes import DateTime
 from tqdm import *
+import psutil
 
 import hive
 import propagator
@@ -258,7 +259,13 @@ def saveIndefinitely(Session, interval=0):
 
         globals()["latest_solved_batch"] = globals()["latest_raw_batch"]
 
-        print(f"* uptime: {nowD()-start_time}\n")
+        # print stats
+        mem_usage = round(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
+        print(
+            colorHigh(
+                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD()-start_time)} *\n"
+            )
+        )
         timer(interval)
 
 
