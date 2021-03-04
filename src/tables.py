@@ -1,13 +1,23 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String, Integer, Date, Table, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.elements import and_
-from sqlalchemy.sql.sqltypes import BIGINT, DECIMAL, Float, VARCHAR, DateTime
+from sqlalchemy.sql.sqltypes import BIGINT, VARCHAR, DateTime, Float
 
-Base = declarative_base()
 import decimal
 from datetime import *
 
 from helper import *
+
+Base = declarative_base()
+
+# define relationships
+"""
+batch_association = Table(
+    'results_spread_summary', Base.metadata,
+    Column('movie_id', Integer, ForeignKey('movies.id')),
+    Column('actor_id', Integer, ForeignKey('actors.id'))
+)
+"""
 
 
 class Results(Base):

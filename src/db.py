@@ -181,7 +181,7 @@ def saveProps(props, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {countNestedDicts(props)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long). DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long). DB now {getDBSize(session,'symbols')}."
         )
     )
 
@@ -196,7 +196,7 @@ def saveSpreads(spreads, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {countNestedDicts(spreads)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'symbols')}."
         )
     )
 
@@ -217,7 +217,7 @@ def saveBoth(props, spreads, session):
     proptime = now() - proptime
     tqdm.write(
         colorGood(
-            f"Wrote {countNestedDicts(spreads)} records to 'spreads' (now {getTableLength(session,'spreads'):,} records long).\nWrote {countNestedDicts(props)} records to 'results' (now {getTableLength(session,'results'):,} records long).\n* Took {proptime:.2f}s, DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'spreads' (now {getTableLength(session,'spreads'):,} records long).\nWrote {countNestedDicts(props)} records to 'results' (now {getTableLength(session,'results'):,} records long).\n* Took {proptime:.2f}s, DB now {getDBSize(session,'symbols')}."
         )
     )
 
@@ -252,8 +252,8 @@ def saveIndefinitely(Session, interval=0):
 
         # scan one cycle
         spreads = beehive.scanFull(props)
+        pprint(spreads)
         saveSpreads(spreads, session)
-
         # summarize one cycle
         saveSummary(spreads, session)
 
