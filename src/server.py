@@ -20,7 +20,12 @@ api = Api(app)
 class Status(Resource):
     # methods go here
     def get(self):
-        return {"data": "Running"}, 200  # return data and 200 OK code
+        query_session = Session()
+        rrows = query_session.query(Results).count()
+        srows = query_session.query(Spread).count()
+
+        strin = f"'results' length: {rrows:,}\n'spreads' length: {srows:,}"
+        return {"data": strin}, 200  # return data and 200 OK code
 
 
 class RawFlex(Resource):
@@ -65,6 +70,7 @@ class SpreadsLatest(Resource):
         return {"data": row}, 200  # return data and 200 OK code
 
 
+"""
 # add static status
 @app.route("/")
 def status():
@@ -74,7 +80,7 @@ def status():
 
     strin = f"'results' length: {rrows:,}\n'spreads' length: {srows:,}"
     return strin
-
+"""
 
 api.add_resource(Status, "/api/status")  # '/api/status' is our entry point
 api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
