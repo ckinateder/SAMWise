@@ -76,7 +76,7 @@ def convertPropsToORM(props):
     """
     Converts props to set of Results's
     """
-    tqdm.write("Packaging props ...")
+    tqdm.write(colorEh("Packaging props ..."))
     rows = []
     total = countNestedDicts(props)
     with tqdm(
@@ -116,7 +116,7 @@ def convertSpreadsToORM(spreads):
     """
     Converts spreads to set of spread table rows
     """
-    tqdm.write("Packaging spreads ...")
+    tqdm.write(colorEh("Packaging spreads ..."))
     rows = []
     total = countNestedDicts(spreads)
     with tqdm(
@@ -206,9 +206,10 @@ def saveIndefinitely(Session, interval=0):
     Takes a sessionmaker object, create session, and save every interval seconds
     """
     session = Session()
-    # create propagator
     if interval < 10 and interval != 0:
         interval = 10
+    start_time = nowD()
+    # create propagator
     beehive = hive.Hive(2)
     while True:
         # create props
@@ -223,6 +224,7 @@ def saveIndefinitely(Session, interval=0):
             "latest_raw_batch"
         ]  # set latest batch once solved
         # saveBoth(props, spreads, session)
+        print(f"* uptime: {nowD()-start_time}\n")
         timer(interval)
 
 
