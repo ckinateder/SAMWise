@@ -14,31 +14,37 @@ The basic design of the program is pretty straightforward. The main class uses t
 
 Currently, speed has been greatly increased. Using a concurrency optimization algorithm I designed, the time it takes to fetch the symbols has been reduced from 10+ minutes to less than 1 second.
 
+## Class Overview
+
+Coming soon
+
 ## API
 
 The API is now partly functional.
 Current endpoints:
 
-* `/api/historical`
-* `/api/latest`
-* `/api/spreads` (not usable yet, will be integrated with hive)
+* `/api/raw/latest`
+* `/api/raw/flex`
+* `/api/speads/latest`
+* `/api/speads/flex`
 
-`/api/historical/` params:
+`/api/[spreads or raw]/flex` params:
 
-| identifier | format and type         | description                             |
-| ---------- | ----------------------- | --------------------------------------- |
-| key        | string                  | identifier of column to pick range from |
-| bottom     | same type as `row[key]` | bottom end of range                     |
-| top        | same type as `row[key]` | top end of range                        |
+| identifier | format and type | description                          |
+| ---------- | --------------- | ------------------------------------ |
+| closest_to | datetime*       | find batch closest to given datetime |
+| bottom     | datetime*       | bottom end of range, inclusive       |
+| top        | datetime*       | top end of range, inclusive          |
 
 <br>
 
-NOTE: if key is a datetime, top and bottom format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
+*NOTE: format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
 
-## Database
+## Database - under construction
 
-The API is run off of a database updated every 10 seconds. The description of each row is as follows:
+The API is run off of a database updated around every 10 seconds. There are three tables, `results`, `spreads`, and `summary`, all related to each other by the `batch` key. The `batch` key is a datetime marking what time the propagation cycle was executed. The timestamps for each symbol received may be slightly different due to the asynchronous design of the `Propagator` class, but the `batch` will be the same for each symbol in that cycle.
 
+### Results Schema
 | Field         | Type          | Null | Key | Default | Extra          |
 | ------------- | ------------- | ---- | --- | ------- | -------------- |
 | id            | int           | NO   | PRI | NULL    | auto_increment |
@@ -62,7 +68,37 @@ The API is run off of a database updated every 10 seconds. The description of ea
 | previousClose | decimal(20,8) | YES  |     | NULL    |                |
 | quoteVolume   | decimal(20,8) | YES  |     | NULL    |                |
 | vwap          | decimal(20,8) | YES  |     | NULL    |                |
+<br>
 
+### Spreads Schema
+
+
+| Field            | Type        | Null | Key | Default | Extra          |
+| ---------------- | ----------- | ---- | --- | ------- | -------------- |
+| id               | int         | NO   | PRI | NULL    | auto_increment |
+| symbol           | varchar(20) | YES  |     | NULL    |                |
+| buy              | varchar(40) | YES  |     | NULL    |                |
+| sell             | varchar(40) | YES  |     | NULL    |                |
+| time             | datetime    | YES  |     | NULL    |                |
+| batch            | datetime    | YES  |     | NULL    |                |
+| timestamp        | bigint      | YES  |     | NULL    |                |
+| buy_ask          | float       | YES  |     | NULL    |                |
+| buy_bid          | float       | YES  |     | NULL    |                |
+| buy_price        | float       | YES  |     | NULL    |                |
+| sell_ask         | float       | YES  |     | NULL    |                |
+| sell_bid         | float       | YES  |     | NULL    |                |
+| sell_price       | float       | YES  |     | NULL    |                |
+| fees             | float       | YES  |     | NULL    |                |
+| no_fees          | float       | YES  |     | NULL    |                |
+| spread_w_fees    | float       | YES  |     | NULL    |                |
+| liquidity        | float       | YES  |     | NULL    |                |
+| quote_order_size | int         | YES  |     | NULL    |                |
+| speedup          | float       | YES  |     | NULL    |                |
+<br>
+### Summary Schema
+
+Coming soon
+<br>
 ## Exchanges
 
 SAMWise supports all exchanges supported by ccxt.
