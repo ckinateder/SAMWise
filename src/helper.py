@@ -84,8 +84,10 @@ def stringitizeL(l):
         for i in range(len(l) - 1):
             out += l[i] + ", "
         out += "and " + l[-1]
-    else:
+    elif l == 1:
         out = l[0]
+    else:  # empty
+        out = ""
     return out
 
 

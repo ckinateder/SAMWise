@@ -1,13 +1,16 @@
+import json
+import sys
+import time
+from datetime import datetime, timezone
+from os import error, listdir, path
+from pprint import pprint
+from threading import Thread
+
 import ccxt
 from tqdm import tqdm
 from tqdm.std import trange
+
 from helper import *
-from threading import Thread
-from datetime import datetime, timezone
-from pprint import pprint
-import json
-import time
-from os import error, listdir, path
 
 
 class Propagtor:
@@ -45,6 +48,10 @@ class Propagtor:
         """
 
         self.exchanges = list()
+        if not all_ex:
+            tqdm.write(colorBad("No exchanges were given ... is keys/ empty?"))
+            self.exchanges = []
+            sys.exit(0)
         tqdm.write("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
         verified = []
         if path.exists(KEYPATH + "verified"):
