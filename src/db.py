@@ -252,7 +252,6 @@ def saveIndefinitely(Session, interval=0):
 
         # scan one cycle
         spreads = beehive.scanFull(props)
-        pprint(spreads)
         saveSpreads(spreads, session)
         # summarize one cycle
         saveSummary(spreads, session)
