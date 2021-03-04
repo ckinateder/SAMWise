@@ -23,11 +23,15 @@ class Status(Resource):
         query_session = Session()
         rrows = getTableLength(query_session, "results")
         srows = getTableLength(query_session, "spreads")
+        size = getDBSize(query_session, "symbols")
+        uptime = nowD() - start_time
         return {
             "data": {
                 "status": "unknown (probably running)",
                 "results": rrows,
                 "spreads": srows,
+                "size": size,
+                "uptime": uptime,
             }
         }, 200  # return data and 200 OK code
 
@@ -112,9 +116,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-r", "--reset", help="reset the database", default=False, action="store_true"
     )
-
     args = parser.parse_args()
 
+    # mark start time
+    start_time = nowD()
     # create engine
     engine = buildEngine(
         connection="mysql",
