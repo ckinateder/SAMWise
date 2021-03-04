@@ -25,7 +25,7 @@ class Status(Resource):
         srows = getTableLength(query_session, "spreads")
         size = getDBSize(query_session, "symbols")
         uptime = nowD() - start_time
-        nice = f"'results' length: {rrows:,}\n'spreads' length: {srows:,}\nDB size: {size}\nuptime: {str(uptime)}"
+        nice = f"'results' length: {rrows:,}; 'spreads' length: {srows:,}; DB size: {size}; uptime: {str(uptime)}"
         return {
             "data": {
                 "status": "unknown (probably running)",
