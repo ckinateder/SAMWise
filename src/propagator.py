@@ -244,31 +244,34 @@ class Propagtor:
         | vwap          | decimal(20,8) | YES  |     | NULL    |                |
         +---------------+---------------+------+-----+---------+----------------+
         """
-        # round to 5 d
-        for k in response:
-            if type(response[k]) == float or type(response[k]) == int:
-                response[k] = round(response[k], 5)
-        # add exchange in
-        response["exchange"] = exchange
-        # add batch in AND fix initial dating
-        response["batch"] = self.batch.strftime(TIME_FORMAT)
-        # delete info
-        response.pop("info")
-        # rename "change" for sql
-        if "change" in response:
-            response["dx"] = response.pop("change")
+        try:
+            # round to 5 d
+            for k in response:
+                if type(response[k]) == float or type(response[k]) == int:
+                    response[k] = round(response[k], 5)
+            # add exchange in
+            response["exchange"] = exchange
+            # add batch in AND fix initial dating
+            response["batch"] = self.batch.strftime(TIME_FORMAT)
+            # delete info
+            response.pop("info")
+            # rename "change" for sql
+            if "change" in response:
+                response["dx"] = response.pop("change")
 
-        # fix dating
-        # handle timezone
-        if response["datetime"]:
-            # original format: 2021-02-21T04:21:57.585Z
-            response["datetime"] = datetime.strptime(
-                response["datetime"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            ).strftime(TIME_FORMAT)
-        else:
-            response["datetime"] = self.batch.strftime(TIME_FORMAT)
-        if not response["timestamp"]:
-            response["timestamp"] = self.batch.timestamp() * 1000
+            # fix dating
+            # handle timezone
+            if response["datetime"]:
+                # original format: 2021-02-21T04:21:57.585Z
+                response["datetime"] = datetime.strptime(
+                    response["datetime"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                ).strftime(TIME_FORMAT)
+            else:
+                response["datetime"] = self.batch.strftime(TIME_FORMAT)
+            if not response["timestamp"]:
+                response["timestamp"] = self.batch.timestamp() * 1000
+        except:
+            return None
 
     def _mergeProps(self, one, two):
         """
