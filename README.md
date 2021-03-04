@@ -45,6 +45,7 @@ Current endpoints:
 The API is run off of a database updated around every 10 seconds. There are three tables, `results`, `spreads`, and `summary`, all related to each other by the `batch` key. The `batch` key is a datetime marking what time the propagation cycle was executed. The timestamps for each symbol received may be slightly different due to the asynchronous design of the `Propagator` class, but the `batch` will be the same for each symbol in that cycle.
 
 ### Results Schema
+
 | Field         | Type          | Null | Key | Default | Extra          |
 | ------------- | ------------- | ---- | --- | ------- | -------------- |
 | id            | int           | NO   | PRI | NULL    | auto_increment |
@@ -72,7 +73,6 @@ The API is run off of a database updated around every 10 seconds. There are thre
 
 ### Spreads Schema
 
-
 | Field            | Type        | Null | Key | Default | Extra          |
 | ---------------- | ----------- | ---- | --- | ------- | -------------- |
 | id               | int         | NO   | PRI | NULL    | auto_increment |
@@ -95,10 +95,19 @@ The API is run off of a database updated around every 10 seconds. There are thre
 | quote_order_size | int         | YES  |     | NULL    |                |
 | speedup          | float       | YES  |     | NULL    |                |
 <br>
+
 ### Summary Schema
 
-Coming soon
+| Field            | Type        | Null | Key | Default | Extra          |
+| ---------------- | ----------- | ---- | --- | ------- | -------------- |
+| id               | int         | NO   | PRI | NULL    | auto_increment |
+| batch            | datetime    | YES  |     | NULL    |                |
+| symbol           | varchar(20) | YES  |     | NULL    |                |
+| spread_w_fees    | float       | YES  |     | NULL    |                |
+| speedup          | float       | YES  |     | NULL    |                |
+| profitable_pairs | int         | YES  |     | NULL    |                |
 <br>
+
 ## Exchanges
 
 SAMWise supports all exchanges supported by ccxt.

@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 from datetime import datetime
-from math import floor, log
+from math import floor, log10, log
 from string import Template
 
 from termcolor import colored
@@ -62,6 +62,13 @@ def countNestedDicts(props):
     for i in props:
         total += len(props[i])
     return total
+
+
+def roundSignificant(x, sig=2):
+    """
+    round x to sig significant digits
+    """
+    return round(x, sig - int(floor(log10(abs(x)))) - 1)
 
 
 def timer(waittime):

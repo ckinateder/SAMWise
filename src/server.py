@@ -136,7 +136,7 @@ if __name__ == "__main__":
     if args.reset:
         confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
         if "y" in confirm:
-            resetTables("symbols")
+            resetTables(engine)
 
     # create session maker and session
     Session = createSessionMaker(engine)  # for saving

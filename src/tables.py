@@ -13,7 +13,8 @@ from helper import *
 class Results(Base):
     __tablename__ = "results"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    batch = Column(DateTime)
 
     symbol = Column(VARCHAR(40))
     exchange = Column(VARCHAR(40))
@@ -27,7 +28,6 @@ class Results(Base):
     close = Column(Float)
 
     datetime = Column(DateTime)
-    batch = Column(DateTime)
 
     dx = Column(Float)
     high = Column(Float)
@@ -67,7 +67,8 @@ class Results(Base):
 class Spread(Base):
     __tablename__ = "spreads"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    batch = Column(DateTime)
 
     symbol = Column(VARCHAR(20))
 
@@ -75,7 +76,6 @@ class Spread(Base):
     sell = Column(VARCHAR(40))
 
     time = Column(DateTime)
-    batch = Column(DateTime)
     timestamp = Column(BIGINT)
 
     buy_ask = Column(Float)
@@ -117,4 +117,40 @@ class Spread(Base):
 
     def __repr__(self):
         tostr = f"<SPREAD @ id={self.id}, symbol={self.symbol}, buy={self.buy}, sell={self.sell}, net spread={float(self.spread_w_fees)}>"
+        return tostr
+
+
+class Summary(Base):
+    __tablename__ = "summary"
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    batch = Column(DateTime)
+
+    symbol = Column(VARCHAR(20))
+    spread_w_fees = Column(Float)  # only the top spread
+    speedup = Column(Float)  # only top spread speedup
+
+    profitable_pairs = Column(Integer)  # number of profitable pairs
+
+    @classmethod
+    def findBy(cls, session, serialize, **kwargs):
+        q = session.query(cls).filter_by(**kwargs).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
+
+    @classmethod
+    def findBetweenDatetimes(cls, session, serialize, start, end):
+        q = session.query(cls).filter(and_(cls.batch >= start, cls.batch <= end)).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
+
+    @classmethod
+    def findUniqueBatches(cls, session):
+        query = session.query(cls.batch.distinct().label("batch"))
+        uniques = [row.batch for row in query.all()]
+        return uniques
+
+    def __repr__(self):
+        tostr = f"<SUMMARY @ batch={self.batch}, symbol={self.symbol}, net spread={float(self.spread_w_fees)}>"
         return tostr

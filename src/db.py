@@ -16,7 +16,7 @@ from tqdm import *
 import hive
 import propagator
 from helper import *
-from tables import Base, Results, Spread
+from tables import Base, Results, Spread, Summary
 
 USER = "test"
 PASS = "test"
@@ -150,6 +150,27 @@ def convertSpreadsToORM(spreads):
         return rows
 
 
+def spreadsToSummary(spreads):
+    """
+    Takes a spreads nested dict and creates the summary table
+    """
+    rows = []
+    for symbol in spreads:
+        if spreads[symbol]:
+            numberof = len(spreads[symbol])
+            top = spreads[symbol][0]
+            row = Summary(
+                batch=top["batch"],
+                symbol=top["symbol"],
+                spread_w_fees=top["spread_w_fees"],
+                speedup=top["speedup"],
+                profitable_pairs=numberof,
+            )
+            rows.append(row)
+
+    return rows
+
+
 def saveProps(props, session):
     """
     Save props to database
@@ -201,6 +222,18 @@ def saveBoth(props, spreads, session):
     )
 
 
+def saveSummary(spreads, session):
+    start = now()
+    rows = spreadsToSummary(spreads)
+    session.bulk_save_objects(rows)
+    session.commit()
+    tqdm.write(
+        colorGood(
+            f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long). DB now {getDBSize(session,'symbols')}."
+        )
+    )
+
+
 def saveIndefinitely(Session, interval=0):
     """
     Takes a sessionmaker object, create session, and save every interval seconds
@@ -216,13 +249,16 @@ def saveIndefinitely(Session, interval=0):
             beehive.idynamics
         )
         saveProps(props, session)
+
         # scan one cycle
         spreads = beehive.scanFull(props)
         saveSpreads(spreads, session)
-        globals()["latest_solved_batch"] = globals()[
-            "latest_raw_batch"
-        ]  # set latest batch once solved
-        # saveBoth(props, spreads, session)
+
+        # summarize one cycle
+        saveSummary(spreads, session)
+
+        globals()["latest_solved_batch"] = globals()["latest_raw_batch"]
+
         print(f"* uptime: {nowD()-start_time}\n")
         timer(interval)
 
