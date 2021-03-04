@@ -23,9 +23,13 @@ class Status(Resource):
         query_session = Session()
         rrows = getTableLength(query_session, "results")
         srows = getTableLength(query_session, "spreads")
-
-        strin = f"'results' length: {rrows:,}\n'spreads' length: {srows:,}"
-        return {"data": strin}, 200  # return data and 200 OK code
+        return {
+            "data": {
+                "status": "unknown (probably running)",
+                "results": rrows,
+                "spreads": srows,
+            }
+        }, 200  # return data and 200 OK code
 
 
 class RawFlex(Resource):
