@@ -22,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--pwd", help="password", default="test")
     parser.add_argument("-H", "--host", help="host", default="localhost")
     parser.add_argument("-P", "--port", help="port", default="3306")
-    parser.add_argument("-d", "--database", help="database", default="symbols")
+    parser.add_argument("-d", "--database", help="database", default="samwise")
     args = parser.parse_args()
 
     # mark start time

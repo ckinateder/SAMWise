@@ -198,7 +198,7 @@ class Propagtor:
         if not self.exchanges:
             self.exchanges = self.loadExchanges(self.getAvailableExchanges())
         if not original:
-            original = self.getDynamicCommons(1)
+            original = self.getDynamicCommons()
 
         inverted = {}
         for symbol in original:

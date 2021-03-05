@@ -23,7 +23,7 @@ class Status(Resource):
         query_session = Session()
         rrows = getTableLength(query_session, "results")
         srows = getTableLength(query_session, "spreads")
-        size = getDBSize(query_session, "symbols")
+        size = getDBSize(query_session, "samwise")
         uptime = nowD() - start_time
         nice = f"'results' length: {rrows:,}; 'spreads' length: {srows:,}; DB size: {size}; uptime: {str(uptime)}"
         return {
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--pwd", help="password", default="test")
     parser.add_argument("-H", "--host", help="host", default="localhost")
     parser.add_argument("-P", "--port", help="port", default="3306")
-    parser.add_argument("-d", "--database", help="database", default="symbols")
+    parser.add_argument("-d", "--database", help="database", default="samwise")
     parser.add_argument("-t", "--timer", help="timer", default=0)
     parser.add_argument(
         "-r", "--reset", help="reset the database", default=False, action="store_true"

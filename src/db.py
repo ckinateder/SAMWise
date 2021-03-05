@@ -26,7 +26,7 @@ PASS = "test"
 def buildEngine(connection, username, password, host, port, database, echo=False):
     """
     Takes string params and returns an engine.
-    props[sym] call: createSession("mysql", "test", "test", "localhost", "3306", "symbols")
+    props[sym] call: createSession("mysql", "test", "test", "localhost", "3306", "samwise")
     """
     engine = create_engine(
         f"{connection}://{username}:{password}@{host}:{port}/{database}", echo=echo
@@ -182,7 +182,7 @@ def saveProps(props, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long). DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long). DB now {getDBSize(session,'samwise')}."
         )
     )
 
@@ -197,7 +197,7 @@ def saveSpreads(spreads, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'samwise')}."
         )
     )
 
@@ -218,7 +218,7 @@ def saveBoth(props, spreads, session):
     proptime = now() - proptime
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'spreads' (now {getTableLength(session,'spreads'):,} records long).\nWrote {countNestedDicts(props)} records to 'results' (now {getTableLength(session,'results'):,} records long).\n* Took {proptime:.2f}s, DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'spreads' (now {getTableLength(session,'spreads'):,} records long).\nWrote {countNestedDicts(props)} records to 'results' (now {getTableLength(session,'results'):,} records long).\n* Took {proptime:.2f}s, DB now {getDBSize(session,'samwise')}."
         )
     )
 
@@ -230,7 +230,7 @@ def saveSummary(spreads, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long). DB now {getDBSize(session,'symbols')}."
+            f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long). DB now {getDBSize(session,'samwise')}."
         )
     )
 
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--pwd", help="password", default="test")
     parser.add_argument("-H", "--host", help="host", default="localhost")
     parser.add_argument("-P", "--port", help="port", default="3306")
-    parser.add_argument("-d", "--database", help="database", default="symbols")
+    parser.add_argument("-d", "--database", help="database", default="samwise")
     parser.add_argument(
         "-r", "--reset", help="reset the database", default=False, action="store_true"
     )
