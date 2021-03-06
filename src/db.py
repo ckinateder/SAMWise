@@ -263,7 +263,7 @@ def saveIndefinitely(Session, interval=0):
         mem_usage = round(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
         print(
             colorHigh(
-                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD()-start_time)} db size: {getDBSize(session,'samwise')}*\n"
+                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD()-start_time)} - db size: {getDBSize(session,'samwise')}*\n"
             )
         )
         timer(interval)
