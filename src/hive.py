@@ -216,6 +216,13 @@ class Hive:
         solve_time = nowD() - solve_time
         return responses
 
+    def summarize(self, responses):
+        """
+        Summarize the scans for that cycle and pick a symbol to arbitrate.
+        This will be some sort of rolling thing. This also should maybe be moved to analyze.py
+        """
+        pass
+
     def scanNTimes(self, n=1):
         """
         Scan every single exchange n times and print a summary.

@@ -115,7 +115,7 @@ if __name__ == "__main__":
     parser.add_argument("-H", "--host", help="host", default="localhost")
     parser.add_argument("-P", "--port", help="port", default="3306")
     parser.add_argument("-d", "--database", help="database", default="samwise")
-    parser.add_argument("-t", "--timer", help="timer", default=0)
+    parser.add_argument("-t", "--timer", help="timer", default=5)
     parser.add_argument(
         "-r", "--reset", help="reset the database", default=False, action="store_true"
     )

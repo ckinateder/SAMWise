@@ -182,7 +182,7 @@ def saveProps(props, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long). DB now {getDBSize(session,'samwise')}."
+            f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long)."
         )
     )
 
@@ -197,7 +197,7 @@ def saveSpreads(spreads, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long). DB now {getDBSize(session,'samwise')}."
+            f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long)."
         )
     )
 
@@ -230,7 +230,7 @@ def saveSummary(spreads, session):
     session.commit()
     tqdm.write(
         colorGood(
-            f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long). DB now {getDBSize(session,'samwise')}."
+            f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long)."
         )
     )
 
@@ -263,7 +263,7 @@ def saveIndefinitely(Session, interval=0):
         mem_usage = round(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
         print(
             colorHigh(
-                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD()-start_time)} *\n"
+                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD()-start_time)} db size: {getDBSize(session,'samwise')}*\n"
             )
         )
         timer(interval)
