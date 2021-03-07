@@ -11,6 +11,7 @@ from flask_restful import Api, Resource
 
 import hive
 import propagator
+from manager import DatabaseManager
 from db import *
 
 app = Flask(__name__)
@@ -82,13 +83,15 @@ class SpreadsLatest(Resource):
 
 # static pages
 @app.route("/")
-def status():
+def dynamicStatus():
     query_session = Session()
+
     resultsrows = getTableLength(query_session, "results")
     spreadsrows = getTableLength(query_session, "spreads")
     summaryrows = getTableLength(query_session, "summary")
+    current = dbmanager.current
 
-    strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}"
+    strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
     return strin
 
 
@@ -139,11 +142,11 @@ if __name__ == "__main__":
 
     # create session maker and session
     Session = createSessionMaker(engine)  # for saving
-
+    dbmanager = DatabaseManager()
     # create threads
     apiThread = threading.Thread(target=runAPI, name="api")
     dataThread = threading.Thread(
-        target=saveIndefinitely, args=(Session, int(args.timer)), name="data"
+        target=dbmanager.saveIndefinitely, args=(Session, int(args.timer)), name="data"
     )
     # start threads
     dataThread.start()

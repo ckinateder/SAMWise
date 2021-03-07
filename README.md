@@ -14,6 +14,10 @@ The basic design of the program is pretty straightforward. The main class uses t
 
 Currently, speed has been greatly increased. Using a concurrency optimization algorithm I designed, the time it takes to fetch the symbols has been reduced from 10+ minutes to less than 1 second.
 
+## Class Overview
+
+Coming soon
+
 ## API
 
 The API is now partly functional.

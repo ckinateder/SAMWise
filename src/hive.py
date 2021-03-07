@@ -23,7 +23,11 @@ class Hive:
     Handles collecting and controlling the data.
     """
 
-    def __init__(self, minnum=3):
+    def __init__(self, minnum=2):
+        """
+        minnum is the minimum number of exchanges that a symbol is on. this is only used to block a bouncer to be
+        created. propagation is not affected by this.
+        """
         self.pgator = propagator.Propagtor()
         with tqdm(
             total=5, position=1, leave=False, dynamic_ncols=True, desc="total"

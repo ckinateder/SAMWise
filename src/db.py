@@ -235,39 +235,6 @@ def saveSummary(spreads, session):
     )
 
 
-def saveIndefinitely(Session, interval=0):
-    """
-    Takes a sessionmaker object, create session, and save every interval seconds
-    """
-    session = Session()
-
-    start_time = nowD()
-    # create propagator
-    beehive = hive.Hive(2)
-    while True:
-        # create props
-        props, globals()["latest_raw_batch"] = beehive.pgator.propagate(
-            beehive.idynamics
-        )
-        saveProps(props, session)
-
-        # scan one cycle
-        spreads = beehive.scanFull(props)
-        saveSpreads(spreads, session)
-        # summarize one cycle
-        saveSummary(spreads, session)
-
-        globals()["latest_solved_batch"] = globals()["latest_raw_batch"]
-        # print stats
-        mem_usage = round(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
-        print(
-            colorHigh(
-                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD() - start_time)} - db size: {getDBSize(session,'samwise')} *\n"
-            )
-        )
-        timer(interval)
-
-
 def getRawLatest(session):
     """
     Get latest data from the price tickers.
