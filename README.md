@@ -2,7 +2,7 @@
 
 ## Spatial Arbitrage Method Wizard
 
-Arbitrage is a way to generate passive income off of the price differences of a currency on multiple exchanges. The idea is that you buy on the lowest exchange, and simultaneously sell on the highest exchange. Since the prices move around and the high and low exchanges tend to flip-flop, there isn't a need to move assets between exchanges after each transaction. SAMWise takes advatange of these price discrepancies and automatically executes the profitable trades to make a profit off the differences.
+Arbitrage is a way to generate passive income off of the price differences of a currency on multiple exchanges. The idea is that you buy on the lowest exchange, and simultaneously sell on the highest exchange. Since the prices move around and the high and low exchanges tend to flip-flop, there isn't a need to move assets between exchanges after each transaction. SAMWise takes advantage of these price discrepancies and automatically executes the profitable trades to make a profit off the differences.
 
 ## Findings
 
