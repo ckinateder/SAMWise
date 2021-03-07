@@ -1,6 +1,6 @@
 import threading
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_restful import Api, Resource
 
 import manager
@@ -86,9 +86,18 @@ def dynamicStatus():
     spreadsrows = manager.getTableLength(query_session, "spreads")
     summaryrows = manager.getTableLength(query_session, "summary")
     current = dbmanager.current
-
-    strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
-    return strin
+    uptime = strfdelta(nowD() - START_TIME)
+    print(type(summaryrows))
+    # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
+    return render_template(
+        "status.html",
+        resultsrows=format(resultsrows, ","),
+        spreadsrows=format(spreadsrows, ","),
+        summaryrows=format(summaryrows, ","),
+        uptime=uptime,
+        current=current,
+    )
+    # return strin
 
 
 api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
