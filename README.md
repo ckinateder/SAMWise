@@ -14,14 +14,17 @@ The basic design of the program is pretty straightforward. The main class uses t
 
 Currently, speed has been greatly increased. Using a concurrency optimization algorithm I designed, the time it takes to fetch the symbols has been reduced from 10+ minutes to less than 1 second.
 
-## Class Overview
+## Console Output
 
-Coming soon
+![demo](img/demo.png)
+
+![scanner](img/scanner.png)
 
 ## API
 
-The API is now partly functional.
-Current endpoints:
+The API is now partly functional. It can be accessed through port `5000` on the machine running the server.
+
+### Endpoints
 
 * `/api/raw/latest`
 * `/api/raw/flex`
@@ -35,7 +38,6 @@ Current endpoints:
 | closest_to | datetime*       | find batch closest to given datetime |
 | bottom     | datetime*       | bottom end of range, inclusive       |
 | top        | datetime*       | top end of range, inclusive          |
-
 <br>
 
 *NOTE: format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
@@ -108,26 +110,70 @@ The API is run off of a database updated around every 10 seconds. There are thre
 | profitable_pairs | int         | YES  |     | NULL    |                |
 <br>
 
+## Class Overview
+
+### Active
+
+* propagator.py
+  * handles polling all APIs and creates a dictionary of prices for each exchange for each symbol
+* scanner.py
+  * calulates the spread for a single symbol
+* bouncer.py
+  * extends class of scanner.py to enable trading on a single symbol
+* hive.py
+  * manages multiple scanner and bouncer objects
+* tables.py
+  * holds the schema classes for the database
+* manager.py
+  * manages all database operations
+* server.py
+  * multitasks to run the API and database methods simultaneously
+* helper.py
+  * holds all custom functions used by two or more classes
+
+### Deprecated
+
+* main.py
+
 ## Exchanges
 
 SAMWise supports all exchanges supported by ccxt.
 
 ## Installation
 
-Clone repository and install dependencies by using
+Installation is simple; just install dependencies.
 
 ```Bash
 $ git clone https://github.com/ckinateder/SAMWise.git
 $ cd SAMWise
+(SAMWise)$ sudo apt-get install mysql-server libmysqlclient-dev python3-pip screen
 (SAMWise)$ pip3 install -r requirements.txt
 ```
+
+Unfortunately (due to the highly profitable nature of this code), I cannot release it.
 
 ## Usage
 
 All you have to do is run the server class and follow the prompts.
 
-```Bash
-(SAMWise)$ python3 src/server.py
+```
+(SAMWise)$ ./serve -h
+usage: server.py [-h] [-u USER] [-p PWD] [-H HOST] [-P PORT] [-d DATABASE] [-t TIMER] [-r]
+
+Handle database connections for SAMWise
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u USER, --user USER  username
+  -p PWD, --pwd PWD     password
+  -H HOST, --host HOST  host
+  -P PORT, --port PORT  port
+  -d DATABASE, --database DATABASE
+                        database
+  -t TIMER, --timer TIMER
+                        timer
+  -r, --reset           reset the database
+(SAMWise)$ ./serve -t 5
 ```
 
 ## Running From a Server
@@ -136,24 +182,7 @@ If you are running from a remote session, run through a screen to make sure it w
 
 ```Bash
 (SAMWise)$ screen
-(SAMWise)$ python3 src/server.py
+(SAMWise)$ ./serve
 ```
 
 Then, Ctrl + A and then Ctrl + D to detach from the session. You can exit the ssh session and it will continue to run. You can later run `screen -r` to reconnect to the screen.
-
-## Console Output
-
-![demo](img/demo.png)
-
-![scanner](img/scanner.png)
-
-## Execution List
-
-* Develop a triangular arbitrage framework
-* Develop backtesting
-* Develop API
-* Design master symbol allocator using ML
-* Test trade execution speed
-* Test over a day
-* Test over a week
-* Develop UI

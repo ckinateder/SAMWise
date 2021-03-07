@@ -1,2 +1,4 @@
+#!/usr/bin/env bash
 sudo apt-get install mysql-server libmysqlclient-dev python3-pip screen
+
 pip3 install -r requirements.txt
