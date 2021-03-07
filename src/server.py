@@ -1,4 +1,5 @@
 import threading
+import logging
 
 from flask import Flask, request, render_template
 from flask_restful import Api, Resource
@@ -10,6 +11,10 @@ import argparse
 
 app = Flask(__name__)
 api = Api(app)
+
+# turn off page gets
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.ERROR)
 
 
 class Status(Resource):
@@ -86,8 +91,10 @@ def dynamicStatus():
     spreadsrows = manager.getTableLength(query_session, "spreads")
     summaryrows = manager.getTableLength(query_session, "summary")
     current = dbmanager.current
+    size = manager.getDBSize(query_session, "samwise")
     uptime = strfdelta(nowD() - START_TIME)
-    print(type(summaryrows))
+    mem_usage = getMemUsage()
+
     # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
     return render_template(
         "status.html",
@@ -96,6 +103,8 @@ def dynamicStatus():
         summaryrows=format(summaryrows, ","),
         uptime=uptime,
         current=current,
+        dbsize=size,
+        mem_usage=mem_usage,
     )
     # return strin
 

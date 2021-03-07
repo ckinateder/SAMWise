@@ -299,10 +299,10 @@ class DatabaseManager:
 
             self.latest_solved_batch = self.latest_raw_batch
             # print stats
-            mem_usage = round(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
+            mem_usage = getMemUsage()
             print(
                 colorHigh(
-                    f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {self.updateUptime()} - db size: {getDBSize(session,'samwise')} *\n"
+                    f"* ip: {getIP()} - usage: {mem_usage} - uptime: {self.updateUptime()} - db size: {getDBSize(session,'samwise')} *\n"
                 )
             )
             self.current = "waiting"

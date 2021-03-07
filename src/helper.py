@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 from math import floor, log, log10
 from string import Template
-
+import psutil
 from termcolor import colored
 from tqdm import tqdm, trange
 
@@ -193,6 +193,10 @@ def humanFormat(number):
     k = 1000.0
     magnitude = int(floor(log(number, k)))
     return "%.2f%s" % (number / k ** magnitude, units[magnitude])
+
+
+def getMemUsage():
+    return humanFormat(psutil.Process(os.getpid()).memory_info().rss) + "B"
 
 
 def colorGood(strr):
