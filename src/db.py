@@ -258,12 +258,11 @@ def saveIndefinitely(Session, interval=0):
         saveSummary(spreads, session)
 
         globals()["latest_solved_batch"] = globals()["latest_raw_batch"]
-
         # print stats
         mem_usage = round(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
         print(
             colorHigh(
-                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD()-start_time)} - db size: {getDBSize(session,'samwise')}*\n"
+                f"* ip: {getIP()} - usage: {mem_usage} MB - uptime: {strfdelta(nowD() - start_time)} - db size: {getDBSize(session,'samwise')} *\n"
             )
         )
         timer(interval)
@@ -314,6 +313,7 @@ def getBatchesInRange(session, cls, start, end):
 
 
 if __name__ == "__main__":
+    uptime = 0
     latest_batch = None
     # Create the parser
     parser = argparse.ArgumentParser(

@@ -24,7 +24,7 @@ class Status(Resource):
         rrows = getTableLength(query_session, "results")
         srows = getTableLength(query_session, "spreads")
         size = getDBSize(query_session, "samwise")
-        uptime = nowD() - start_time
+        uptime = strfdelta(nowD() - START_TIME)
         nice = f"'results' length: {rrows:,}; 'spreads' length: {srows:,}; DB size: {size}; uptime: {str(uptime)}"
         return {
             "data": {
@@ -32,7 +32,7 @@ class Status(Resource):
                 "results": rrows,
                 "spreads": srows,
                 "size": size,
-                "uptime": str(uptime),
+                "uptime": (uptime),
                 "nice": nice,
             }
         }, 200  # return data and 200 OK code
@@ -80,19 +80,18 @@ class SpreadsLatest(Resource):
         return {"data": row}, 200  # return data and 200 OK code
 
 
-"""
-# add static status
+# static pages
 @app.route("/")
 def status():
     query_session = Session()
-    rrows = query_session.query(Results).count()
-    srows = query_session.query(Spread).count()
+    resultsrows = getTableLength(query_session, "results")
+    spreadsrows = getTableLength(query_session, "spreads")
+    summaryrows = getTableLength(query_session, "summary")
 
-    strin = f"'results' length: {rrows:,}\n'spreads' length: {srows:,}"
+    strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}"
     return strin
-"""
 
-api.add_resource(Status, "/api/status")  # '/api/status' is our entry point
+
 api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
 api.add_resource(RawLatest, "/api/raw/latest")  # '/raw/latest' is our entry point
 api.add_resource(SpreadsFlex, "/api/spreads/flex")  # '/spreads/flex' is our entry point
@@ -122,7 +121,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # mark start time
-    start_time = nowD()
+    START_TIME = nowD()
     # create engine
     engine = buildEngine(
         connection="mysql",
