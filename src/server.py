@@ -104,7 +104,6 @@ def dynamicStatus():
         uptime=uptime,
         current=current,
         dbsize=size,
-        mem_usage=mem_usage,
     )
     # return strin
 
