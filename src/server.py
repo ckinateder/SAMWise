@@ -1,18 +1,12 @@
-import ast
-import json
 import threading
-from datetime import datetime
-from pprint import pprint
 
-import ccxt
-import pandas as pd
 from flask import Flask, request
 from flask_restful import Api, Resource
 
-import hive
-import propagator
-from manager import DatabaseManager
-from db import *
+import manager
+from helper import strfdelta, nowD
+from tables import *
+import argparse
 
 app = Flask(__name__)
 api = Api(app)
@@ -22,9 +16,9 @@ class Status(Resource):
     # methods go here
     def get(self):
         query_session = Session()
-        rrows = getTableLength(query_session, "results")
-        srows = getTableLength(query_session, "spreads")
-        size = getDBSize(query_session, "samwise")
+        rrows = manager.getTableLength(query_session, "results")
+        srows = manager.getTableLength(query_session, "spreads")
+        size = manager.getDBSize(query_session, "samwise")
         uptime = strfdelta(nowD() - START_TIME)
         nice = f"'results' length: {rrows:,}; 'spreads' length: {srows:,}; DB size: {size}; uptime: {str(uptime)}"
         return {
@@ -52,10 +46,12 @@ class RawFlex(Resource):
         closest_to = request.args.get("closest_to")  # optional
 
         if closest_to:
-            closest_record = getNearestBatchTo(query_session, Results, closest_to)
+            closest_record = manager.getNearestBatchTo(
+                query_session, Results, closest_to
+            )
             return {"data": closest_record}, 200  # return data with 200 OK
         else:
-            rows = getBatchesInRange(query_session, Results, bottom, top)
+            rows = manager.getBatchesInRange(query_session, Results, bottom, top)
             return {"data": rows}, 200  # return data with 200 OK
 
 
@@ -63,7 +59,7 @@ class RawLatest(Resource):
     # methods go here
     def get(self):
         query_session = Session()  # for querying
-        row = getRawLatest(query_session)
+        row = manager.getRawLatest(query_session)
         return {"data": row}, 200  # return data with 200 OK
 
 
@@ -77,7 +73,7 @@ class SpreadsLatest(Resource):
     # methods go here
     def get(self):
         query_session = Session()  # for querying
-        row = getSpreadsLatest(query_session)
+        row = manager.getSpreadsLatest(query_session)
         return {"data": row}, 200  # return data and 200 OK code
 
 
@@ -86,9 +82,9 @@ class SpreadsLatest(Resource):
 def dynamicStatus():
     query_session = Session()
 
-    resultsrows = getTableLength(query_session, "results")
-    spreadsrows = getTableLength(query_session, "spreads")
-    summaryrows = getTableLength(query_session, "summary")
+    resultsrows = manager.getTableLength(query_session, "results")
+    spreadsrows = manager.getTableLength(query_session, "spreads")
+    summaryrows = manager.getTableLength(query_session, "summary")
     current = dbmanager.current
 
     strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
@@ -126,7 +122,7 @@ if __name__ == "__main__":
     # mark start time
     START_TIME = nowD()
     # create engine
-    engine = buildEngine(
+    engine = manager.buildEngine(
         connection="mysql",
         username=args.user,
         password=args.pwd,
@@ -138,11 +134,11 @@ if __name__ == "__main__":
     if args.reset:
         confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()
         if "y" in confirm:
-            resetTables(engine)
+            manager.resetTables(engine)
 
     # create session maker and session
-    Session = createSessionMaker(engine)  # for saving
-    dbmanager = DatabaseManager()
+    Session = manager.createSessionMaker(engine)  # for saving
+    dbmanager = manager.DatabaseManager()
     # create threads
     apiThread = threading.Thread(target=runAPI, name="api")
     dataThread = threading.Thread(
