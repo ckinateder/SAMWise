@@ -62,26 +62,6 @@ def getTableLength(session, table):
     return number_of_rows
 
 
-def findNearestBatchTo(session, cls, batch):
-    # batch must be in datetime string format
-    batch = datetime.strptime(batch, TIME_FORMAT)
-    uniques = cls.findUniqueBatches(session)
-    closest = min(uniques, key=lambda d: abs(d - batch))
-    return closest
-
-
-def getNearestBatchTo(session, cls, batch):
-    # batch must be in datetime string format
-    closest = findNearestBatchTo(session, cls, batch)
-    closest_record = cls.findBy(session, True, batch=closest.strftime(TIME_FORMAT))
-    return closest_record
-
-
-def getBatchesInRange(session, cls, start, end):
-    betweens = cls.findBetweenDatetimes(session, True, start=start, end=end)
-    return betweens
-
-
 # class
 class DatabaseManager:
     def __init__(self, default_session):
@@ -97,6 +77,23 @@ class DatabaseManager:
         }
         self.db_size = getDBSize(default_session, "samwise")
         self.latest_summary = []
+
+    def findNearestBatchTo(self, session, cls, batch):
+        # batch must be in datetime string format
+        batch = datetime.strptime(batch, TIME_FORMAT)
+        uniques = cls.findUniqueBatches(session)
+        closest = min(uniques, key=lambda d: abs(d - batch))
+        return closest
+
+    def getNearestBatchTo(self, session, cls, batch):
+        # batch must be in datetime string format
+        closest = self.findNearestBatchTo(session, cls, batch)
+        closest_record = cls.findBy(session, True, batch=closest.strftime(TIME_FORMAT))
+        return closest_record
+
+    def getBatchesInRange(self, session, cls, start, end):
+        betweens = cls.findBetweenDatetimes(session, True, start=start, end=end)
+        return betweens
 
     def getRawLatest(self, session):
         """
