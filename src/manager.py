@@ -107,12 +107,19 @@ def getBatchesInRange(session, cls, start, end):
 
 # class
 class DatabaseManager:
-    def __init__(self):
+    def __init__(self, default_session):
         self.current = "starting"  # current process
         self.start_time = nowD()
         self.uptime = 0
         self.latest_raw_batch = None
         self.latest_solved_batch = None
+        # lengths
+        self.lengths = {
+            "results": getTableLength(default_session, "results"),
+            "spreads": getTableLength(default_session, "spreads"),
+            "summary": getTableLength(default_session, "summary"),
+        }
+        self.db_size = getDBSize(default_session, "samwise")
 
     def convertPropsToORM(self, props):
         """
@@ -286,23 +293,26 @@ class DatabaseManager:
             props, self.latest_raw_batch = beehive.pgator.propagate(beehive.idynamics)
             self.current = "saving props"
             self.saveProps(props, session)
-
+            self.lengths["results"] = getTableLength(session, "results")
             # scan one cycle
             self.current = "solving"
             spreads = beehive.scanFull(props)
 
             self.current = "saving spreads"
             self.saveSpreads(spreads, session)
+            self.lengths["spreads"] = getTableLength(session, "spreads")
             # summarize one cycle
             self.current = "saving summary"
             self.saveSummary(spreads, session)
+            self.lengths["summary"] = getTableLength(session, "summary")
 
+            self.db_size = getDBSize(session, "samwise")
             self.latest_solved_batch = self.latest_raw_batch
             # print stats
             mem_usage = getMemUsage()
             print(
                 colorHigh(
-                    f"* ip: {getIP()} - usage: {mem_usage} - uptime: {self.updateUptime()} - db size: {getDBSize(session,'samwise')} *\n"
+                    f"* ip: {getIP()} - usage: {mem_usage} - uptime: {self.updateUptime()} - db size: {self.db_size} *\n"
                 )
             )
             self.current = "waiting"

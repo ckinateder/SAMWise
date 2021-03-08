@@ -85,25 +85,18 @@ class SpreadsLatest(Resource):
 # static pages
 @app.route("/")
 def dynamicStatus():
-    query_session = Session()
-
-    resultsrows = manager.getTableLength(query_session, "results")
-    spreadsrows = manager.getTableLength(query_session, "spreads")
-    summaryrows = manager.getTableLength(query_session, "summary")
-    current = dbmanager.current
-    size = manager.getDBSize(query_session, "samwise")
     uptime = strfdelta(nowD() - START_TIME)
     mem_usage = getMemUsage()
 
     # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
     return render_template(
         "status.html",
-        resultsrows=format(resultsrows, ","),
-        spreadsrows=format(spreadsrows, ","),
-        summaryrows=format(summaryrows, ","),
+        resultsrows=format(dbmanager.lengths["results"], ","),
+        spreadsrows=format(dbmanager.lengths["spreads"], ","),
+        summaryrows=format(dbmanager.lengths["summary"], ","),
         uptime=uptime,
-        current=current,
-        dbsize=size,
+        current=dbmanager.current,
+        dbsize=dbmanager.db_size,
     )
     # return strin
 
@@ -155,7 +148,8 @@ if __name__ == "__main__":
 
     # create session maker and session
     Session = manager.createSessionMaker(engine)  # for saving
-    dbmanager = manager.DatabaseManager()
+    dbmanager_sess = Session()
+    dbmanager = manager.DatabaseManager(dbmanager_sess)
     # create threads
     apiThread = threading.Thread(target=runAPI, name="api")
     dataThread = threading.Thread(
