@@ -32,7 +32,8 @@ The API is now partly functional. It can be accessed through port `5000` on the 
 * `/api/speads/flex`
 
 `/api/[spreads or raw]/flex` params:
-<br>
+
+
 | identifier | format and type | description                          |
 | ---------- | --------------- | ------------------------------------ |
 | closest_to | datetime*       | find batch closest to given datetime |
@@ -47,7 +48,6 @@ The API is now partly functional. It can be accessed through port `5000` on the 
 The API is run off of a database updated around every 10 seconds. There are three tables, `results`, `spreads`, and `summary`, all related to each other by the `batch` key. The `batch` key is a datetime marking what time the propagation cycle was executed. The timestamps for each symbol received may be slightly different due to the asynchronous design of the `Propagator` class, but the `batch` will be the same for each symbol in that cycle.
 
 ### Results Schema
-<br>
 
 | Field         | Type          | Null | Key | Default | Extra          |
 | ------------- | ------------- | ---- | --- | ------- | -------------- |
@@ -75,7 +75,7 @@ The API is run off of a database updated around every 10 seconds. There are thre
 <br>
 
 ### Spreads Schema
-<br>
+
 
 | Field            | Type        | Null | Key | Default | Extra          |
 | ---------------- | ----------- | ---- | --- | ------- | -------------- |
@@ -101,7 +101,7 @@ The API is run off of a database updated around every 10 seconds. There are thre
 <br>
 
 ### Summary Schema
-<br>
+
 
 | Field            | Type        | Null | Key | Default | Extra          |
 | ---------------- | ----------- | ---- | --- | ------- | -------------- |
