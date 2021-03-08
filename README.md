@@ -34,12 +34,14 @@ The API is now partly functional. It can be accessed through port `5000` on the 
 `/api/[spreads or raw]/flex` params:
 
 
+
 | identifier | format and type | description                          |
 | ---------- | --------------- | ------------------------------------ |
 | closest_to | datetime*       | find batch closest to given datetime |
 | bottom     | datetime*       | bottom end of range, inclusive       |
 | top        | datetime*       | top end of range, inclusive          |
-<br>
+
+
 
 *NOTE: format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
 
@@ -48,6 +50,8 @@ The API is now partly functional. It can be accessed through port `5000` on the 
 The API is run off of a database updated around every 10 seconds. There are three tables, `results`, `spreads`, and `summary`, all related to each other by the `batch` key. The `batch` key is a datetime marking what time the propagation cycle was executed. The timestamps for each symbol received may be slightly different due to the asynchronous design of the `Propagator` class, but the `batch` will be the same for each symbol in that cycle.
 
 ### Results Schema
+
+
 
 | Field         | Type          | Null | Key | Default | Extra          |
 | ------------- | ------------- | ---- | --- | ------- | -------------- |
@@ -72,9 +76,12 @@ The API is run off of a database updated around every 10 seconds. There are thre
 | previousClose | decimal(20,8) | YES  |     | NULL    |                |
 | quoteVolume   | decimal(20,8) | YES  |     | NULL    |                |
 | vwap          | decimal(20,8) | YES  |     | NULL    |                |
-<br>
+
+
+
 
 ### Spreads Schema
+
 
 
 | Field            | Type        | Null | Key | Default | Extra          |
@@ -98,9 +105,12 @@ The API is run off of a database updated around every 10 seconds. There are thre
 | liquidity        | float       | YES  |     | NULL    |                |
 | quote_order_size | int         | YES  |     | NULL    |                |
 | speedup          | float       | YES  |     | NULL    |                |
-<br>
+
+
+
 
 ### Summary Schema
+
 
 
 | Field            | Type        | Null | Key | Default | Extra          |
@@ -111,7 +121,8 @@ The API is run off of a database updated around every 10 seconds. There are thre
 | spread_w_fees    | float       | YES  |     | NULL    |                |
 | speedup          | float       | YES  |     | NULL    |                |
 | profitable_pairs | int         | YES  |     | NULL    |                |
-<br>
+
+
 
 ## Class Overview
 
