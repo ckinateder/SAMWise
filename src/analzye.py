@@ -5,7 +5,7 @@ from pandas.core.frame import DataFrame
 from sqlalchemy import MetaData, create_engine
 
 from helper import nowD
-from db import buildEngine
+from manager import buildEngine
 
 
 def dfFromTable(engine, table) -> DataFrame:

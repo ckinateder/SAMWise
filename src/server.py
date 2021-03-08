@@ -64,7 +64,7 @@ class RawLatest(Resource):
     # methods go here
     def get(self):
         query_session = Session()  # for querying
-        row = manager.getRawLatest(query_session)
+        row = dbmanager.getRawLatest(query_session)
         return {"data": row}, 200  # return data with 200 OK
 
 
@@ -78,7 +78,7 @@ class SpreadsLatest(Resource):
     # methods go here
     def get(self):
         query_session = Session()  # for querying
-        row = manager.getSpreadsLatest(query_session)
+        row = dbmanager.getSpreadsLatest(query_session)
         return {"data": row}, 200  # return data and 200 OK code
 
 

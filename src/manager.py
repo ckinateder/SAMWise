@@ -88,8 +88,7 @@ class DatabaseManager:
         self.current = "starting"  # current process
         self.start_time = nowD()
         self.uptime = 0
-        self.latest_raw_batch = None
-        self.latest_solved_batch = None
+
         # lengths
         self.lengths = {
             "results": getTableLength(default_session, "results"),
@@ -104,10 +103,8 @@ class DatabaseManager:
         Get latest data from the price tickers.
         """
         latest = None
-        if self.latest_raw_batch:
-            latest = Results.findBy(
-                session, True, batch=globals()["latest_raw_batch"].strftime(TIME_FORMAT)
-            )
+        batch = session.query(Results).order_by(Results.id.desc()).first().batch
+        latest = Results.findBy(session, True, batch=batch)
         return latest
 
     def getSpreadsLatest(self, session):
@@ -115,12 +112,12 @@ class DatabaseManager:
         Get latest data from the
         """
         latest = None
-        if self.latest_solved_batch:
-            latest = Spread.findBy(
-                session,
-                True,
-                batch=globals()["latest_solved_batch"].strftime(TIME_FORMAT),
-            )
+        batch = session.query(Spread).order_by(Spread.id.desc()).first().batch
+        latest = Spread.findBy(
+            session,
+            True,
+            batch=batch,
+        )
         return latest
 
     def convertPropsToORM(self, props):
@@ -293,7 +290,7 @@ class DatabaseManager:
         while True:
             # create props
             self.current = "propagating"
-            props, self.latest_raw_batch = beehive.pgator.propagate(beehive.idynamics)
+            props, latest_raw_batch = beehive.pgator.propagate(beehive.idynamics)
             self.current = "saving props"
             self.saveProps(props, session)
             self.lengths["results"] = getTableLength(session, "results")
@@ -312,7 +309,6 @@ class DatabaseManager:
             self.lengths["summary"] = getTableLength(session, "summary")
 
             self.db_size = getDBSize(session, "samwise")
-            self.latest_solved_batch = self.latest_raw_batch
             # print stats
             mem_usage = getMemUsage()
             print(

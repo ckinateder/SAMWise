@@ -88,7 +88,7 @@ class Scanner:
             self.p(
                 "Symbol '{}' not supported by all platforms. Exiting ...".format(symbol)
             )
-            sys.exit(0)
+            self.exchanges = []
 
         # set precision
         self.precision = 5
