@@ -92,9 +92,6 @@ class Scanner:
 
         # set precision
         self.precision = 5
-
-        if "USD" in self.quote_coin:
-            self.precision = 2
         # get width
         self.height, self.width = updateSize()
         # find currency name
@@ -407,6 +404,11 @@ class Scanner:
                                 test_sell=test_sell,
                                 spread_with_fee=test_spread - test_fee,
                             )
+
+                            # round
+                            actual_speedup = round(actual_speedup, self.precision)
+                            spread_w_fee = round(spread_w_fee, self.precision)
+
                             # create dictionary
                             spreads[spread_w_fee] = {
                                 "time": t_formatted,

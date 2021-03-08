@@ -87,8 +87,10 @@ class SpreadsLatest(Resource):
 def dynamicStatus():
     uptime = strfdelta(nowD() - START_TIME)
     mem_usage = getMemUsage()
-
     # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
+    num_profit = ""
+    if dbmanager.latest_summary:
+        num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
     return render_template(
         "status.html",
         resultsrows=format(dbmanager.lengths["results"], ","),
@@ -97,6 +99,8 @@ def dynamicStatus():
         uptime=uptime,
         current=dbmanager.current,
         dbsize=dbmanager.db_size,
+        summary=dbmanager.latest_summary,
+        num_profit=num_profit,
     )
     # return strin
 

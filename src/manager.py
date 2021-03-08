@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from helper import *
 from tables import Base, Results, Spread, Summary
 import hive
+from pprint import *
 
 # statics
 
@@ -61,30 +62,6 @@ def getTableLength(session, table):
     return number_of_rows
 
 
-def getRawLatest(session):
-    """
-    Get latest data from the price tickers.
-    """
-    latest = None
-    if globals()["latest_raw_batch"]:
-        latest = Results.findBy(
-            session, True, batch=globals()["latest_raw_batch"].strftime(TIME_FORMAT)
-        )
-    return latest
-
-
-def getSpreadsLatest(session):
-    """
-    Get latest data from the
-    """
-    latest = None
-    if globals()["latest_solved_batch"]:
-        latest = Spread.findBy(
-            session, True, batch=globals()["latest_solved_batch"].strftime(TIME_FORMAT)
-        )
-    return latest
-
-
 def findNearestBatchTo(session, cls, batch):
     # batch must be in datetime string format
     batch = datetime.strptime(batch, TIME_FORMAT)
@@ -120,6 +97,31 @@ class DatabaseManager:
             "summary": getTableLength(default_session, "summary"),
         }
         self.db_size = getDBSize(default_session, "samwise")
+        self.latest_summary = []
+
+    def getRawLatest(self, session):
+        """
+        Get latest data from the price tickers.
+        """
+        latest = None
+        if self.latest_raw_batch:
+            latest = Results.findBy(
+                session, True, batch=globals()["latest_raw_batch"].strftime(TIME_FORMAT)
+            )
+        return latest
+
+    def getSpreadsLatest(self, session):
+        """
+        Get latest data from the
+        """
+        latest = None
+        if self.latest_solved_batch:
+            latest = Spread.findBy(
+                session,
+                True,
+                batch=globals()["latest_solved_batch"].strftime(TIME_FORMAT),
+            )
+        return latest
 
     def convertPropsToORM(self, props):
         """
@@ -275,6 +277,7 @@ class DatabaseManager:
                 f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long)."
             )
         )
+        return rows
 
     def updateUptime(self):
         self.uptime = strfdelta(nowD() - self.start_time)
@@ -303,7 +306,9 @@ class DatabaseManager:
             self.lengths["spreads"] = getTableLength(session, "spreads")
             # summarize one cycle
             self.current = "saving summary"
-            self.saveSummary(spreads, session)
+            self.latest_summary = self.saveSummary(spreads, session)
+            self.latest_summary.sort(key=lambda x: x.spread_w_fees, reverse=True)
+
             self.lengths["summary"] = getTableLength(session, "summary")
 
             self.db_size = getDBSize(session, "samwise")
