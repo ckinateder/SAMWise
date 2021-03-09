@@ -202,14 +202,15 @@ class DatabaseManager:
             if spreads[symbol]:
                 numberof = len(spreads[symbol])
                 top = spreads[symbol][0]
-                row = Summary(
-                    batch=top["batch"],
-                    symbol=top["symbol"],
-                    spread_w_fees=top["spread_w_fees"],
-                    speedup=top["speedup"],
-                    profitable_pairs=numberof,
-                )
-                rows.append(row)
+                if top["symbol"] != "BCH/USD":  # bch is broken rn
+                    row = Summary(
+                        batch=top["batch"],
+                        symbol=top["symbol"],
+                        spread_w_fees=top["spread_w_fees"],
+                        speedup=top["speedup"],
+                        profitable_pairs=numberof,
+                    )
+                    rows.append(row)
 
         return rows
 
