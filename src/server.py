@@ -20,20 +20,12 @@ log.setLevel(logging.ERROR)
 class Status(Resource):
     # methods go here
     def get(self):
-        query_session = Session()
-        rrows = manager.getTableLength(query_session, "results")
-        srows = manager.getTableLength(query_session, "spreads")
-        size = manager.getDBSize(query_session, "samwise")
-        uptime = strfdelta(nowD() - START_TIME)
-        nice = f"'results' length: {rrows:,}; 'spreads' length: {srows:,}; DB size: {size}; uptime: {str(uptime)}"
         return {
             "data": {
                 "status": "unknown (probably running)",
-                "results": rrows,
-                "spreads": srows,
-                "size": size,
-                "uptime": (uptime),
-                "nice": nice,
+                "lengths": dbmanager.lengths,
+                "size": dbmanager.db_size,
+                "uptime": dbmanager.updateUptime(),
             }
         }, 200  # return data and 200 OK code
 
@@ -51,12 +43,12 @@ class RawFlex(Resource):
         closest_to = request.args.get("closest_to")  # optional
 
         if closest_to:
-            closest_record = manager.getNearestBatchTo(
+            closest_record = dbmanager.getNearestBatchTo(
                 query_session, Results, closest_to
             )
             return {"data": closest_record}, 200  # return data with 200 OK
         else:
-            rows = manager.getBatchesInRange(query_session, Results, bottom, top)
+            rows = dbmanager.getBatchesInRange(query_session, Results, bottom, top)
             return {"data": rows}, 200  # return data with 200 OK
 
 
@@ -85,7 +77,6 @@ class SpreadsLatest(Resource):
 # static pages
 @app.route("/")
 def dynamicStatus():
-    uptime = strfdelta(nowD() - START_TIME)
     mem_usage = getMemUsage()
     # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
     num_profit = ""
@@ -96,7 +87,7 @@ def dynamicStatus():
         resultsrows=format(dbmanager.lengths["results"], ","),
         spreadsrows=format(dbmanager.lengths["spreads"], ","),
         summaryrows=format(dbmanager.lengths["summary"], ","),
-        uptime=uptime,
+        uptime=dbmanager.updateUptime(),
         current=dbmanager.current,
         dbsize=dbmanager.db_size,
         summary=dbmanager.latest_summary,
@@ -132,9 +123,6 @@ if __name__ == "__main__":
         "-r", "--reset", help="reset the database", default=False, action="store_true"
     )
     args = parser.parse_args()
-
-    # mark start time
-    START_TIME = nowD()
     # create engine
     engine = manager.buildEngine(
         connection="mysql",

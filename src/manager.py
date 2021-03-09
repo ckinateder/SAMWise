@@ -301,7 +301,9 @@ class DatabaseManager:
             # summarize one cycle
             self.current = "saving summary"
             self.latest_summary = self.saveSummary(spreads, session)
-            self.latest_summary.sort(key=lambda x: x.spread_w_fees, reverse=True)
+            self.latest_summary.sort(
+                key=lambda x: x.speedup, reverse=True
+            )  # sort by speedup
 
             self.lengths["summary"] = getTableLength(session, "summary")
 
