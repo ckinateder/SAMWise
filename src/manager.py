@@ -1,4 +1,4 @@
-import tqdm, psutil
+import tqdm, psutil, sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from helper import *

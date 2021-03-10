@@ -45,7 +45,7 @@ class Hive:
             )
             init_bar.update(1)
             self.scanners = self.createDynamicSB(Scanner, trade_size=100, minnum=minnum)
-
+            self.bouncers = None
             # self.bouncers = self.createDynamicSB(Bouncer, trade_size=100, minnum=minnum)
             init_bar.update(1)
 
@@ -59,9 +59,10 @@ class Hive:
                 if scanner.symbol == symbol:
                     thing = scanner
         elif Handler == Bouncer:
-            for bouncer in self.bouncers:
-                if bouncer.symbol == symbol:
-                    thing = bouncer
+            if self.bouncers:
+                for bouncer in self.bouncers:
+                    if bouncer.symbol == symbol:
+                        thing = bouncer
         return thing
 
     def getCommons(self):

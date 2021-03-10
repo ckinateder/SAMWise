@@ -82,13 +82,17 @@ def dynamicStatus():
     num_profit = ""
     if dbmanager.latest_summary:
         num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
+    if dataThread.is_alive():
+        current = dbmanager.current
+    else:
+        current = "dead"
     return render_template(
         "status.html",
         resultsrows=format(dbmanager.lengths["results"], ","),
         spreadsrows=format(dbmanager.lengths["spreads"], ","),
         summaryrows=format(dbmanager.lengths["summary"], ","),
         uptime=dbmanager.updateUptime(),
-        current=dbmanager.current,
+        current=current,
         dbsize=dbmanager.db_size,
         summary=dbmanager.latest_summary,
         num_profit=num_profit,
