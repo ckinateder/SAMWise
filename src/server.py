@@ -158,3 +158,14 @@ if __name__ == "__main__":
     tqdm.write("Started DATA server ...")
     apiThread.start()
     tqdm.write("Started API server ...")
+
+    # restart if dead
+    while True:
+        if not dataThread.is_alive():
+            dataThread = threading.Thread(
+                target=dbmanager.saveIndefinitely,
+                args=(Session, int(args.timer)),
+                name="data",
+            )
+            dataThread.start()
+        time.sleep(10)
