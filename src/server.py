@@ -80,12 +80,14 @@ def dynamicStatus():
     mem_usage = getMemUsage()
     # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
     num_profit = ""
-    if dbmanager.latest_summary:
-        num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
     if dataThread.is_alive():
         current = dbmanager.current
+        summary = dbmanager.latest_summary
     else:
         current = "dead"
+        summary = []
+    if dbmanager.latest_summary:
+        num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
     return render_template(
         "status.html",
         resultsrows=format(dbmanager.lengths["results"], ","),
@@ -94,7 +96,7 @@ def dynamicStatus():
         uptime=dbmanager.updateUptime(),
         current=current,
         dbsize=dbmanager.db_size,
-        summary=dbmanager.latest_summary,
+        summary=summary,
         num_profit=num_profit,
     )
     # return strin
