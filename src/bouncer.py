@@ -36,6 +36,7 @@ class Bouncer(Scanner):
         speedup=10,
         margin=0.01,
         min_speedup=1,
+        silent=False,  # won't do anything here
         loud=True,
         position=None,
     ):
@@ -72,7 +73,6 @@ class Bouncer(Scanner):
             + self.quote_coin
             + "_trades.csv"
         )
-        self.margin = margin  # for trades
         exchanges_str = ""
         self.trading = True
         # set up trades file
@@ -95,7 +95,7 @@ class Bouncer(Scanner):
 
         tqdm.write(
             colorGood(
-                "Spending ${:,.0f} for ${}: playing with {:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
+                "Spending ${:,.0f} for ${}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
             ).format(
                 self.quote_order_size,
                 self.symbol,

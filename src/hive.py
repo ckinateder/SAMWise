@@ -44,48 +44,25 @@ class Hive:
                 original=self.dynamic_commons
             )
             init_bar.update(1)
-            self.currencies = self.createDynamicScanners(trade_size=100, minnum=minnum)
+            self.scanners = self.createDynamicSB(Scanner, trade_size=100, minnum=minnum)
+
+            # self.bouncers = self.createDynamicSB(Bouncer, trade_size=100, minnum=minnum)
             init_bar.update(1)
 
-    def getTableOfAll(self):
+    def getWithSymbol(self, Handler, symbol):
         """
-        Get table of all symbols mapped with all exchanges.
+        Get a bouncer or scanner with symbol
         """
-        index = list()
-
-        for i in self.exchanges:
-            x = list(i.load_markets().keys())
-            for j in x:
-                if "USD" in j:
-                    index.append(j)
-
-        index = list(set(index))
-
-        alls = list()
-        for i in self.exchanges:
-            alls.append(i.id)
-
-        headers = alls
-        headers.insert(0, "ticker")
-        headers.append("count")
-
-        yes_and_no = pd.DataFrame(columns=headers)
-        yes_and_no["ticker"] = index
-        yes_and_no["count"] = 0
-
-        for exchange in self.exchanges:
-            for i in range(0, len(index)):
-                marks = list(exchange.load_markets().keys())
-                if index[i] in marks:
-                    yes_and_no[exchange.id].loc[i] = True
-                    yes_and_no["count"].loc[i] += 1
-                else:
-                    yes_and_no[exchange.id].loc[i] = False
-        # tqdm.write(yes_and_no)
-        yes_and_no.reset_index(drop=True, inplace=True)
-        yes_and_no = yes_and_no.sort_values("count", ascending=False)
-        yes_and_no.to_csv("logs/pairs.csv", index=False)
-        return yes_and_no
+        thing = None
+        if Handler == Scanner:
+            for scanner in self.scanners:
+                if scanner.symbol == symbol:
+                    thing = scanner
+        elif Handler == Bouncer:
+            for bouncer in self.bouncers:
+                if bouncer.symbol == symbol:
+                    thing = bouncer
+        return thing
 
     def getCommons(self):
         """
@@ -106,11 +83,18 @@ class Hive:
         out = list(set(out))
         return out
 
-    def createDynamicScanners(self, trade_size=100, minnum=2):
+    def createDynamicSB(self, handler, trade_size=100, minnum=2):
         """
-        Create scanners for all the dynamic exchanges
+        Create scanners OR bouncers for all the dynamic exchanges
         """
-        self.currencies = []
+        if handler == Scanner:
+            name = "scanner"
+        elif handler == Bouncer:
+            name = "bouncer"
+        else:
+            return []
+
+        self.scanners = []
         tqdm.write(
             colorEh(
                 "{} ({} pairs found)".format(
@@ -119,7 +103,7 @@ class Hive:
                 )
             )
         )
-        tqdm.write(colorGood(f"Creating {len(self.dynamic_commons)} scanners ..."))
+        tqdm.write(colorGood(f"Creating {len(self.dynamic_commons)} {name}s ..."))
         for e in tqdm(
             self.dynamic_commons,
             leave=False,
@@ -128,8 +112,8 @@ class Hive:
             desc="symbl",
         ):
             if len(self.dynamic_commons[e]) >= minnum:
-                self.currencies.append(
-                    Scanner(
+                self.scanners.append(
+                    handler(
                         e,
                         trade_size,
                         self.dynamic_commons[e],
@@ -143,12 +127,8 @@ class Hive:
                         * 100,
                     )
                 )
-        tqdm.write(
-            colorGood(
-                f"Created {len(self.dynamic_commons)} scanners!\nScanning now ..."
-            )
-        )
-        return self.currencies
+        tqdm.write(colorGood(f"Created {len(self.dynamic_commons)} {name}s!\n"))
+        return self.scanners
 
     def myPrint(self, dic):
         for x in dic:
@@ -183,7 +163,7 @@ class Hive:
         procs = []
         solve_time = nowD()
         for scan in tqdm(
-            self.currencies,
+            self.scanners,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
@@ -232,7 +212,7 @@ class Hive:
         Scan every single exchange n times and print a summary.
         """
         # nested loop with progressbar
-        total = len(self.currencies) * n
+        total = len(self.scanners) * n
         with tqdm(
             total=total,
             position=1,

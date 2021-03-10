@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from os import error, listdir, path
 from pprint import pprint
 from threading import Thread
-
+import pandas as pd
 import ccxt
 from tqdm import tqdm
 from tqdm.std import trange
@@ -41,6 +41,46 @@ class Propagtor:
             file_list = [x for x in file_list if not x == "bad"]
         all_ex = list(set(file_list))
         return all_ex
+
+    def getTableOfAll(self):
+        """
+        Get table of all symbols mapped with all exchanges.
+        """
+        index = list()
+
+        for i in self.exchanges:
+            x = list(i.load_markets().keys())
+            for j in x:
+                if "USD" in j:
+                    index.append(j)
+
+        index = list(set(index))
+
+        alls = list()
+        for i in self.exchanges:
+            alls.append(i.id)
+
+        headers = alls
+        headers.insert(0, "ticker")
+        headers.append("count")
+
+        yes_and_no = pd.DataFrame(columns=headers)
+        yes_and_no["ticker"] = index
+        yes_and_no["count"] = 0
+
+        for exchange in self.exchanges:
+            for i in range(0, len(index)):
+                marks = list(exchange.load_markets().keys())
+                if index[i] in marks:
+                    yes_and_no[exchange.id].loc[i] = True
+                    yes_and_no["count"].loc[i] += 1
+                else:
+                    yes_and_no[exchange.id].loc[i] = False
+        # tqdm.write(yes_and_no)
+        yes_and_no.reset_index(drop=True, inplace=True)
+        yes_and_no = yes_and_no.sort_values("count", ascending=False)
+        yes_and_no.to_csv("logs/pairs.csv", index=False)
+        return yes_and_no
 
     def loadExchanges(self, all_ex):
         """
