@@ -98,6 +98,7 @@ def dynamicStatus():
         dbsize=dbmanager.db_size,
         summary=summary,
         num_profit=num_profit,
+        footer=getInfo(),
     )
     # return strin
 

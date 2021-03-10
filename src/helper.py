@@ -13,6 +13,8 @@ import psutil
 from termcolor import colored
 from tqdm import tqdm, trange
 
+import platform
+
 try:
     import pync
 
@@ -138,6 +140,14 @@ def stringitizeExc(list_of_exchanges):
         out += list_of_exchanges[i].name + ", "
     out += "and " + list_of_exchanges[-1].name
     return out
+
+
+def getInfo():
+    """
+    Get system platform info for footer.
+    """
+    l = list(platform.uname())
+    return "System Info: " + " - ".join(l)
 
 
 class DeltaTemplate(Template):
