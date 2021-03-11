@@ -319,6 +319,7 @@ class DatabaseManager:
                 )
             )
 
+            # update on screen
             for t in trange(
                 0,
                 interval,
