@@ -342,14 +342,17 @@ class Propagtor:
         }
         """
         final_out = two.copy()
-        for symbol in one:
-            if symbol in final_out:
-                for exchange in one[symbol]:
-                    final_out[symbol][exchange] = one[symbol][exchange]
-            else:
-                final_out[symbol] = {}
-                for exchange in one[symbol]:
-                    final_out[symbol][exchange] = one[symbol][exchange]
+        try:
+            for symbol in one:
+                if symbol in final_out:
+                    for exchange in one[symbol]:
+                        final_out[symbol][exchange] = one[symbol][exchange]
+                else:
+                    final_out[symbol] = {}
+                    for exchange in one[symbol]:
+                        final_out[symbol][exchange] = one[symbol][exchange]
+        except TypeError:
+            final_out = {}
         return final_out
 
     def _transposeBatchTickers(self, original, exchange):
