@@ -209,6 +209,8 @@ class DatabaseManager:
                         spread_w_fees=top["spread_w_fees"],
                         speedup=top["speedup"],
                         profitable_pairs=numberof,
+                        buy=top["buy"],
+                        sell=top["sell"],
                     )
                     rows.append(row)
 

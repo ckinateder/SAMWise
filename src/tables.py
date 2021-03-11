@@ -139,6 +139,9 @@ class Summary(Base):
     spread_w_fees = Column(Float)  # only the top spread
     speedup = Column(Float)  # only top spread speedup
 
+    buy = Column(VARCHAR(40))  # only top
+    sell = Column(VARCHAR(40))  # only top
+
     profitable_pairs = Column(Integer)  # number of profitable pairs
 
     @classmethod

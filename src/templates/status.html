@@ -60,12 +60,16 @@
                         <th>SYMBOL</th>
                         <th>SPREAD</th>
                         <th>SPEEDUP</th>
+                        <th>BUY</th>
+                        <th>SELL</th>
                     </tr>
                     {% for row in summary %}
                     <tr>
                         <td>{{ row.symbol }}</a></td>
                         <td>{{ row.spread_w_fees }}</td>
                         <td>{{ row.speedup }}%</td>
+                        <td>{{ row.buy }}</td>
+                        <td>{{ row.sell }}</td>
                     </tr>
                     {% endfor %}
                 </table>
