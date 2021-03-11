@@ -318,5 +318,14 @@ class DatabaseManager:
                     f"* ip: {getIP()} - usage: {mem_usage} - uptime: {self.updateUptime()} - db size: {self.db_size} *\n"
                 )
             )
-            self.current = "waiting"
-            timer(interval)
+
+            for t in trange(
+                0,
+                interval,
+                leave=False,
+                desc="timer",
+                dynamic_ncols=True,
+                position=1,
+            ):
+                self.current = f"waiting {interval-t}s"
+                time.sleep(1)
