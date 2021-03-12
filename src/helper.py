@@ -2,6 +2,7 @@
 Helper class with custom functions used by multiple other classes.
 """
 import decimal
+from logging import disable
 import os
 import socket
 import subprocess
@@ -31,6 +32,8 @@ HEIGHT, WIDTH = updateSize()
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 QUOTE = "USD"
 KEYPATH = "keys/"
+# change this to turn of progress bars
+BARSDISABLED = False
 
 
 def intro():
@@ -90,6 +93,7 @@ def roundSignificant(x, sig=2):
 def timer(waittime):
     for interval in trange(
         waittime * 1000,
+        disable=BARSDISABLED,
         leave=False,
         desc="timer",
         dynamic_ncols=True,

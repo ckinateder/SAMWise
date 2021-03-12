@@ -125,7 +125,12 @@ class DatabaseManager:
         rows = []
         total = countNestedDicts(props)
         with tqdm(
-            total=total, leave=False, unit="tic", dynamic_ncols=True, desc="cycle"
+            disable=BARSDISABLED,
+            total=total,
+            leave=False,
+            unit="tic",
+            dynamic_ncols=True,
+            desc="cycle",
         ) as bar:
             for sym in props:
                 for exc in props[sym]:
@@ -164,7 +169,12 @@ class DatabaseManager:
         rows = []
         total = countNestedDicts(spreads)
         with tqdm(
-            total=total, leave=False, unit="tic", dynamic_ncols=True, desc="cycle"
+            disable=BARSDISABLED,
+            total=total,
+            leave=False,
+            unit="tic",
+            dynamic_ncols=True,
+            desc="cycle",
         ) as bar:
             for sym in spreads:
                 for combo in spreads[sym]:
@@ -323,6 +333,7 @@ class DatabaseManager:
             for t in trange(
                 0,
                 interval,
+                disable=BARSDISABLED,
                 leave=False,
                 desc="timer",
                 dynamic_ncols=True,

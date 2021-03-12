@@ -30,7 +30,12 @@ class Hive:
         """
         self.pgator = propagator.Propagtor()
         with tqdm(
-            total=5, position=1, leave=False, dynamic_ncols=True, desc="total"
+            total=5,
+            disable=BARSDISABLED,
+            position=1,
+            leave=False,
+            dynamic_ncols=True,
+            desc="total",
         ) as init_bar:
             availables = self.pgator.getAvailableExchanges()
             init_bar.update(1)
@@ -107,6 +112,7 @@ class Hive:
         tqdm.write(colorGood(f"Creating {len(self.dynamic_commons)} {name}s ..."))
         for e in tqdm(
             self.dynamic_commons,
+            disable=BARSDISABLED,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
@@ -165,6 +171,7 @@ class Hive:
         solve_time = nowD()
         for scan in tqdm(
             self.scanners,
+            disable=BARSDISABLED,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
@@ -188,6 +195,7 @@ class Hive:
         # start
         for proc in tqdm(
             procs,
+            disable=BARSDISABLED,
             leave=False,
             unit="sym",
             dynamic_ncols=True,
@@ -216,6 +224,7 @@ class Hive:
         total = len(self.scanners) * n
         with tqdm(
             total=total,
+            disable=BARSDISABLED,
             position=1,
             leave=False,
             unit="sym",

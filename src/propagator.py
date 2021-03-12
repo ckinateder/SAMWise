@@ -106,7 +106,12 @@ class Propagtor:
             tqdm.write(colorBad("No verified keys."))
         # create objs
         for exchstr in tqdm(
-            all_ex, leave=False, dynamic_ncols=True, unit="exc", desc="xchng"
+            all_ex,
+            disable=BARSDISABLED,
+            leave=False,
+            dynamic_ncols=True,
+            unit="exc",
+            desc="xchng",
         ):
             if exchstr in ccxt.exchanges:  # j to be safe
                 try:
@@ -203,7 +208,12 @@ class Propagtor:
         keyset = {}
         alls = list()
         for exchange in tqdm(
-            self.exchanges, unit="exc", leave=False, dynamic_ncols=True, desc="xchng"
+            self.exchanges,
+            disable=BARSDISABLED,
+            unit="exc",
+            leave=False,
+            dynamic_ncols=True,
+            desc="xchng",
         ):
             keyset[exchange] = list(exchange.load_markets().keys())
             x = keyset[exchange]
@@ -502,7 +512,12 @@ class Propagtor:
         for i in idynamics:
             total += len(idynamics[i])
         self.cycle_bar = tqdm(
-            total=total, leave=False, unit="exc", dynamic_ncols=True, desc="fetch"
+            disable=BARSDISABLED,
+            total=total,
+            leave=False,
+            unit="exc",
+            dynamic_ncols=True,
+            desc="fetch",
         )
         procs = []
         for exchange in exchanges:
