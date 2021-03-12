@@ -29,6 +29,8 @@ class Hive:
         created. propagation is not affected by this.
         """
         self.pgator = propagator.Propagtor()
+        self.idynamics = {}
+
         with tqdm(
             total=5,
             disable=BARSDISABLED,
@@ -50,9 +52,25 @@ class Hive:
             )
             init_bar.update(1)
             self.scanners = self.createDynamicSB(Scanner, trade_size=100, minnum=minnum)
-            self.bouncers = None
+            self.bouncers = []
             # self.bouncers = self.createDynamicSB(Bouncer, trade_size=100, minnum=minnum)
             init_bar.update(1)
+        self.supported_idynamics = self.idynamics
+
+    def sliceFromIdynamics(self, names, inplace=False):
+        """
+        Takes an array of exchange names and returns a slice from the supported idynamics of ONLY those.
+        """
+        sliced = {}
+        for exchange in self.supported_idynamics:
+            for name in names:
+                if exchange.name == name:
+                    sliced[exchange] = self.supported_idynamics[exchange]
+        if inplace:
+            self.idynamics = sliced
+            self.pgator.exchanges = list(self.idynamics.keys())
+
+        return sliced
 
     def getWithSymbol(self, Handler, symbol):
         """
@@ -185,13 +203,17 @@ class Hive:
                     )
                 )
             else:
-                tqdm.write(colorBad(f"Symbol {scan.symbol} not found in props!"))
-                procs.append(
-                    Thread(
-                        target=scan.wrapGetSpreadToResults,
-                        args=(responses),
+                tqdm.write(
+                    colorEh(
+                        f"Symbol {scan.symbol} not found in props! This is probably not an issue, but beware."
                     )
                 )
+                # procs.append(
+                #     Thread(
+                #        target=scan.wrapGetSpreadToResults,
+                #         args=(responses),
+                #     )
+                # )
         # start
         for proc in tqdm(
             procs,

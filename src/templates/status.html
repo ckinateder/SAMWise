@@ -39,11 +39,23 @@
             font-family: monospace;
             margin-left: 120px;
         }
+
+        #checkboxes {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
 <body>
     <h1>Status</h1>
+    <div id="checkboxes">
+        <form action='/' method='POST' id='submitform' target="dummyframe">
+            <h2>Exchanges</h2>
+            {% for exc in exchanges %}
+            <input type="checkbox" name="check" value="{{exc}}" onChange="this.form.submit()"> {{exc}} <br>
+            {% endfor %}
+        </form>
+    </div>
     <div id="status-container">
         <div id="status-dynamic">
             'results' length: {{ resultsrows }} rows <br>
@@ -80,6 +92,7 @@
     <div id="footer">
         {{ footer }}
     </div>
+    <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
 </body>
 
 <script src="/static/js/handlers.js" charset="utf-8"></script>

@@ -69,6 +69,8 @@ class DatabaseManager:
         self.start_time = nowD()
         self.uptime = 0
 
+        # create propagator
+        self.beehive = hive.Hive(minnum=2)
         # lengths
         self.lengths = {
             "results": getTableLength(default_session, "results"),
@@ -295,18 +297,18 @@ class DatabaseManager:
         Takes a sessionmaker object, create session, and save every interval seconds
         """
         session = Session()
-        # create propagator
-        beehive = hive.Hive(minnum=2)
         while True:
             # create props
             self.current = "propagating"
-            props, latest_raw_batch = beehive.pgator.propagate(beehive.idynamics)
+            props, latest_raw_batch = self.beehive.pgator.propagate(
+                self.beehive.idynamics
+            )
             self.current = "saving props"
             self.saveProps(props, session)
             self.lengths["results"] = getTableLength(session, "results")
             # scan one cycle
             self.current = "solving"
-            spreads = beehive.scanFull(props)
+            spreads = self.beehive.scanFull(props)
 
             self.current = "saving spreads"
             self.saveSpreads(spreads, session)

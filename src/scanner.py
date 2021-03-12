@@ -287,7 +287,7 @@ class Scanner:
             actual_speedup -= inc  # set after
         return actual_speedup, spread_with_fee
 
-    def getSpread(self, responses=[]):
+    def getSpread(self, responses={}):
         """
         Get tickers for the watched symbols and return exchanges and spread.
         returns: spreads, [error True or False]
@@ -303,13 +303,15 @@ class Scanner:
         flip_flop_return = False
         try:
             #
-            if responses == []:
+            if responses == {}:
                 self.p(
                     colorEh(
                         f"Querying {len(self.exchanges)} exchanges for {self.symbol} ... (didn't recieve filled dict)"
                     )
                 )
                 responses = self.getWatched()
+            else:
+                self.exchanges = list(responses.keys())
             # compute average timestamps for the spreads dict
             stamps = []
             for exchange in responses:

@@ -14,7 +14,7 @@ api = Api(app)
 
 # turn off page gets
 log = logging.getLogger("werkzeug")
-log.setLevel(logging.ERROR)
+# log.setLevel(logging.ERROR)
 
 
 class Status(Resource):
@@ -75,32 +75,39 @@ class SpreadsLatest(Resource):
 
 
 # static pages
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def dynamicStatus():
-    mem_usage = getMemUsage()
-    # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
-    num_profit = ""
-    if dataThread.is_alive():
-        current = dbmanager.current
-        summary = dbmanager.latest_summary
+    if request.method == "POST":
+        dbmanager.beehive.sliceFromIdynamics(
+            request.form.getlist("check"), inplace=True
+        )  # change idynamics
+        return "Done"
     else:
-        current = "dead"
-        summary = []
-    if dbmanager.latest_summary:
-        num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
-    return render_template(
-        "status.html",
-        resultsrows=format(dbmanager.lengths["results"], ","),
-        spreadsrows=format(dbmanager.lengths["spreads"], ","),
-        summaryrows=format(dbmanager.lengths["summary"], ","),
-        uptime=dbmanager.updateUptime(),
-        current=current,
-        dbsize=dbmanager.db_size,
-        summary=summary,
-        num_profit=num_profit,
-        footer=getInfo(),
-    )
-    # return strin
+        mem_usage = getMemUsage()
+        # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
+        num_profit = ""
+        if dataThread.is_alive():
+            current = dbmanager.current
+            summary = dbmanager.latest_summary
+        else:
+            current = "dead"
+            summary = []
+        if dbmanager.latest_summary:
+            num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
+        return render_template(
+            "status.html",
+            resultsrows=format(dbmanager.lengths["results"], ","),
+            spreadsrows=format(dbmanager.lengths["spreads"], ","),
+            summaryrows=format(dbmanager.lengths["summary"], ","),
+            uptime=dbmanager.updateUptime(),
+            current=current,
+            dbsize=dbmanager.db_size,
+            summary=summary,
+            num_profit=num_profit,
+            footer=getInfo(),
+            exchanges=dbmanager.beehive.supported_idynamics,
+        )
+        # return strin
 
 
 api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
@@ -159,14 +166,3 @@ if __name__ == "__main__":
     tqdm.write("Started DATA server ...")
     apiThread.start()
     tqdm.write("Started API server ...")
-
-    # restart if dead
-    while True:
-        if not dataThread.is_alive():
-            dataThread = threading.Thread(
-                target=dbmanager.saveIndefinitely,
-                args=(Session, int(args.timer)),
-                name="data",
-            )
-            dataThread.start()
-        time.sleep(10)
