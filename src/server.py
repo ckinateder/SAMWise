@@ -14,7 +14,7 @@ api = Api(app)
 
 # turn off page gets
 log = logging.getLogger("werkzeug")
-# log.setLevel(logging.ERROR)
+log.setLevel(logging.ERROR)
 
 
 class Status(Resource):

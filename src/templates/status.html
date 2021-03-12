@@ -3,6 +3,7 @@
 <head>
     <title>SAMWise</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="/static/js/handlers.js" charset="utf-8"></script>
 
     <style>
         * {
@@ -52,7 +53,7 @@
         <form action='/' method='POST' id='submitform' target="dummyframe">
             <h2>Exchanges</h2>
             {% for exc in exchanges %}
-            <input type="checkbox" name="check" value="{{exc}}" onChange="this.form.submit()"> {{exc}} <br>
+            <input type="checkbox" name="check" value="{{exc}}" onChange="this.form.submit()" checked> {{exc}} <br>
             {% endfor %}
         </form>
     </div>
@@ -95,6 +96,5 @@
     <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
 </body>
 
-<script src="/static/js/handlers.js" charset="utf-8"></script>
 
 </html>
