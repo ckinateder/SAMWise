@@ -50,7 +50,7 @@
 <body>
     <h1>Status</h1>
     <div id="checkboxes">
-        <form action='/' method='POST' id='submitform' target="dummyframe">
+        <form action='/exchanges' method='POST' id='submitform' target="dummyframe">
             <h2>Exchanges</h2>
             {% for exc in exchanges %}
             <input type="checkbox" name="check" value="{{exc}}" onChange="this.form.submit()" checked> {{exc}} <br>

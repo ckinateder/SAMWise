@@ -56,21 +56,21 @@ class Hive:
             # self.bouncers = self.createDynamicSB(Bouncer, trade_size=100, minnum=minnum)
             init_bar.update(1)
         self.supported_idynamics = self.idynamics
+        self.supported_dynamics = self.dynamic_commons
 
-    def sliceFromIdynamics(self, names, inplace=False):
+    def sliceFromIdynamics(self, names):
         """
         Takes an array of exchange names and returns a slice from the supported idynamics of ONLY those.
         """
+        # update idynamics
         sliced = {}
         for exchange in self.supported_idynamics:
             for name in names:
                 if exchange.name == name:
                     sliced[exchange] = self.supported_idynamics[exchange]
-        if inplace:
-            self.idynamics = sliced
-            self.pgator.exchanges = list(self.idynamics.keys())
+        self.idynamics = sliced
 
-        return sliced
+        self.pgator.exchanges = list(self.idynamics.keys())
 
     def getWithSymbol(self, Handler, symbol):
         """
@@ -107,9 +107,30 @@ class Hive:
         out = list(set(out))
         return out
 
+    def addBouncer(self, symbol, order_size):
+        """
+        Add a single bouncer to self.bouncers.
+        """
+        exchanges = []
+        for i in self.idynamics:
+            if symbol in self.idynamics[i]:
+                exchanges.append(i)
+        if exchanges:  # not empty
+            self.bouncers.append(
+                Bouncer(
+                    symbol,
+                    order_size,
+                    exchanges,
+                    initializeq=False,
+                    speedup=10,
+                    margin=0.01,
+                    min_speedup=0.1,
+                )
+            )
+
     def createDynamicSB(self, handler, trade_size=100, minnum=2):
         """
-        Create scanners OR bouncers for all the dynamic exchanges
+        Create scanners OR bouncers for ALL the dynamic exchanges.
         """
         if handler == Scanner:
             name = "scanner"
@@ -231,10 +252,9 @@ class Hive:
         solve_time = nowD() - solve_time
         return responses
 
-    def summarize(self, responses):
+    def bounce(self, props):
         """
-        Summarize the scans for that cycle and pick a symbol to arbitrate.
-        This will be some sort of rolling thing. This also should maybe be moved to analyze.py
+        Bounce once
         """
         pass
 

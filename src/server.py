@@ -75,42 +75,52 @@ class SpreadsLatest(Resource):
 
 
 # static pages
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def dynamicStatus():
-    if request.method == "POST":
-        dbmanager.beehive.sliceFromIdynamics(
-            request.form.getlist("check"), inplace=True
-        )  # change idynamics
-        return "Done"
+    supporteds = list(dbmanager.beehive.supported_idynamics.keys())
+    for i in range(len(supporteds)):
+        supporteds[i] = supporteds[i].name
+    mem_usage = getMemUsage()
+    # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
+    num_profit = ""
+    if dataThread.is_alive():
+        current = dbmanager.current
+        summary = dbmanager.latest_summary
     else:
-        supporteds = list(dbmanager.beehive.supported_idynamics.keys())
-        for i in range(len(supporteds)):
-            supporteds[i] = supporteds[i].name
-        mem_usage = getMemUsage()
-        # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
-        num_profit = ""
-        if dataThread.is_alive():
-            current = dbmanager.current
-            summary = dbmanager.latest_summary
-        else:
-            current = "dead"
-            summary = []
-        if dbmanager.latest_summary:
-            num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
-        return render_template(
-            "status.html",
-            resultsrows=format(dbmanager.lengths["results"], ","),
-            spreadsrows=format(dbmanager.lengths["spreads"], ","),
-            summaryrows=format(dbmanager.lengths["summary"], ","),
-            uptime=dbmanager.updateUptime(),
-            current=current,
-            dbsize=dbmanager.db_size,
-            summary=summary,
-            num_profit=num_profit,
-            footer=getInfo(),
-            exchanges=sorted(supporteds),
-        )
-        # return strin
+        current = "dead"
+        summary = []
+    if dbmanager.latest_summary:
+        num_profit = f"{len(dbmanager.latest_summary)} profitable symbols!"
+    return render_template(
+        "status.html",
+        resultsrows=format(dbmanager.lengths["results"], ","),
+        spreadsrows=format(dbmanager.lengths["spreads"], ","),
+        summaryrows=format(dbmanager.lengths["summary"], ","),
+        uptime=dbmanager.updateUptime(),
+        current=current,
+        dbsize=dbmanager.db_size,
+        summary=summary,
+        num_profit=num_profit,
+        footer=getInfo(),
+        exchanges=sorted(supporteds),
+    )
+    # return strin
+
+
+@app.route("/exchanges", methods=["POST"])
+def editExchanges():
+    dbmanager.beehive.sliceFromIdynamics(
+        request.form.getlist("check")
+    )  # change idynamics
+    return "Done"
+
+
+@app.route("/add_bouncer", methods=["POST"])
+def addBouncer():
+
+    print(request.form.getlist("check"))
+    dbmanager.beehive.addBouncer(1, 1)
+    return "Done"
 
 
 api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point

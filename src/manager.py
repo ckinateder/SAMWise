@@ -236,6 +236,7 @@ class DatabaseManager:
         rows = self.convertPropsToORM(props)
         session.bulk_save_objects(rows)
         session.commit()
+        self.lengths["results"] = getTableLength(session, "results")
         tqdm.write(
             colorGood(
                 f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long)."
@@ -250,6 +251,7 @@ class DatabaseManager:
         rows = self.convertSpreadsToORM(spreads)
         session.bulk_save_objects(rows)
         session.commit()
+        self.lengths["spreads"] = getTableLength(session, "spreads")
         tqdm.write(
             colorGood(
                 f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long)."
@@ -281,6 +283,7 @@ class DatabaseManager:
         rows = self.spreadsToSummary(spreads)
         session.bulk_save_objects(rows)
         session.commit()
+        self.lengths["summary"] = getTableLength(session, "summary")
         tqdm.write(
             colorGood(
                 f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long)."
@@ -303,24 +306,25 @@ class DatabaseManager:
             props, latest_raw_batch = self.beehive.pgator.propagate(
                 self.beehive.idynamics
             )
+
             self.current = "saving props"
             self.saveProps(props, session)
-            self.lengths["results"] = getTableLength(session, "results")
             # scan one cycle
             self.current = "solving"
             spreads = self.beehive.scanFull(props)
 
+            # bounce
+            self.current = "bouncing"
+            self.beehive.bounce(spreads)
+
             self.current = "saving spreads"
             self.saveSpreads(spreads, session)
-            self.lengths["spreads"] = getTableLength(session, "spreads")
             # summarize one cycle
             self.current = "saving summary"
             self.latest_summary = self.saveSummary(spreads, session)
             self.latest_summary.sort(
                 key=lambda x: x.speedup, reverse=True
             )  # sort by speedup
-
-            self.lengths["summary"] = getTableLength(session, "summary")
 
             self.db_size = getDBSize(session, "samwise")
             # print stats
