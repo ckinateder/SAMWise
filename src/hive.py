@@ -55,8 +55,8 @@ class Hive:
             self.bouncers = []
             # self.bouncers = self.createDynamicSB(Bouncer, trade_size=100, minnum=minnum)
             init_bar.update(1)
-        self.supported_idynamics = self.idynamics
-        self.supported_dynamics = self.dynamic_commons
+        self.supported_idynamics = self.idynamics.copy()
+        self.supported_dynamics = self.dynamic_commons.copy()
 
     def sliceFromIdynamics(self, names):
         """
