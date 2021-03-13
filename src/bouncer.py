@@ -61,7 +61,7 @@ class Bouncer(Scanner):
             speedup=speedup,
             margin=margin,
             min_speedup=min_speedup,
-            loud=loud,
+            loud=False,
             position=position,
         )
         self.trades_filename = (
@@ -145,12 +145,12 @@ class Bouncer(Scanner):
                 if self.trading:
                     tqdm.write(
                         colorBad(
-                            "Balances for {} could not be fetched - setting trading to false.".format(
-                                exchange.name
+                            "Balances for {} could not be fetched - removing from exchanges. ({})".format(
+                                exchange.name, e
                             )
                         )
                     )
-                    self.trading = False
+                    self.exchanges.remove(exchange)
                 else:
                     tqdm.write(
                         colorBad(

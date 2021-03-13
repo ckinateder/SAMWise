@@ -48,15 +48,26 @@
 </head>
 
 <body>
-    <h1>Status</h1>
     <div id="checkboxes">
+        <h2>Exchanges</h2>
         <form action='/exchanges' method='POST' id='submitform' target="dummyframe">
-            <h2>Exchanges</h2>
             {% for exc in exchanges %}
             <input type="checkbox" name="check" value="{{exc}}" onChange="this.form.submit()" checked> {{exc}} <br>
             {% endfor %}
         </form>
     </div>
+    <div id="bouncers">
+        <h2>Bouncers</h2>
+        <form action='/add_bouncer' method='POST' id='submitform' target="dummyframe">
+            <input type="text" name="add_bouncer" value="" placeholder="BTC/USD">
+            <input type="text" name="add_bouncer" value="" placeholder="150">
+            <input type="submit">
+        </form>
+        {% for b in bouncers %}
+        Bouncer @ {{b.symbol}} with ${{b.quote_order_size}} on {{b.exchanges}} <br>
+        {% endfor %}
+    </div>
+    <h2>Status</h2>
     <div id="status-container">
         <div id="status-dynamic">
             'results' length: {{ resultsrows }} rows <br>

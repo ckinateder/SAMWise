@@ -111,22 +111,28 @@ class Hive:
         """
         Add a single bouncer to self.bouncers.
         """
+        tqdm.write(f"Trying to add bouncer with {symbol} and {order_size}")
         exchanges = []
         for i in self.idynamics:
             if symbol in self.idynamics[i]:
                 exchanges.append(i)
-        if exchanges:  # not empty
-            self.bouncers.append(
-                Bouncer(
-                    symbol,
-                    order_size,
-                    exchanges,
-                    initializeq=False,
-                    speedup=10,
-                    margin=0.01,
-                    min_speedup=0.1,
+        if len(exchanges) >= 2:
+            try:
+                self.bouncers.append(
+                    Bouncer(
+                        symbol,
+                        float(order_size),
+                        exchanges,
+                        initializeq=False,
+                        speedup=10,
+                        margin=0.01,
+                        min_speedup=0.1,
+                    )
                 )
-            )
+            except ValueError:
+                tqdm.write(f"{order_size} is not a number.")
+        else:
+            tqdm.write(f"{symbol} is not supported by more than 1 exchange.")
 
     def createDynamicSB(self, handler, trade_size=100, minnum=2):
         """

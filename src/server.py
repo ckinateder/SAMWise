@@ -1,4 +1,5 @@
 import threading
+import webbrowser
 import logging
 
 from flask import Flask, request, render_template
@@ -103,6 +104,7 @@ def dynamicStatus():
         num_profit=num_profit,
         footer=getInfo(),
         exchanges=sorted(supporteds),
+        bouncers=dbmanager.beehive.bouncers,
     )
     # return strin
 
@@ -117,9 +119,10 @@ def editExchanges():
 
 @app.route("/add_bouncer", methods=["POST"])
 def addBouncer():
-
-    print(request.form.getlist("check"))
-    dbmanager.beehive.addBouncer(1, 1)
+    dbmanager.beehive.addBouncer(
+        request.form.getlist("add_bouncer")[0],
+        request.form.getlist("add_bouncer")[1],
+    )
     return "Done"
 
 
@@ -131,7 +134,12 @@ api.add_resource(
 )  # '/spreads/latest' is our entry point
 
 
+def openBrowser():
+    webbrowser.open_new("http://localhost:5000/")
+
+
 def runAPI():
+    threading.Timer(1, openBrowser).start()
     app.run(host="0.0.0.0", port=5000, debug=False)
 
 
