@@ -258,7 +258,6 @@ class Propagtor:
                         inverted[exchange].append(symbol)
                     else:
                         inverted[exchange] = [symbol]
-
         return inverted
 
     def distribute(self, procs):
@@ -506,7 +505,11 @@ class Propagtor:
         """
         self.batch = nowD().astimezone(tz=timezone.utc)
         exchanges = list(idynamics.keys())
-        tqdm.write(colorEh("Fetching tickers ... "))
+        tqdm.write(
+            colorEh(
+                f"Fetching tickers for {stringitizeExc(list(idynamics.keys()))}... "
+            )
+        )
         self.props = {}
         total = 0
         for i in idynamics:

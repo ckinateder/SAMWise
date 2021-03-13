@@ -83,6 +83,9 @@ def dynamicStatus():
         )  # change idynamics
         return "Done"
     else:
+        supporteds = list(dbmanager.beehive.supported_idynamics.keys())
+        for i in range(len(supporteds)):
+            supporteds[i] = supporteds[i].name
         mem_usage = getMemUsage()
         # strin = f"'results' length: {resultsrows:,}<br>'spreads' length: {spreadsrows:,}<br>'summary' length: {summaryrows:,}<br>uptime: {strfdelta(nowD() - START_TIME)}<br>current task: {current}"
         num_profit = ""
@@ -105,7 +108,7 @@ def dynamicStatus():
             summary=summary,
             num_profit=num_profit,
             footer=getInfo(),
-            exchanges=dbmanager.beehive.supported_idynamics,
+            exchanges=sorted(supporteds),
         )
         # return strin
 
