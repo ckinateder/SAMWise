@@ -3,9 +3,10 @@ import argparse
 import pandas as pd
 from pandas.core.frame import DataFrame
 from sqlalchemy import MetaData, create_engine
-
+from pprint import pprint
 from helper import nowD
 from manager import buildEngine
+from tqdm import *
 
 
 def dfFromTable(engine, table) -> DataFrame:
@@ -37,5 +38,22 @@ if __name__ == "__main__":
         database=args.database,
     )
     print("Loading table ... ")
-    results = dfFromTable(engine, "results")
-    print(results.info())
+    summary = dfFromTable(engine, "summary")
+    print("Created table. \nCounting ...")
+    uniques = summary.symbol.unique()
+    counts = {}
+    for index, row in tqdm(
+        summary.iterrows(),
+        total=len(summary.index),
+        leave=False,
+        unit="row",
+        dynamic_ncols=True,
+        desc="count",
+    ):
+        if row["symbol"] in counts:
+            counts[row["symbol"]] += row["profitable_pairs"]
+        else:
+            counts[row["symbol"]] = row["profitable_pairs"]
+    counts_frame = pd.DataFrame(counts.items(), columns=["symbol", "profitable_pairs"])
+    counts_frame.sort_values(by="profitable_pairs", ascending=False)
+    print(counts_frame)

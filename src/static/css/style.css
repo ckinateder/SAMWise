@@ -1,21 +1,52 @@
-
 * {
     font-family: Arial, Helvetica, sans-serif;
+    font-family: monospace;
+    color: greenyellow;
 }
-
 table {
     border-collapse: collapse;
-    font-size: .8em;
+
 }
 
 td,
 th {
     border: 1px solid #999;
-    padding: 0.7rem;
+    padding: 0.5rem;
     text-align: left;
 }
+
 #summary {
     padding-top: 20px;
-    border: 1px solid red;
 
+}
+
+#footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    margin: 10px;
+    border: 1px grey solid;
+    padding: 5px 5px 5px 5px;
+    background-color: black;
+    color: greenyellow;
+    text-align: center;
+    font-family: monospace;
+    margin-left: 120px;
+}
+
+#checkboxes {
+    margin-bottom: 10px;
+}
+
+input[type=text],
+input[type=submit] {
+    border: none;
+    border-bottom: 2px solid greenyellow;
+    font-family: monospace;
+    color: greenyellow;
+    background-color: black;
+}
+
+input[type=submit] {
+    border: 2px solid greenyellow;
 }
