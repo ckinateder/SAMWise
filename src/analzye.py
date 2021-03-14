@@ -1,4 +1,5 @@
 import argparse
+import matplotlib.pyplot as plt
 
 import pandas as pd
 from pandas.core.frame import DataFrame
@@ -55,5 +56,9 @@ if __name__ == "__main__":
         else:
             counts[row["symbol"]] = row["profitable_pairs"]
     counts_frame = pd.DataFrame(counts.items(), columns=["symbol", "profitable_pairs"])
-    counts_frame.sort_values(by="profitable_pairs", ascending=False)
+    counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
     print(counts_frame)
+    counts_frame.iloc[:50].plot(
+        x="symbol", y="profitable_pairs", kind="bar", fontsize="7", figsize=(16, 9)
+    ).figure.savefig("recent.png")
+    plt.show()
