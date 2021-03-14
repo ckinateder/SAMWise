@@ -223,6 +223,7 @@ class DatabaseManager:
                         profitable_pairs=numberof,
                         buy=top["buy"],
                         sell=top["sell"],
+                        liquidity=top["liquidity"],
                     )
                     rows.append(row)
 
@@ -323,8 +324,8 @@ class DatabaseManager:
             self.current = "saving summary"
             self.latest_summary = self.saveSummary(spreads, session)
             self.latest_summary.sort(
-                key=lambda x: x.speedup, reverse=True
-            )  # sort by speedup
+                key=lambda x: x.liquidity, reverse=True
+            )  # sort by liquidity
 
             self.db_size = getDBSize(session, "samwise")
             # print stats

@@ -113,7 +113,7 @@ def dynamicStatus():
 def editExchanges():
     dbmanager.beehive.sliceFromIdynamics(
         request.form.getlist("check")
-    )  # change idynamics
+    )  # change idynamics, this ONLY messes with scanners rn. we want to change it to only messing with bouncers
     return "Done"
 
 

@@ -211,6 +211,8 @@ class Scanner:
         Calculate the liquidity metric for two exchanges
         """
         l = -1
+        pair = []
+        """
         try:
             buy_volume = test_buy[1]["quoteVolume"]
             sell_volume = test_sell[1]["quoteVolume"]
@@ -226,7 +228,28 @@ class Scanner:
             l = min(l1, l2)
         except:
             l = -1
-        return l
+        """
+        try:
+            buy_volume = test_buy[1]["quoteVolume"]
+            buy_close = test_buy[1]["close"]
+            buy_high = test_buy[1]["high"]
+            buy_low = test_buy[1]["low"]
+            pair.append((buy_volume * buy_close) / (buy_high - buy_low))
+        except:
+            pass
+        try:
+            sell_volume = test_sell[1]["quoteVolume"]
+            sell_close = test_sell[1]["close"]
+            sell_high = test_sell[1]["high"]
+            sell_low = test_sell[1]["low"]
+            pair.append((sell_volume * sell_close) / (sell_high - sell_low))
+        except:
+            pass
+        if len(pair) == 1:
+            l = pair[0]
+        elif len(pair) == 2:
+            l = min(pair)
+        return round(l)
 
     def findFlipFlop(self, spreadlist):
         """

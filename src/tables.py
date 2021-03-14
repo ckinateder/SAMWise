@@ -142,6 +142,7 @@ class Summary(Base):
     buy = Column(VARCHAR(40))  # only top
     sell = Column(VARCHAR(40))  # only top
 
+    liquidity = Column(Float)  # only top spread
     profitable_pairs = Column(Integer)  # number of profitable pairs
 
     @classmethod
