@@ -8,11 +8,13 @@
     <style>
         * {
             font-family: Arial, Helvetica, sans-serif;
+            font-family: monospace;
+            color: greenyellow;
         }
 
         table {
             border-collapse: collapse;
-            font-size: .8em;
+
         }
 
         td,
@@ -34,8 +36,8 @@
             margin: 10px;
             border: 1px grey solid;
             padding: 5px 5px 5px 5px;
-            background-color: white;
-            color: black;
+            background-color: black;
+            color: greenyellow;
             text-align: center;
             font-family: monospace;
             margin-left: 120px;
@@ -44,10 +46,23 @@
         #checkboxes {
             margin-bottom: 10px;
         }
+
+        input[type=text],
+        input[type=submit] {
+            border: none;
+            border-bottom: 2px solid greenyellow;
+            font-family: monospace;
+            color: greenyellow;
+            background-color: black;
+        }
+
+        input[type=submit] {
+            border: 2px solid greenyellow;
+        }
     </style>
 </head>
 
-<body>
+<body style="background-color:black;">
     <div id="checkboxes">
         <h2>Exchanges</h2>
         <form action='/exchanges' method='POST' id='submitform' target="dummyframe">
