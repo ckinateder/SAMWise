@@ -54,6 +54,20 @@ def getDBSize(session, dbname):
     return formatted
 
 
+def getTableSize(session, dbname, table):
+    """
+    Get table size in dbname
+    """
+    x = session.execute(
+        f'SELECT table_name AS "Table", (data_length + index_length) AS "Size (B)" FROM information_schema.TABLES WHERE table_schema = "{dbname}" ORDER BY (data_length + index_length) DESC'
+    ).fetchall()
+    for st in x:
+        if table in list(st):
+            formatted = humanFormat(st[1]) + "B"
+
+    return formatted
+
+
 def getTableLength(session, table):
     # get table length
     number_of_rows = session.execute(

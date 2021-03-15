@@ -6,7 +6,13 @@ from pandas.core.frame import DataFrame
 from sqlalchemy import MetaData, create_engine
 
 from helper import FILE_TIME_FORMAT, getMemUsage, nowD, CHARTPATH, logs
-from manager import buildEngine, createSessionMaker, getTableLength
+from manager import (
+    buildEngine,
+    createSessionMaker,
+    getDBSize,
+    getTableLength,
+    getTableSize,
+)
 from tqdm import *
 
 
@@ -26,9 +32,12 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
 
     return table_df
     """
-    logs.debug(f"Loading table with {engine} ... ")
+    sessioner = createSessionMaker(engine)()
+    logs.debug(
+        f"Loading table samwise.{table} with {engine} ({getTableSize(sessioner, 'samwise',table)})... "
+    )
 
-    length = getTableLength(createSessionMaker(engine)(), table)
+    length = getTableLength(sessioner, table)
     chunks = pd.read_sql_table(table, con=engine, chunksize=chunksize)
 
     df = pd.DataFrame()
