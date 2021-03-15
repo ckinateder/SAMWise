@@ -1,5 +1,4 @@
 import argparse
-import matplotlib.pyplot as plt
 
 import pandas as pd
 from pandas.core.frame import DataFrame
@@ -88,7 +87,6 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         fontsize="7",
         figsize=(16, 9),
     ).figure.savefig(f"{CHARTPATH}{imgname}.png")
-    plt.show()
 
 
 if __name__ == "__main__":

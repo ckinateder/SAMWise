@@ -20,6 +20,10 @@ Currently, speed has been greatly increased. Using a concurrency optimization al
 
 ![scanner](img/scanner.png)
 
+## Data
+
+![top 50](img/top50.png)
+
 ## API
 
 The API is now partly functional. It can be accessed through port `5000` on the machine running the server.
@@ -121,6 +125,9 @@ The API is run off of a database updated around every 10 seconds. There are thre
 | spread_w_fees    | float       | YES  |     | NULL    |                |
 | speedup          | float       | YES  |     | NULL    |                |
 | profitable_pairs | int         | YES  |     | NULL    |                |
+| buy              | varchar(40) | YES  |     | NULL    |                |
+| sell             | varchar(40) | YES  |     | NULL    |                |
+| liquidity        | float       | YES  |     | NULL    |                |
 
 
 
@@ -200,3 +207,4 @@ If you are running from a remote session, run through a screen to make sure it w
 ```
 
 Then, Ctrl + A and then Ctrl + D to detach from the session. You can exit the ssh session and it will continue to run. You can later run `screen -r` to reconnect to the screen.
+
