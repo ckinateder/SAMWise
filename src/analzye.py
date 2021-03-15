@@ -4,15 +4,82 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pandas.core.frame import DataFrame
 from sqlalchemy import MetaData, create_engine
-from pprint import pprint
-from helper import nowD
-from manager import buildEngine
+
+from helper import FILE_TIME_FORMAT, getMemUsage, nowD, CHARTPATH, logs
+from manager import buildEngine, createSessionMaker, getTableLength
 from tqdm import *
 
 
-def dfFromTable(engine, table) -> DataFrame:
+def getMinutes(start, final):
+    """
+    Returns the time range of the database in minutes
+    """
+    days = (final - start).days
+    minutes = (final - start).seconds / 60
+    total = minutes + days * 60 * 24
+    return total
+
+
+def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
+    """
     table_df = pd.read_sql_table(table, con=engine)
+
     return table_df
+    """
+    logs.debug(f"Loading table with {engine} ... ")
+
+    length = getTableLength(createSessionMaker(engine)(), table)
+    chunks = pd.read_sql_table(table, con=engine, chunksize=chunksize)
+
+    df = pd.DataFrame()
+    for chunk in tqdm(
+        chunks,
+        total=round(length / chunksize),
+        leave=False,
+        unit="chunk",
+        desc="load",
+        dynamic_ncols=True,
+    ):
+        df = pd.concat([df, chunk])
+    return df
+
+
+def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
+    logs.debug(f"Analyzing {len(table.index):,} rows ...")
+    counts = {}
+
+    timerange = getMinutes(table.iloc[0]["batch"], table.iloc[-1]["batch"])
+
+    for index, row in tqdm(
+        table.iterrows(),
+        total=len(table.index),
+        leave=False,
+        unit="row",
+        dynamic_ncols=True,
+        desc="count",
+    ):
+        if row["symbol"] in counts:
+            counts[row["symbol"]] += 1 / timerange
+        else:
+            counts[row["symbol"]] = 1 / timerange
+
+    counts_frame = pd.DataFrame(counts.items(), columns=["symbol", "profitable_pairs"])
+    counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
+    logs.debug(
+        f"Top 10 symbols (symbol, profitable pairs per minute):\n{counts_frame.iloc[:10]}",
+    )
+
+    counts_frame.iloc[:50].plot(
+        x="symbol",
+        y="profitable_pairs",
+        xlabel="symbol",
+        ylabel="profitable pairs per minute",
+        title=f"potential symbols to perform arbitrage on since {table.iloc[0]['batch']}",
+        kind="bar",
+        fontsize="7",
+        figsize=(16, 9),
+    ).figure.savefig(f"{CHARTPATH}{imgname}.png")
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -38,27 +105,7 @@ if __name__ == "__main__":
         port=args.port,
         database=args.database,
     )
-    print("Loading table ... ")
-    summary = dfFromTable(engine, "summary")
-    print("Created table. \nCounting ...")
-    uniques = summary.symbol.unique()
-    counts = {}
-    for index, row in tqdm(
-        summary.iterrows(),
-        total=len(summary.index),
-        leave=False,
-        unit="row",
-        dynamic_ncols=True,
-        desc="count",
-    ):
-        if row["symbol"] in counts:
-            counts[row["symbol"]] += row["profitable_pairs"]
-        else:
-            counts[row["symbol"]] = row["profitable_pairs"]
-    counts_frame = pd.DataFrame(counts.items(), columns=["symbol", "profitable_pairs"])
-    counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
-    print(counts_frame)
-    counts_frame.iloc[:50].plot(
-        x="symbol", y="profitable_pairs", kind="bar", fontsize="7", figsize=(16, 9)
-    ).figure.savefig("recent.png")
-    plt.show()
+    summary = dfFromTable(engine, "spreads")
+    # logs.debug(summary.info())
+    logs.debug("Created table.")
+    analyzeSpreads(summary)

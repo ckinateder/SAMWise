@@ -76,7 +76,7 @@ class Propagtor:
                     yes_and_no["count"].loc[i] += 1
                 else:
                     yes_and_no[exchange.id].loc[i] = False
-        # tqdm.write(yes_and_no)
+        # logs.debug(yes_and_no)
         yes_and_no.reset_index(drop=True, inplace=True)
         yes_and_no = yes_and_no.sort_values("count", ascending=False)
         yes_and_no.to_csv("logs/pairs.csv", index=False)
@@ -89,21 +89,21 @@ class Propagtor:
 
         self.exchanges = list()
         if not all_ex:
-            tqdm.write(colorBad("No exchanges were given ... is keys/ empty?"))
+            logs.debug(colorBad("No exchanges were given ... is keys/ empty?"))
             self.exchanges = []
             sys.exit(0)
-        tqdm.write("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
+        logs.debug("Creating exchange objects for {} ...".format(stringitizeL(all_ex)))
         verified = []
         if path.exists(KEYPATH + "verified"):
             with open(KEYPATH + "verified", "r") as verified_f:
                 verified = [i.strip() for i in verified_f.readlines()]
-                tqdm.write(
+                logs.debug(
                     colorGood(
                         f"Verified exchanges {stringitizeL(verified)}; skipping validation on these."
                     )
                 )
         else:
-            tqdm.write(colorBad("No verified keys."))
+            logs.debug(colorBad("No verified keys."))
         # create objs
         for exchstr in tqdm(
             all_ex,
@@ -168,18 +168,18 @@ class Propagtor:
                         with open(KEYPATH + "verified", "a+") as verified_f:
                             verified_f.write(exchstr + "\n")
 
-                    # tqdm.write(
+                    # logs.debug(
                     #    colorGood("Exchange {} added successfully!").format(exchstr)
                     # )
                     self.exchanges.append(current)
                 except ccxt.AuthenticationError:
-                    tqdm.write(
+                    logs.debug(
                         colorBad("Invalid credentials for {} ... moving on.").format(
                             exchstr
                         )
                     )
                 except FileNotFoundError:
-                    tqdm.write(
+                    logs.debug(
                         colorBad(
                             "Keys for {} not found in {} ... moving on.".format(
                                 exchstr, KEYPATH
@@ -187,11 +187,11 @@ class Propagtor:
                         )
                     )
             else:
-                tqdm.write(
+                logs.debug(
                     colorBad("Sorry, {} is not supported yet :(").format(exchstr)
                 )
 
-        tqdm.write(
+        logs.debug(
             colorGood(
                 "Done! Added exchanges {}.".format(stringitizeExc(self.exchanges))
             )
@@ -203,7 +203,7 @@ class Propagtor:
         """
         Get all symbols in common with minnum or more of the given self.exchanges.
         """
-        tqdm.write("Getting shared symbols ...")
+        logs.debug("Getting shared symbols ...")
         # initialize keyset so loadmarkets not called twice
         keyset = {}
         alls = list()
@@ -397,7 +397,7 @@ class Propagtor:
             trans = self._transposeBatchTickers(resp, exchange)
             return trans
         except:
-            tqdm.write(
+            logs.debug(
                 colorBad(
                     f"Unknown error occured fetching batch tickers on {exchange.id}"
                 )
@@ -444,7 +444,7 @@ class Propagtor:
                 if exchange.id == "coinbasepro":
                     time.sleep(0.1)
             except ccxt.RateLimitExceeded:
-                tqdm.write(
+                logs.debug(
                     colorBad(
                         f"Rate limit exceeded on {exchange} for {ticker} ... trying again in {waittime}"
                     )
@@ -454,13 +454,13 @@ class Propagtor:
                     exchange, ticker, depth=depth + 1, inter=inter
                 )
             except:
-                tqdm.write(
+                logs.debug(
                     colorBad(
                         f"Unknown error occured fetching single symbol on {exchange.id}"
                     )
                 )
         else:
-            tqdm.write(
+            logs.debug(
                 colorBad(f"Rate limit exceeded on {exchange} for {ticker} ... skipping")
             )
         self.prepareSQL(response, exchange)
@@ -505,7 +505,7 @@ class Propagtor:
         """
         self.batch = nowD().astimezone(tz=timezone.utc)
         exchanges = list(idynamics.keys())
-        tqdm.write(
+        logs.debug(
             colorEh(
                 f"Fetching tickers for {stringitizeExc(list(idynamics.keys()))}... "
             )
@@ -524,7 +524,7 @@ class Propagtor:
         )
         procs = []
         for exchange in exchanges:
-            # tqdm.write(f"Querying {exchange.name} ...")
+            # logs.debug(f"Querying {exchange.name} ...")
             procs.append(
                 Thread(
                     target=self._doTickers,

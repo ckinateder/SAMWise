@@ -2,19 +2,19 @@
 Helper class with custom functions used by multiple other classes.
 """
 import decimal
-from logging import disable
+import logging
 import os
+import platform
 import socket
 import subprocess
 import time
 from datetime import datetime
 from math import floor, log, log10
 from string import Template
+
 import psutil
 from termcolor import colored
 from tqdm import tqdm, trange
-
-import platform
 
 try:
     import pync
@@ -30,26 +30,82 @@ def updateSize():
 
 HEIGHT, WIDTH = updateSize()
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+FILE_TIME_FORMAT = "%Y-%m-%d_%H-%M-%S"
 QUOTE = "USD"
 KEYPATH = "keys/"
+LOGPATH = "logs/"
+CHARTPATH = "chart/"
+COLORING = False
 # change this to turn of progress bars
 BARSDISABLED = False
+
+
+def color(text, color, on_color=None):
+    if COLORING:
+        return colored(text, color=color, on_color=on_color)
+    else:
+        return text
+
+
+def now():
+    """
+    Shortened version of calling time.time()
+    """
+    return time.time()
+
+
+def nowD():
+    """
+    Shortened version of calling datetime.now()
+    """
+    return datetime.now()
+
+
+class TqdmLoggingHandler(logging.Handler):
+    def __init__(self, level=logging.NOTSET):
+        super().__init__(level)
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            logging.debug(msg)
+            self.flush()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
+
+
+# create logs
+logs = logging.getLogger(__name__)
+logs.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler(f"{LOGPATH}{nowD().strftime('%Y-%m-%d_%H-%M-%S')}.log")
+ch = logging.StreamHandler()
+
+formatter = logging.Formatter("%(asctime)s:%(levelname)s: %(message)s")
+
+fh.setFormatter(formatter)
+# ch.setFormatter(formatter)
+# add the handlers to the logs
+logs.addHandler(fh)
+logs.addHandler(ch)
 
 
 def intro():
     """
     tqdm.write the intro string.
     """
-    tqdm.write("Welcome to SAMWise!".center(WIDTH))
-    tqdm.write("(Spatial Arbitrage Method Wizard)".center(WIDTH))
-    tqdm.write("Created by Calvin Kinateder, 2021".center(WIDTH))
-    tqdm.write(
+    logs.debug("Welcome to SAMWise!".center(WIDTH))
+    logs.debug("(Spatial Arbitrage Method Wizard)".center(WIDTH))
+    logs.debug("Created by Calvin Kinateder, 2021".center(WIDTH))
+    logs.debug(
         "calvinkinateder@gmail.com, https://ckinateder.github.io/SAMWise/".center(WIDTH)
     )
-    tqdm.write(
+    logs.debug(
         "CTRL C to quit. Note: '$' is used to symbolize quote coin.".center(WIDTH)
     )
-    tqdm.write(("-" * WIDTH).center(WIDTH) + "\n")
+    logs.debug(("-" * WIDTH).center(WIDTH) + "\n")
 
 
 def clear():
@@ -57,7 +113,7 @@ def clear():
     Clear screen.
     """
     os.system("cls" if os.name == "nt" else "clear")
-    tqdm.write("\n" * (HEIGHT - 1))
+    logs.debug("\n" * (HEIGHT - 1))
 
 
 def getIP():
@@ -181,20 +237,6 @@ def notify(message):
         pync.notify(message, title="SAMWise")
 
 
-def now():
-    """
-    Shortened version of calling time.time()
-    """
-    return time.time()
-
-
-def nowD():
-    """
-    Shortened version of calling datetime.now()
-    """
-    return datetime.now()
-
-
 def humanFormat(number):
     """
     Shorten a long number with abbreviations
@@ -218,9 +260,9 @@ def colorGood(strr):
     Color a string green.
     """
     if not type(strr) == str:
-        return colored(f"{strr:,}", "green")
+        return color(f"{strr:,}", "green")
     else:
-        return colored(strr, "green")
+        return color(strr, "green")
 
 
 def colorEh(strr):
@@ -228,9 +270,9 @@ def colorEh(strr):
     Color a string yellow.
     """
     if not type(strr) == str:
-        return colored(f"{strr:,}", "yellow")
+        return color(f"{strr:,}", "yellow")
     else:
-        return colored(strr, "yellow")
+        return color(strr, "yellow")
 
 
 def colorBad(strr):
@@ -238,9 +280,9 @@ def colorBad(strr):
     Color a string red.
     """
     if not type(strr) == str:
-        return colored(f"{strr:,}", "red")
+        return color(f"{strr:,}", "red")
     else:
-        return colored(strr, "red")
+        return color(strr, "red")
 
 
 def colorHigh(strr):
@@ -248,9 +290,9 @@ def colorHigh(strr):
     Color a string cyan.
     """
     if not type(strr) == str:
-        return colored(f"{strr:,}", "cyan")
+        return color(f"{strr:,}", "cyan")
     else:
-        return colored(strr, "cyan")
+        return color(strr, "cyan")
 
 
 def colorLow(strr):
@@ -258,44 +300,44 @@ def colorLow(strr):
     Color a string magenta.
     """
     if not type(strr) == str:
-        return colored(f"{strr:,}", "magenta")
+        return color(f"{strr:,}", "magenta")
     else:
-        return colored(strr, "magenta")
+        return color(strr, "magenta")
 
 
 def colorClock(strr):
     """
     Color a string green.
     """
-    return colored(text=strr, color="grey", on_color="on_yellow")
+    return color(text=strr, color="grey", on_color="on_yellow")
 
 
 def colorUptime(strr):
     """
     Highlight a string cyan.
     """
-    return colored(text=strr, color="grey", on_color="on_cyan")
+    return color(text=strr, color="grey", on_color="on_cyan")
 
 
 def colorTrades(strr):
     """
     Highlight a string magenta.
     """
-    return colored(text=strr, color="grey", on_color="on_magenta")
+    return color(text=strr, color="grey", on_color="on_magenta")
 
 
 def colorCycle(strr):
     """
     Highlight a string white.
     """
-    return colored(text=strr, color="grey", on_color="on_white")
+    return color(text=strr, color="grey", on_color="on_white")
 
 
 def colorProg(strr):
     """
     Highlight a string grey (white text).
     """
-    return colored(text=strr, color="white", on_color="on_grey")
+    return color(text=strr, color="white", on_color="on_grey")
 
 
 def colorThreshold(number, dig=3, threshold=0, reversed=False):
@@ -320,7 +362,7 @@ def colorThreshold(number, dig=3, threshold=0, reversed=False):
                 else:
                     form = colorEh(number)
         except:
-            tqdm.write("Couldn't colorize")
+            logs.debug("Couldn't colorize")
         return form
     else:
         return colorEh(number)
@@ -339,7 +381,7 @@ def colorLiquidity(number, threshold=0):
             else:
                 form = colorEh(humanFormat(number))
         except:
-            tqdm.write("Couldn't colorize")
+            logs.debug("Couldn't colorize")
         return form
     else:
         return colorEh(number)

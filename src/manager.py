@@ -27,7 +27,7 @@ def resetTables(engine):
     """
     Drop all tables and create them again
     """
-    tqdm.write(colorBad("Resetting database ..."))
+    logs.debug(colorBad("Resetting database ..."))
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
@@ -123,7 +123,7 @@ class DatabaseManager:
         """
         Converts props to set of Results's
         """
-        tqdm.write(colorEh("Packaging props ..."))
+        logs.debug(colorEh("Packaging props ..."))
         rows = []
         total = countNestedDicts(props)
         with tqdm(
@@ -167,7 +167,7 @@ class DatabaseManager:
         """
         Converts spreads to set of spread table rows
         """
-        tqdm.write(colorEh("Packaging spreads ..."))
+        logs.debug(colorEh("Packaging spreads ..."))
         rows = []
         total = countNestedDicts(spreads)
         with tqdm(
@@ -238,7 +238,7 @@ class DatabaseManager:
         session.bulk_save_objects(rows)
         session.commit()
         self.lengths["results"] = getTableLength(session, "results")
-        tqdm.write(
+        logs.debug(
             colorGood(
                 f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long)."
             )
@@ -253,7 +253,7 @@ class DatabaseManager:
         session.bulk_save_objects(rows)
         session.commit()
         self.lengths["spreads"] = getTableLength(session, "spreads")
-        tqdm.write(
+        logs.debug(
             colorGood(
                 f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long)."
             )
@@ -273,7 +273,7 @@ class DatabaseManager:
         session.commit()
 
         proptime = now() - proptime
-        tqdm.write(
+        logs.debug(
             colorGood(
                 f"Wrote {len(rows)} records to 'spreads' (now {getTableLength(session,'spreads'):,} records long).\nWrote {countNestedDicts(props)} records to 'results' (now {getTableLength(session,'results'):,} records long).\n* Took {proptime:.2f}s, DB now {getDBSize(session,'samwise')}."
             )
@@ -285,7 +285,7 @@ class DatabaseManager:
         session.bulk_save_objects(rows)
         session.commit()
         self.lengths["summary"] = getTableLength(session, "summary")
-        tqdm.write(
+        logs.debug(
             colorGood(
                 f"Wrote {len(rows)} records to 'summary' in {now()-start:.2f}s (now {getTableLength(session,'summary'):,} records long)."
             )
@@ -330,7 +330,7 @@ class DatabaseManager:
             self.db_size = getDBSize(session, "samwise")
             # print stats
             mem_usage = getMemUsage()
-            print(
+            logs.debug(
                 colorHigh(
                     f"* ip: {getIP()} - usage: {mem_usage} - uptime: {self.updateUptime()} - db size: {self.db_size} *\n"
                 )

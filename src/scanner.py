@@ -112,7 +112,6 @@ class Scanner:
         # initialize
         self.cycles = 0  # counts cycles
         self.quote_order_size = quote_order_size
-        self.pro_filename = "logs/" + self.base_coin + "-" + self.quote_coin + ".csv"
 
         self.margin = margin  # for trades
 
@@ -673,8 +672,6 @@ class Scanner:
                             )
                             + "\n"
                         )
-                if profitable:
-                    self.saveDict(spreads)
 
                 spreads_return = spreads
 
@@ -714,4 +711,4 @@ class Scanner:
         Print function.
         """
         if not self.silent:
-            tqdm.write(st, end=end)
+            logs.debug(st, end=end)

@@ -93,7 +93,7 @@ class Bouncer(Scanner):
             len(exchanges) * self.quote_order_size * 2
         )  # how much invested total
 
-        tqdm.write(
+        logs.debug(
             colorGood(
                 "Spending ${:,.0f} for ${}: playing with ${:,.0f}, speedup {}% to {}%, margin ${} - [{}]"
             ).format(
@@ -113,7 +113,7 @@ class Bouncer(Scanner):
         self.section = "total"
         # initialize balances
         if initializeq:
-            tqdm.write(
+            logs.debug(
                 "Initializing balances with ${} worth of {} in each account.".format(
                     self.quote_order_size, self.base_coin
                 )
@@ -124,7 +124,7 @@ class Bouncer(Scanner):
             self.start_total_quote_amount,
         ) = self.updateBalances(loud=False)
 
-        tqdm.write(
+        logs.debug(
             colorClock("Starting base amount [{:.8f} {}, {:.4f} {}]").format(
                 self.start_total_base_amount,
                 self.base_coin,
@@ -143,7 +143,7 @@ class Bouncer(Scanner):
                 # pprint(self.balances[exchange])
             except Exception as e:
                 if self.trading:
-                    tqdm.write(
+                    logs.debug(
                         colorBad(
                             "Balances for {} could not be fetched - removing from exchanges. ({})".format(
                                 exchange.name, e
@@ -152,7 +152,7 @@ class Bouncer(Scanner):
                     )
                     self.exchanges.remove(exchange)
                 else:
-                    tqdm.write(
+                    logs.debug(
                         colorBad(
                             "Balances for {} could not be fetched.".format(
                                 exchange.name
@@ -164,7 +164,7 @@ class Bouncer(Scanner):
 
         if loud:
             for exchange in self.exchanges:
-                tqdm.write(
+                logs.debug(
                     "{} balance response - {}".format(
                         exchange, pformat(self.balances[exchange])
                     )
@@ -189,7 +189,7 @@ class Bouncer(Scanner):
                 self.balances[exchange][self.section][self.quote_coin] = 0
         if loud:
             for exchange in self.exchanges:
-                tqdm.write(
+                logs.debug(
                     "\t{} balances ({}) - [{}: {}, {}: {}]".format(
                         exchange,
                         self.section,
@@ -228,7 +228,7 @@ class Bouncer(Scanner):
                 >= self.quote_order_size
             ):
                 try:
-                    tqdm.write(
+                    logs.debug(
                         "Creating buy order on {} for {} {}".format(
                             exchange, self.quote_order_size / price, self.symbol
                         )
@@ -247,9 +247,9 @@ class Bouncer(Scanner):
                     ]
                     self.trades.loc[len(self.trades)] = new_row
                 except ccxt.ExchangeNotAvailable:
-                    tqdm.write("Market on {} offline.".format(exchange.name))
+                    logs.debug("Market on {} offline.".format(exchange.name))
             else:
-                tqdm.write(
+                logs.debug(
                     "* Insufficient funds on {} to initialize balance".format(
                         exchange.name
                     )
@@ -276,7 +276,7 @@ class Bouncer(Scanner):
         """
         Cleans up by selling off any balances still left on platforms.
         """
-        tqdm.write("Cleaning up for {}...".format(self.symbol))
+        logs.debug("Cleaning up for {}...".format(self.symbol))
         responses = self.getWatched()
         self.updateBalances(loud=False)
 
@@ -285,48 +285,48 @@ class Bouncer(Scanner):
             remaining = float(self.balances[exchange][self.section][self.base_coin])
             if remaining > 0 and not self.anyOpen(exchange):
                 try:
-                    tqdm.write(
+                    logs.debug(
                         "Selling off {:.6f} {} on {}".format(
                             remaining, self.base_coin, exchange.name
                         )
                     )
                     exchange.create_market_sell_order(self.symbol, remaining)
                 except Exception as e:
-                    tqdm.write(
+                    logs.debug(
                         "* Error in selling off {:.6f} {} on {}: {}".format(
                             remaining, self.base_coin, exchange.name, e
                         )
                     )
             else:
-                tqdm.write(
+                logs.debug(
                     "No need to sell, no balance in {} on {}".format(
                         self.base_coin, exchange.name
                     )
                 )
         """
         self.blockTrades(5)
-        tqdm.write('Final balances:')
+        logs.debug('Final balances:')
         base, quote = self.updateBalances(loud=False)
-        tqdm.write('Sums: [{:.8f} {}, {} {}]'.format(
+        logs.debug('Sums: [{:.8f} {}, {} {}]'.format(
             base, self.base_coin, quote, self.quote_coin))
         self.updateNet()
-        tqdm.write('Net: {}%'.format(colorThreshold(self.net)))
-        tqdm.write('Done!\n')
+        logs.debug('Net: {}%'.format(colorThreshold(self.net)))
+        logs.debug('Done!\n')
         """
-        tqdm.write(colorEh("Trades sumbitted ... exiting."))
+        logs.debug(colorEh("Trades sumbitted ... exiting."))
 
     def blockTrades(self, timewait):
         """
         Blocks code until no active trades.
         """
-        tqdm.write(colorEh("Trades initiated ... blocking to completion"))
+        logs.debug(colorEh("Trades initiated ... blocking to completion"))
 
         open_trades = self.anyOpen()
         while open_trades:
             open_trades = self.anyOpen()
             time.sleep(timewait)
 
-        tqdm.write(colorGood("Trades completed! Moving on."))
+        logs.debug(colorGood("Trades completed! Moving on."))
 
     def handleTransaction(self, buy_ex, sell_ex, low, high):
         """
@@ -335,7 +335,7 @@ class Bouncer(Scanner):
         amt = self.quote_order_size / high
         try:
             # creating processes
-            tqdm.write(
+            logs.debug(
                 "Creating buy order on {} for {:.6f} {} at ${}".format(
                     buy_ex, amt, self.symbol, low
                 )
@@ -354,7 +354,7 @@ class Bouncer(Scanner):
             self.trades.loc[len(self.trades)] = new_row
             self.trades.to_csv(path_or_buf=self.trades_filename)
 
-            tqdm.write(
+            logs.debug(
                 "Creating sell order on {} for {:.6f} {} at ${}".format(
                     sell_ex, amt, self.symbol, high
                 )
@@ -374,17 +374,17 @@ class Bouncer(Scanner):
             self.trades.to_csv(path_or_buf=self.trades_filename)
 
             # self.blockTrades(5)
-            tqdm.write(
+            logs.debug(
                 colorEh("Trades initiated... disabling arbitrage until completed.")
             )
             # perform calculations for logging
         except ccxt.ExchangeNotAvailable:
-            tqdm.write(colorBad("Exchange not available."))
+            logs.debug(colorBad("Exchange not available."))
 
         # recalculate
         self.updateNet()
 
-        # tqdm.write('Balances fetched')
+        # logs.debug('Balances fetched')
         self.updateBalances(loud=False)
 
         return "Done"
@@ -420,7 +420,7 @@ class Bouncer(Scanner):
                             quote_balance >= self.quote_order_size
                             and base_balance >= self.quote_order_size / high
                         ):  # balances are good for original
-                            tqdm.write(
+                            logs.debug(
                                 colorGood(
                                     "Executing option {} ...".format(
                                         spreads.index(pair) + 1
@@ -433,7 +433,7 @@ class Bouncer(Scanner):
                             quote_balance < self.quote_order_size
                             and base_balance < self.quote_order_size / high
                         ):
-                            tqdm.write(
+                            logs.debug(
                                 colorBad(
                                     "* Insufficient balance (missing ${} on {}, {:.4f} {} on {})".format(
                                         round(
@@ -448,7 +448,7 @@ class Bouncer(Scanner):
                                 )
                             )
                         elif quote_balance < self.quote_order_size:
-                            tqdm.write(
+                            logs.debug(
                                 colorBad(
                                     "* Insufficient balance (missing ${} on {})".format(
                                         round(
@@ -460,7 +460,7 @@ class Bouncer(Scanner):
                                 )
                             )
                         elif base_balance < self.quote_order_size / high:
-                            tqdm.write(
+                            logs.debug(
                                 colorBad(
                                     "* Insufficient balance (missing {:.4f} {} on {})".format(
                                         self.quote_order_size / high - base_balance,
@@ -470,7 +470,7 @@ class Bouncer(Scanner):
                                 )
                             )
                     elif pair["speedup"] < self.min_speedup:
-                        tqdm.write(
+                        logs.debug(
                             colorBad(
                                 "Speedup too low ({} < {}) to place order ...".format(
                                     pair["speedup"], self.min_speedup
@@ -478,14 +478,14 @@ class Bouncer(Scanner):
                             )
                         )
             elif error:
-                tqdm.write(
+                logs.debug(
                     colorBad("* Error in symbol {} - price returned 0.").format(
                         self.symbol
                     )
                 )
 
         except Exception as e:
-            tqdm.write(colorBad("Error in call ... moving on ({})").format(e))
+            logs.debug(colorBad("Error in call ... moving on ({})").format(e))
 
     def __str__(self):
         return f"Bouncer @ {self.symbol}"

@@ -111,7 +111,7 @@ class Hive:
         """
         Add a single bouncer to self.bouncers.
         """
-        tqdm.write(f"Trying to add bouncer with {symbol} and {order_size}")
+        logs.debug(f"Trying to add bouncer with {symbol} and {order_size}")
         exchanges = []
         for i in self.idynamics:
             if symbol in self.idynamics[i]:
@@ -130,9 +130,9 @@ class Hive:
                     )
                 )
             except ValueError:
-                tqdm.write(f"{order_size} is not a number.")
+                logs.debug(f"{order_size} is not a number.")
         else:
-            tqdm.write(f"{symbol} is not supported by more than 1 exchange.")
+            logs.debug(f"{symbol} is not supported by more than 1 exchange.")
 
     def createDynamicSB(self, handler, trade_size=100, minnum=2):
         """
@@ -146,7 +146,7 @@ class Hive:
             return []
 
         self.scanners = []
-        tqdm.write(
+        logs.debug(
             colorEh(
                 "{} ({} pairs found)".format(
                     stringitizeL(list(self.dynamic_commons.keys())),
@@ -154,7 +154,7 @@ class Hive:
                 )
             )
         )
-        tqdm.write(colorGood(f"Creating {len(self.dynamic_commons)} {name}s ..."))
+        logs.debug(colorGood(f"Creating {len(self.dynamic_commons)} {name}s ..."))
         for e in tqdm(
             self.dynamic_commons,
             disable=BARSDISABLED,
@@ -179,14 +179,14 @@ class Hive:
                         * 100,
                     )
                 )
-        tqdm.write(colorGood(f"Created {len(self.dynamic_commons)} {name}s!\n"))
+        logs.debug(colorGood(f"Created {len(self.dynamic_commons)} {name}s!\n"))
         return self.scanners
 
     def myPrint(self, dic):
         for x in dic:
-            tqdm.write(f"'{x}': ", end="")
+            logs.debug(f"'{x}': ", end="")
             for exc in dic[x]:
-                tqdm.write(f"{exc}: " + "{ ... }")
+                logs.debug(f"{exc}: " + "{ ... }")
 
     def verify(self, test, sure):
         """
@@ -230,7 +230,7 @@ class Hive:
                     )
                 )
             else:
-                tqdm.write(
+                logs.debug(
                     colorEh(
                         f"Symbol {scan.symbol} not found in props! This is probably not an issue, but beware."
                     )
@@ -284,7 +284,7 @@ class Hive:
                 self.scanFull()
                 message = f"Completed cycle {cmt+1} of {n} ({((cmt+1)/n)*100:.0f}%) in {nowD()-start}"
                 # notify
-                tqdm.write(message)
+                logs.debug(message)
                 notify(message)
                 # sleep cause you don't need all that data
                 total_bar.update(1)
@@ -301,4 +301,4 @@ if __name__ == "__main__":
     start_time = nowD()
     n = 100
     hive.scanNTimes(n=n)
-    tqdm.write(f"Scanned all symbols {n} times in {(nowD()-start_time)}")
+    logs.debug(f"Scanned all symbols {n} times in {(nowD()-start_time)}")

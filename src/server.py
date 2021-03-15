@@ -14,8 +14,8 @@ app = Flask(__name__)
 api = Api(app)
 
 # turn off page gets
-log = logging.getLogger("werkzeug")
-log.setLevel(logging.ERROR)
+flask_log = logging.getLogger("werkzeug")
+flask_log.setLevel(logging.ERROR)
 
 
 class Status(Resource):
@@ -184,6 +184,6 @@ if __name__ == "__main__":
     )
     # start threads
     dataThread.start()
-    tqdm.write("Started DATA server ...")
+    logs.debug("Started DATA server ...")
     apiThread.start()
-    tqdm.write("Started API server ...")
+    logs.debug("Started API server ...")
