@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pandas.core.frame import DataFrame
 from sqlalchemy import MetaData, create_engine
-
+import math
 from helper import FILE_TIME_FORMAT, getMemUsage, nowD, CHARTPATH, logs
 from manager import (
     buildEngine,
@@ -43,7 +43,7 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
     df = pd.DataFrame()
     for chunk in tqdm(
         chunks,
-        total=round(length / chunksize),
+        total=math.ceil(length / chunksize),
         leave=False,
         unit="chunk",
         desc="load",
