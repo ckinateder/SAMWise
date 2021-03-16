@@ -1,11 +1,14 @@
 import argparse
 
 import pandas as pd
+import numpy as np
+from scipy.interpolate import make_interp_spline, BSpline
+
 from pandas.core.frame import DataFrame
 from sklearn.preprocessing import MinMaxScaler
 from sqlalchemy import MetaData, create_engine
 import math
-from helper import FILE_TIME_FORMAT, getMemUsage, nowD, CHARTPATH, logs
+from helper import FILE_TIME_FORMAT, getMemUsage, nowD, CHARTPATH, logs, rgb
 from manager import (
     buildEngine,
     createSessionMaker,
@@ -15,10 +18,7 @@ from manager import (
 )
 from tqdm import *
 
-try:
-    import matplotlib.pyplot as plt
-except:
-    pass
+import matplotlib.pyplot as plt
 
 
 def getMinutes(start, final):
@@ -116,7 +116,7 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     ):  # more options can be specified also
         logs.debug(counts_frame)
     top_50 = counts_frame.iloc[:50]
-
+    """
     top_50.plot(
         # x=index,
         y="profitable_pairs",
@@ -126,7 +126,33 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         kind="bar",
         fontsize="7",
         figsize=(16, 9),
-    ).figure.savefig(f"{CHARTPATH}{imgname}.png")
+    )
+    """
+    # .figure
+    # plot
+    fig = plt.figure(
+        figsize=(16, 9),
+    )
+    pairs_axis = fig.add_subplot(111)
+
+    pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(125, 166, 232))
+    pairs_axis.set_xlabel("symbol")
+    pairs_axis.set_ylabel("profitable pairs per minute")
+    pairs_axis.set_xticklabels(list(top_50.index), rotation=90)
+    pairs_axis.set_yscale("linear")
+    pairs_axis.set_title(
+        f"potential symbols to perform arbitrage on since {table.iloc[0]['batch']}"
+    )
+
+    liquid_axis = pairs_axis.twinx()
+    liquid_axis.set_yscale("log")
+    liquid_axis.set_ylabel("symbol liquidity")
+    liquid_axis.set_yticks(np.arange(0, top_50.liquidity.max(), 1))
+    liquid_axis.plot(
+        top_50.index, top_50.liquidity, color=rgb(237, 66, 47), linewidth=2
+    )
+    plt.savefig(fname=f"{CHARTPATH}{imgname}.png")
+
     try:
         plt.show()
     except:

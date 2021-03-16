@@ -146,6 +146,11 @@ def roundSignificant(x, sig=2):
     return round(x, sig - int(floor(log10(abs(x)))) - 1)
 
 
+def rgb(r, g, b):
+    # return a scaled tuple
+    return (r / 255.0, g / 255.0, b / 255.0)
+
+
 def timer(waittime):
     for interval in trange(
         waittime * 1000,
