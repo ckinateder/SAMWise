@@ -2,6 +2,7 @@ import argparse
 
 import pandas as pd
 from pandas.core.frame import DataFrame
+from sklearn.preprocessing import MinMaxScaler
 from sqlalchemy import MetaData, create_engine
 import math
 from helper import FILE_TIME_FORMAT, getMemUsage, nowD, CHARTPATH, logs
@@ -13,6 +14,11 @@ from manager import (
     getTableSize,
 )
 from tqdm import *
+
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass
 
 
 def getMinutes(start, final):
@@ -54,10 +60,19 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
 
 def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     logs.debug(f"Analyzing {len(table.index):,} rows ...")
-    counts = {}
 
     timerange = getMinutes(table.iloc[0]["batch"], table.iloc[-1]["batch"])
+    uniques = table.symbol.drop_duplicates()
 
+    counts_frame = pd.DataFrame(columns=["symbol", "profitable_pairs", "liquidity"])
+    # print("*", counts_frame)
+
+    counts_frame.symbol = list(uniques)
+    counts_frame.set_index("symbol", inplace=True)
+
+    counts_frame.profitable_pairs = 0
+    counts_frame.liquidity = -1
+    # count pairs
     for index, row in tqdm(
         table.iterrows(),
         total=len(table.index),
@@ -66,15 +81,9 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         dynamic_ncols=True,
         desc="count",
     ):
-        if row["symbol"] in counts:
-            counts[row["symbol"]] += 1 / timerange
-        else:
-            counts[row["symbol"]] = 1 / timerange
-    # df["weight"].mean()
-    counts_frame = pd.DataFrame(counts.items(), columns=["symbol", "profitable_pairs"])
-    counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
-
-    counts_frame["liquidity"] = -1
+        sym = row.symbol
+        counts_frame.loc[[sym], ["profitable_pairs"]] += 1 / timerange
+    # count avg
     for index, row in tqdm(
         counts_frame.iterrows(),
         total=len(counts_frame.index),
@@ -83,21 +92,33 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         dynamic_ncols=True,
         desc="avg",
     ):
-        symavg = table.loc[
-            table.symbol == row.symbol
-        ].liquidity.mean()  # compute average
-        idd = counts_frame.loc[counts_frame.symbol == row.symbol].index[0]  # get index
-        print(symavg)
-        print(counts_frame.at[idd, "symbol"])
-        counts_frame.at[idd, "liquidity"] = float(symavg)  # set new value
-        print(counts_frame[counts_frame.symbol == row.symbol].liquidity)
+        sym = row.name
+        symavg = table.loc[table.symbol == sym].liquidity.mean()
+        counts_frame.loc[[sym], ["liquidity"]] = symavg
+
+    counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
 
     logs.debug(
         f"Top 10 symbols (symbol, profitable pairs per minute):\n{counts_frame.iloc[:10]}",
     )
 
-    counts_frame.iloc[:50].plot(
-        x="symbol",
+    # scale liquidity
+    scaler = MinMaxScaler(
+        feature_range=(
+            counts_frame.profitable_pairs.min(),
+            counts_frame.profitable_pairs.max(),
+        )
+    )
+    counts_frame["liquidity"] = scaler.fit_transform(counts_frame[["liquidity"]])
+
+    with pd.option_context(
+        "display.max_rows", None, "display.max_columns", None
+    ):  # more options can be specified also
+        logs.debug(counts_frame)
+    top_50 = counts_frame.iloc[:50]
+
+    top_50.plot(
+        # x=index,
         y="profitable_pairs",
         xlabel="symbol",
         ylabel="profitable pairs per minute",
@@ -106,6 +127,10 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         fontsize="7",
         figsize=(16, 9),
     ).figure.savefig(f"{CHARTPATH}{imgname}.png")
+    try:
+        plt.show()
+    except:
+        pass
 
 
 if __name__ == "__main__":

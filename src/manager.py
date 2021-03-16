@@ -70,9 +70,12 @@ def getTableSize(session, dbname, table):
 
 def getTableLength(session, table):
     # get table length
-    number_of_rows = session.execute(
-        f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1"
-    ).fetchall()[0][0]
+    try:
+        number_of_rows = session.execute(
+            f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1"
+        ).fetchall()[0][0]
+    except IndexError:
+        number_of_rows = 0
     return number_of_rows
 
 
