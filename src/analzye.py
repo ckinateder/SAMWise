@@ -1,4 +1,5 @@
 import argparse
+from pprint import pprint
 
 import pandas as pd
 import numpy as np
@@ -62,17 +63,20 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     logs.debug(f"Analyzing {len(table.index):,} rows ...")
 
     timerange = getMinutes(table.iloc[0]["batch"], table.iloc[-1]["batch"])
-    uniques = table.symbol.drop_duplicates()
+    uniques = list(table.symbol.drop_duplicates())
 
-    counts_frame = pd.DataFrame(columns=["symbol", "profitable_pairs", "liquidity"])
-    # print("*", counts_frame)
-
-    counts_frame.symbol = list(uniques)
-    counts_frame.set_index("symbol", inplace=True)
-
-    counts_frame.profitable_pairs = 0
-    counts_frame.liquidity = -1
+    counts = {}
     # count pairs
+    for sym in tqdm(
+        uniques,
+        leave=False,
+        unit="row",
+        dynamic_ncols=True,
+        desc="count",
+    ):
+        symavg = table.loc[table.symbol == sym].liquidity.mean()
+        counts[sym] = {"profitable_pairs": 0, "liquidity": symavg}
+
     for index, row in tqdm(
         table.iterrows(),
         total=len(table.index),
@@ -82,19 +86,9 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         desc="count",
     ):
         sym = row.symbol
-        counts_frame.loc[[sym], ["profitable_pairs"]] += 1 / timerange
-    # count avg
-    for index, row in tqdm(
-        counts_frame.iterrows(),
-        total=len(counts_frame.index),
-        leave=False,
-        unit="row",
-        dynamic_ncols=True,
-        desc="avg",
-    ):
-        sym = row.name
-        symavg = table.loc[table.symbol == sym].liquidity.mean()
-        counts_frame.loc[[sym], ["liquidity"]] = symavg
+        counts[sym]["profitable_pairs"] += 1 / timerange
+
+    counts_frame = pd.DataFrame.from_dict(counts, orient="index")
 
     counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
 
@@ -110,11 +104,6 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         )
     )
     counts_frame["liquidity"] = scaler.fit_transform(counts_frame[["liquidity"]])
-
-    with pd.option_context(
-        "display.max_rows", None, "display.max_columns", None
-    ):  # more options can be specified also
-        logs.debug(counts_frame)
     top_50 = counts_frame.iloc[:50]
     """
     top_50.plot(
