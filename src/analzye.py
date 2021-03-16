@@ -70,9 +70,28 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
             counts[row["symbol"]] += 1 / timerange
         else:
             counts[row["symbol"]] = 1 / timerange
-
+    # df["weight"].mean()
     counts_frame = pd.DataFrame(counts.items(), columns=["symbol", "profitable_pairs"])
     counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
+
+    counts_frame["liquidity"] = -1
+    for index, row in tqdm(
+        counts_frame.iterrows(),
+        total=len(counts_frame.index),
+        leave=False,
+        unit="row",
+        dynamic_ncols=True,
+        desc="avg",
+    ):
+        symavg = table.loc[
+            table.symbol == row.symbol
+        ].liquidity.mean()  # compute average
+        idd = counts_frame.loc[counts_frame.symbol == row.symbol].index[0]  # get index
+        print(symavg)
+        print(counts_frame.at[idd, "symbol"])
+        counts_frame.at[idd, "liquidity"] = float(symavg)  # set new value
+        print(counts_frame[counts_frame.symbol == row.symbol].liquidity)
+
     logs.debug(
         f"Top 10 symbols (symbol, profitable pairs per minute):\n{counts_frame.iloc[:10]}",
     )
