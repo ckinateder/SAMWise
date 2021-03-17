@@ -74,25 +74,21 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         dynamic_ncols=True,
         desc="count",
     ):
-        symavg = table.loc[table.symbol == sym].liquidity.mean()  # get average
+        just_this_symbol = table.loc[table.symbol == sym]
+        symavg = just_this_symbol.liquidity.mean()  # get average
 
-        buys = set(table.loc[table.symbol == sym].buy.drop_duplicates())
-        sells = set(table.loc[table.symbol == sym].sell.drop_duplicates())
+        buys = set(just_this_symbol.buy.drop_duplicates())
+        sells = set(just_this_symbol.sell.drop_duplicates())
         excount = len(buys | sells)  # get number of exchanges
 
-        counts[sym] = {"profitable_pairs": 0, "liquidity": symavg, "exchanges": excount}
+        sum_pp = len(just_this_symbol) / timerange  # get count
 
-    # count pairs
-    for index, row in tqdm(
-        table.iterrows(),
-        total=len(table.index),
-        leave=False,
-        unit="row",
-        dynamic_ncols=True,
-        desc="count",
-    ):
-        sym = row.symbol
-        counts[sym]["profitable_pairs"] += 1 / timerange
+        counts[sym] = {
+            "profitable_pairs": sum_pp,
+            "liquidity": symavg,
+            "exchanges": excount,
+        }
+
     # create frame from dictionary
     counts_frame = pd.DataFrame.from_dict(counts, orient="index")
     counts_frame.sort_values(
