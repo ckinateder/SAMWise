@@ -88,9 +88,12 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         sym = row.symbol
         counts[sym]["profitable_pairs"] += 1 / timerange
 
-    counts_frame = pd.DataFrame.from_dict(counts, orient="index")
-
-    counts_frame.sort_values(by="profitable_pairs", ascending=False, inplace=True)
+    counts_frame = pd.DataFrame.from_dict(
+        counts, orient="index"
+    )  # create frame from dictionary
+    counts_frame.sort_values(
+        by="profitable_pairs", ascending=False, inplace=True
+    )  # sort
 
     logs.debug(
         f"Top 10 symbols (symbol, profitable pairs per minute):\n{counts_frame.iloc[:10]}",
@@ -104,44 +107,39 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         )
     )
     counts_frame["liquidity"] = scaler.fit_transform(counts_frame[["liquidity"]])
-    top_50 = counts_frame.iloc[:50]
-    """
-    top_50.plot(
-        # x=index,
-        y="profitable_pairs",
-        xlabel="symbol",
-        ylabel="profitable pairs per minute",
-        title=f"potential symbols to perform arbitrage on since {table.iloc[0]['batch']}",
-        kind="bar",
-        fontsize="7",
-        figsize=(16, 9),
-    )
-    """
-    # .figure
+
+    top_50 = counts_frame.iloc[:50]  # get top 50
+
     # plot
+
     fig = plt.figure(
         figsize=(16, 9),
     )
     pairs_axis = fig.add_subplot(111)
 
+    # plot top 50 symbols and profitable pairs per min
     pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(125, 166, 232))
     pairs_axis.set_xlabel("symbol")
     pairs_axis.set_ylabel("profitable pairs per minute")
-    pairs_axis.set_xticklabels(list(top_50.index), rotation=90)
+    pairs_axis.set_xticklabels(list(top_50.index), rotation=80)
     pairs_axis.set_yscale("linear")
     pairs_axis.set_title(
         f"potential symbols to perform arbitrage on since {table.iloc[0]['batch']}"
     )
 
+    # smooth
+    # plot top 50 symbols and avg liquidity
     liquid_axis = pairs_axis.twinx()
     liquid_axis.set_yscale("log")
-    liquid_axis.set_ylabel("symbol liquidity")
-    liquid_axis.set_yticks(np.arange(0, top_50.liquidity.max(), 1))
+    liquid_axis.set_ylabel("symbol liquidity (LOG)")
+    # liquid_axis.set_yticks(np.arange(0, top_50.liquidity.max(), 1))
     liquid_axis.plot(
         top_50.index, top_50.liquidity, color=rgb(237, 66, 47), linewidth=2
     )
-    plt.savefig(fname=f"{CHARTPATH}{imgname}.png")
 
+    # add margin
+
+    plt.savefig(fname=f"{CHARTPATH}{imgname}.png")
     try:
         plt.show()
     except:
