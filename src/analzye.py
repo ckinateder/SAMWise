@@ -66,7 +66,7 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     uniques = list(table.symbol.drop_duplicates())
 
     counts = {}
-    # count pairs
+    # count averages
     for sym in tqdm(
         uniques,
         leave=False,
@@ -74,9 +74,15 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         dynamic_ncols=True,
         desc="count",
     ):
-        symavg = table.loc[table.symbol == sym].liquidity.mean()
-        counts[sym] = {"profitable_pairs": 0, "liquidity": symavg}
+        symavg = table.loc[table.symbol == sym].liquidity.mean()  # get average
 
+        buys = set(table.loc[table.symbol == sym].buy.drop_duplicates())
+        sells = set(table.loc[table.symbol == sym].sell.drop_duplicates())
+        excount = len(buys | sells)  # get number of exchanges
+
+        counts[sym] = {"profitable_pairs": 0, "liquidity": symavg, "exchanges": excount}
+
+    # count pairs
     for index, row in tqdm(
         table.iterrows(),
         total=len(table.index),
@@ -87,10 +93,8 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     ):
         sym = row.symbol
         counts[sym]["profitable_pairs"] += 1 / timerange
-
-    counts_frame = pd.DataFrame.from_dict(
-        counts, orient="index"
-    )  # create frame from dictionary
+    # create frame from dictionary
+    counts_frame = pd.DataFrame.from_dict(counts, orient="index")
     counts_frame.sort_values(
         by="profitable_pairs", ascending=False, inplace=True
     )  # sort
@@ -99,17 +103,7 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         f"Top 10 symbols (symbol, profitable pairs per minute):\n{counts_frame.iloc[:10]}",
     )
 
-    # scale liquidity
-    scaler = MinMaxScaler(
-        feature_range=(
-            counts_frame.profitable_pairs.min(),
-            counts_frame.profitable_pairs.max(),
-        )
-    )
-    counts_frame["liquidity"] = scaler.fit_transform(counts_frame[["liquidity"]])
-
     top_50 = counts_frame.iloc[:50]  # get top 50
-
     # plot
 
     fig = plt.figure(
@@ -118,7 +112,9 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     pairs_axis = fig.add_subplot(111)
 
     # plot top 50 symbols and profitable pairs per min
-    pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(125, 166, 232))
+    pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(150, 191, 232))
+
+    pairs_axis.bar((top_50.index), top_50.exchanges, color=rgb(125, 103, 166))
     pairs_axis.set_xlabel("symbol")
     pairs_axis.set_ylabel("profitable pairs per minute")
     pairs_axis.set_xticklabels(list(top_50.index), rotation=80)
