@@ -36,20 +36,17 @@ def getMinutes(start, final):
     return total
 
 
-def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
+def dfFromTable(session, table, chunksize=10000) -> DataFrame:
     """
     table_df = pd.read_sql_table(table, con=engine)
 
     return table_df
     """
-    sessioner = createSessionMaker(
-        engine
-    )()  # creates sessionmaker and calls its constructor
     logs.debug(
-        f"Loading table samwise.{table} with {engine} ({getTableSize(sessioner, 'samwise',table)})... "
+        f"Loading table samwise.{table} with {engine} ({getTableSize(session, 'samwise',table)})... "
     )
 
-    length = getTableLength(sessioner, table)
+    length = getTableLength(session, table)
     chunks = pd.read_sql_table(table, con=engine, chunksize=chunksize)
 
     df = pd.DataFrame()
@@ -132,11 +129,11 @@ def plotBars(since, df_to_plot, show=False):
             logs.warn("Couldn't show graph")
 
 
-def analyzeSpreads(engine):
+def analyzeSpreads(session):
     """
     Analyzes the spreads and saves them to the database for plotting.
     """
-    table = dfFromTable(engine, "spreads")
+    table = dfFromTable(session, "spreads")
     logs.debug("Created table.")
 
     logs.debug(f"Analyzing {len(table.index):,} rows ...")
@@ -191,12 +188,10 @@ def analyzeSpreads(engine):
             )
         )
     ORM_overview.sort(key=lambda x: x.profitable_pairs, reverse=True)  # sort
-    Session = createSessionMaker(engine)
-    session = Session()
     session.query(Analysis).delete()
     session.bulk_save_objects(ORM_overview)  # write to DB
     session.commit()
-    logs.debug("'Saved overview to 'analysis'")
+    logs.debug("Overwrote overview to 'analysis'")
 
 
 if __name__ == "__main__":
@@ -224,4 +219,6 @@ if __name__ == "__main__":
     )
 
     # logs.debug(summary.info())
-    analyzeSpreads(engine)
+    Session = createSessionMaker(engine)
+    session = Session()
+    analyzeSpreads(session)
