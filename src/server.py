@@ -180,12 +180,12 @@ if __name__ == "__main__":
     dbmanager = manager.DatabaseManager(dbmanager_sess)
 
     # create threads
-    apiThread = threading.Thread(target=serveIndefinitely, name="api")
+    apiThread = threading.Thread(target=serveIndefinitely)
     dataThread = threading.Thread(
-        target=dbmanager.saveIndefinitely, args=(Session, int(args.timer)), name="data"
+        target=dbmanager.saveIndefinitely, args=(Session, int(args.timer))
     )
     analyzeThread = threading.Thread(
-        target=analzye.analyzeIndefinitely, args=(Session), name="analyze"
+        target=analzye.analyzeIndefinitely, args=(Session,)
     )
 
     # start threads
