@@ -3,6 +3,7 @@ from pprint import pprint
 
 import pandas as pd
 import numpy as np
+import time
 from scipy.interpolate import make_interp_spline, BSpline
 
 from pandas.core.frame import DataFrame
@@ -61,21 +62,34 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
     return df
 
 
+def plotPies(sym, values, labels):
+    """
+    Take values and labels and plot a pie chart for it
+    """
+    fig1, ax1 = plt.subplots()
+    ax1.pie(
+        values,
+        labels=labels,
+        autopct="%1.1f%%",
+    )
+    plt.savefig(fname=f"{CHARTPATH}{sym.replace('/','-')}-distribution.png")
+    plt.close()
+
+
 def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
+    """
+    Analyzes the spreads and plots distributions and such.
+    """
     logs.debug(f"Analyzing {len(table.index):,} rows ...")
 
     timerange = getMinutes(table.iloc[0]["batch"], table.iloc[-1]["batch"])
     uniques = list(table.symbol.drop_duplicates())
 
     overview = {}
-    pies = {}
+
     # count averages
     for sym in tqdm(
-        uniques,
-        leave=False,
-        unit="row",
-        dynamic_ncols=True,
-        desc="count",
+        uniques, leave=False, unit="row", dynamic_ncols=True, desc="count", position=1
     ):
         just_this_symbol = table.loc[table.symbol == sym]
         symavg = just_this_symbol.liquidity.mean()  # get average
@@ -92,17 +106,19 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
             "profitable_pairs": sum_pp,
             "liquidity": symavg,
             "exchanges": excount,
-            "exchanges_names": exnames,
         }
         # then set percentages
-
-        for exc in exnames:
+        pies_by_sym = {}
+        for exc in tqdm(
+            exnames, leave=False, unit="exc", dynamic_ncols=True, desc="pie"
+        ):
             buys = len(just_this_symbol.loc[just_this_symbol.buy == exc])
             sells = len(just_this_symbol.loc[just_this_symbol.sell == exc])
             # print(buys, sells)
             portion = (buys + sells) / (len(just_this_symbol) * 2) * 100
-            overview[sym][exc] = portion
-
+            pies_by_sym[exc] = portion
+        # plot pies here
+        plotPies(sym, list(pies_by_sym.values()), list(pies_by_sym.keys()))
     # create frame from dictionary
     overview_frame = pd.DataFrame.from_dict(overview, orient="index")
     overview_frame.sort_values(
@@ -115,10 +131,9 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
 
     top_50 = overview_frame.iloc[:50]  # get top 50
     # plot
-
-    fig = plt.figure(
-        figsize=(16, 9),
-    )
+    # create figure
+    fig = plt.figure()
+    fig.set_size_inches(16, 9)
     pairs_axis = fig.add_subplot(111)
 
     # plot top 50 symbols and profitable pairs per min
