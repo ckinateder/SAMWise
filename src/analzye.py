@@ -1,4 +1,5 @@
 import argparse
+from operator import getitem
 from pprint import pprint
 
 import pandas as pd
@@ -21,6 +22,8 @@ from manager import (
 from tqdm import *
 
 import matplotlib.pyplot as plt
+
+from tables import Analysis
 
 
 def getMinutes(start, final):
@@ -70,6 +73,8 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
 def plotPies(sym, values, labels):
     """
     Take values and labels and plot a pie chart for it
+    Sample call:
+    plotPies(sym, list(overview[sym].values()), list(overview[sym].keys()))
     """
     fig1, ax1 = plt.subplots()
     ax1.pie(
@@ -84,7 +89,7 @@ def plotPies(sym, values, labels):
     plt.close()
 
 
-def plotBars(since, top_50, show=False):
+def plotBars(since, df_to_plot, show=False):
     """
     Plot the given dataframe.
     """
@@ -95,12 +100,14 @@ def plotBars(since, top_50, show=False):
     pairs_axis = fig.add_subplot(111)
 
     # plot top 50 symbols and profitable pairs per min
-    pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(150, 191, 232))
+    pairs_axis.bar(
+        (df_to_plot.index), df_to_plot.profitable_pairs, color=rgb(150, 191, 232)
+    )
 
-    pairs_axis.bar((top_50.index), top_50.exchanges, color=rgb(125, 103, 166))
+    pairs_axis.bar((df_to_plot.index), df_to_plot.exchanges, color=rgb(125, 103, 166))
     pairs_axis.set_xlabel("symbol")
     pairs_axis.set_ylabel("profitable pairs per minute")
-    pairs_axis.set_xticklabels(list(top_50.index), rotation=80)
+    pairs_axis.set_xticklabels(list(df_to_plot.index), rotation=80)
     pairs_axis.set_yscale("linear")
     pairs_axis.set_title(f"potential symbols to perform arbitrage on since {since}")
 
@@ -109,9 +116,9 @@ def plotBars(since, top_50, show=False):
     liquid_axis = pairs_axis.twinx()
     liquid_axis.set_yscale("log")
     liquid_axis.set_ylabel("symbol liquidity (LOG)")
-    # liquid_axis.set_yticks(np.arange(0, top_50.liquidity.max(), 1))
+    # liquid_axis.set_yticks(np.arange(0, df_to_plot.liquidity.max(), 1))
     liquid_axis.plot(
-        top_50.index, top_50.liquidity, color=rgb(237, 66, 47), linewidth=2
+        df_to_plot.index, df_to_plot.liquidity, color=rgb(237, 66, 47), linewidth=2
     )
 
     # add margin
@@ -125,10 +132,13 @@ def plotBars(since, top_50, show=False):
             logs.warn("Couldn't show graph")
 
 
-def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
+def analyzeSpreads(engine):
     """
-    Analyzes the spreads and plots distributions and such.
+    Analyzes the spreads and saves them to the database for plotting.
     """
+    table = dfFromTable(engine, "spreads")
+    logs.debug("Created table.")
+
     logs.debug(f"Analyzing {len(table.index):,} rows ...")
 
     timerange = getMinutes(table.iloc[0]["batch"], table.iloc[-1]["batch"])
@@ -148,38 +158,45 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
         exnames = list(buys | sells)
         excount = len(exnames)  # get total number of unique exchanges
 
-        sum_pp = len(just_this_symbol) / timerange  # get count
+        sum_pp = round(len(just_this_symbol) / timerange, 2)  # get count
 
         # first set statics
         overview[sym] = {
             "profitable_pairs": sum_pp,
             "liquidity": symavg,
             "exchanges": excount,
+            "makeup": {},
         }
         # then set percentages
-        pies_by_sym = {}
         for exc in tqdm(
-            exnames, leave=False, unit="exc", dynamic_ncols=True, desc="pie"
+            exnames, leave=False, unit="exc", dynamic_ncols=True, desc="mkup"
         ):
             buys = len(just_this_symbol.loc[just_this_symbol.buy == exc])
             sells = len(just_this_symbol.loc[just_this_symbol.sell == exc])
             # print(buys, sells)
             portion = (buys + sells) / (len(just_this_symbol) * 2) * 100
-            pies_by_sym[exc] = portion
-        # plot pies here
-        plotPies(sym, list(pies_by_sym.values()), list(pies_by_sym.keys()))
+            overview[sym]["makeup"][exc] = portion
     # create frame from dictionary
-    overview_frame = pd.DataFrame.from_dict(overview, orient="index")
-    overview_frame.sort_values(
-        by="profitable_pairs", ascending=False, inplace=True
-    )  # sort
 
-    logs.debug(
-        f"Top 10 symbols (symbol, profitable pairs per minute):\n{overview_frame.iloc[:10]}",
-    )
-
-    top_50 = overview_frame.iloc[:50]  # get top 50
-    plotBars(table.iloc[0]["batch"], top_50)
+    # create ORMs for overview
+    ORM_overview = []
+    for symbol in overview:
+        ORM_overview.append(
+            Analysis(
+                symbol=symbol,
+                profitable_pairs=overview[symbol]["profitable_pairs"],
+                liquidity=overview[symbol]["liquidity"],
+                exchanges=overview[symbol]["exchanges"],
+                makeup=overview[symbol]["makeup"],
+            )
+        )
+    ORM_overview.sort(key=lambda x: x.profitable_pairs, reverse=True)  # sort
+    Session = createSessionMaker(engine)
+    session = Session()
+    session.query(Analysis).delete()
+    session.bulk_save_objects(ORM_overview)  # write to DB
+    session.commit()
+    logs.debug("'Saved overview to 'analysis'")
 
 
 if __name__ == "__main__":
@@ -205,7 +222,6 @@ if __name__ == "__main__":
         port=args.port,
         database=args.database,
     )
-    summary = dfFromTable(engine, "spreads")
+
     # logs.debug(summary.info())
-    logs.debug("Created table.")
-    analyzeSpreads(summary)
+    analyzeSpreads(engine)

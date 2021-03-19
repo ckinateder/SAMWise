@@ -1,7 +1,16 @@
+from numpy import double
 from sqlalchemy import Column, String, Integer, Date, Table, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.elements import and_
-from sqlalchemy.sql.sqltypes import BIGINT, VARCHAR, DateTime, Float
+from sqlalchemy.sql.sqltypes import (
+    BIGINT,
+    DECIMAL,
+    FLOAT,
+    JSON,
+    VARCHAR,
+    DateTime,
+    Float,
+)
 
 import decimal
 from datetime import *
@@ -167,4 +176,25 @@ class Summary(Base):
 
     def __repr__(self):
         tostr = f"<SUMMARY @ batch={self.batch}, symbol={self.symbol}, net spread={float(self.spread_w_fees)}>"
+        return tostr
+
+
+class Analysis(Base):
+    __tablename__ = "analysis"
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    symbol = Column(VARCHAR(20))
+    profitable_pairs = Column(Float)  # number of profitable pairs per minute
+    liquidity = Column(Float)  # liquidity
+    exchanges = Column(Integer)  # exchange count
+    makeup = Column(JSON)  # percentages that add to 100
+
+    @classmethod
+    def findBy(cls, session, serialize, **kwargs):
+        q = session.query(cls).filter_by(**kwargs).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
+
+    def __repr__(self):
+        tostr = f"<ANALYSIS @ symbol={self.symbol}, profitable pairs={self.profitable_pairs}/min, exchanges={self.exchanges}>"
         return tostr
