@@ -194,6 +194,17 @@ def analyzeSpreads(session):
     logs.debug("Overwrote overview to 'analysis'")
 
 
+def analyzeIndefinitely(Session, waittime=30):
+    """
+    Analyze the spreads forever, with waittime in minutes. Takes a sessionmaker as an input
+    """
+    waittime = waittime * 60
+    session = Session()
+    while True:
+        analyzeSpreads(session)
+        time.sleep(waittime)
+
+
 if __name__ == "__main__":
     # Create the parser
     parser = argparse.ArgumentParser(

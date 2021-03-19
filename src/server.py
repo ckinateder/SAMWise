@@ -6,6 +6,7 @@ from flask import Flask, request, render_template
 from flask_restful import Api, Resource
 
 import manager
+import analzye
 from helper import strfdelta, nowD
 from tables import *
 import argparse
@@ -138,7 +139,7 @@ def openBrowser():
     webbrowser.open_new("http://localhost:5000/")
 
 
-def runAPI():
+def serveIndefinitely():
     threading.Timer(1, openBrowser).start()
     app.run(host="0.0.0.0", port=5000, debug=False)
 
@@ -177,13 +178,20 @@ if __name__ == "__main__":
     Session = manager.createSessionMaker(engine)  # for saving
     dbmanager_sess = Session()
     dbmanager = manager.DatabaseManager(dbmanager_sess)
+
     # create threads
-    apiThread = threading.Thread(target=runAPI, name="api")
+    apiThread = threading.Thread(target=serveIndefinitely, name="api")
     dataThread = threading.Thread(
         target=dbmanager.saveIndefinitely, args=(Session, int(args.timer)), name="data"
     )
+    analyzeThread = threading.Thread(
+        target=analzye.analyzeIndefinitely, args=(Session), name="analyze"
+    )
+
     # start threads
     dataThread.start()
-    logs.debug("Started DATA server ...")
+    logs.debug("Started DATA thread ...")
     apiThread.start()
-    logs.debug("Started API server ...")
+    logs.debug("Started API thread ...")
+    analyzeThread.start()
+    logs.debug("Started ANALYZE thread ...")
