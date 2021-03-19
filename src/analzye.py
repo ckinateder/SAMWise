@@ -38,7 +38,9 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
 
     return table_df
     """
-    sessioner = createSessionMaker(engine)()
+    sessioner = createSessionMaker(
+        engine
+    )()  # creates sessionmaker and calls its constructor
     logs.debug(
         f"Loading table samwise.{table} with {engine} ({getTableSize(sessioner, 'samwise',table)})... "
     )
@@ -65,7 +67,8 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     timerange = getMinutes(table.iloc[0]["batch"], table.iloc[-1]["batch"])
     uniques = list(table.symbol.drop_duplicates())
 
-    counts = {}
+    overview = {}
+    pies = {}
     # count averages
     for sym in tqdm(
         uniques,
@@ -79,27 +82,38 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
 
         buys = set(just_this_symbol.buy.drop_duplicates())
         sells = set(just_this_symbol.sell.drop_duplicates())
-        excount = len(buys | sells)  # get number of exchanges
+        exnames = list(buys | sells)
+        excount = len(exnames)  # get total number of unique exchanges
 
         sum_pp = len(just_this_symbol) / timerange  # get count
 
-        counts[sym] = {
+        # first set statics
+        overview[sym] = {
             "profitable_pairs": sum_pp,
             "liquidity": symavg,
             "exchanges": excount,
+            "exchanges_names": exnames,
         }
+        # then set percentages
+
+        for exc in exnames:
+            buys = len(just_this_symbol.loc[just_this_symbol.buy == exc])
+            sells = len(just_this_symbol.loc[just_this_symbol.sell == exc])
+            # print(buys, sells)
+            portion = (buys + sells) / (len(just_this_symbol) * 2) * 100
+            overview[sym][exc] = portion
 
     # create frame from dictionary
-    counts_frame = pd.DataFrame.from_dict(counts, orient="index")
-    counts_frame.sort_values(
+    overview_frame = pd.DataFrame.from_dict(overview, orient="index")
+    overview_frame.sort_values(
         by="profitable_pairs", ascending=False, inplace=True
     )  # sort
 
     logs.debug(
-        f"Top 10 symbols (symbol, profitable pairs per minute):\n{counts_frame.iloc[:10]}",
+        f"Top 10 symbols (symbol, profitable pairs per minute):\n{overview_frame.iloc[:10]}",
     )
 
-    top_50 = counts_frame.iloc[:50]  # get top 50
+    top_50 = overview_frame.iloc[:50]  # get top 50
     # plot
 
     fig = plt.figure(
@@ -131,7 +145,7 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
 
     # add margin
 
-    plt.savefig(fname=f"{CHARTPATH}{imgname}.png")
+    plt.savefig(fname=f"{CHARTPATH}overview.png")
     try:
         plt.show()
     except:
