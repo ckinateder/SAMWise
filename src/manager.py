@@ -114,13 +114,22 @@ class DatabaseManager:
         betweens = cls.findBetweenDatetimes(session, True, start=start, end=end)
         return betweens
 
-    def getRawLatest(self, session):
+    def getRawLatest(self, session, symbol=None, exchange=None):
         """
         Get latest data from the price tickers.
         """
         latest = None
         batch = session.query(Results).order_by(Results.id.desc()).first().batch
-        latest = Results.findBy(session, True, batch=batch)
+        if symbol and not exchange:
+            latest = Results.findBy(session, True, batch=batch, symbol=symbol)
+        elif exchange and not symbol:
+            latest = Results.findBy(session, True, batch=batch, exchange=exchange)
+        elif symbol and exchange:
+            latest = Results.findBy(
+                session, True, batch=batch, symbol=symbol, exchange=exchange
+            )
+        else:
+            latest = Results.findBy(session, True, batch=batch)
         return latest
 
     def getSpreadsLatest(self, session):

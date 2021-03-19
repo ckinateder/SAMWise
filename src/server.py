@@ -10,6 +10,7 @@ import analzye
 from helper import strfdelta, nowD
 from tables import *
 import argparse
+from pprint import pprint
 
 app = Flask(__name__)
 api = Api(app)
@@ -30,6 +31,28 @@ class Status(Resource):
                 "uptime": dbmanager.updateUptime(),
             }
         }, 200  # return data and 200 OK code
+
+
+class Data(Resource):
+    def get(self):
+        query_session = Session()  # for querying
+        symbol = request.args.get("symbol")
+        exchange = request.args.get("exchange")
+        if not symbol or not exchange:
+            # help
+            exchanges = []
+            for i in list(dbmanager.beehive.idynamics.keys()):
+                exchanges.append(i.name)
+            return {
+                "supported symbols": list(dbmanager.beehive.dynamic_commons.keys()),
+                "supported exchanges": exchanges,
+            }, 200
+
+        queried = dbmanager.getRawLatest(query_session, symbol, exchange)
+        if queried:
+            return {"data": queried}, 200
+        else:
+            return {"data": None, "msg": "no records matching those specs"}, 200
 
 
 class RawFlex(Resource):
@@ -127,6 +150,7 @@ def addBouncer():
     return "Done"
 
 
+api.add_resource(Data, "/api/v1/data")  # '/raw/flex' is our entry point
 api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
 api.add_resource(RawLatest, "/api/raw/latest")  # '/raw/latest' is our entry point
 api.add_resource(SpreadsFlex, "/api/spreads/flex")  # '/spreads/flex' is our entry point
@@ -140,7 +164,7 @@ def openBrowser():
 
 
 def serveIndefinitely():
-    threading.Timer(1, openBrowser).start()
+    # threading.Timer(1, openBrowser).start()
     app.run(host="0.0.0.0", port=5000, debug=False)
 
 
