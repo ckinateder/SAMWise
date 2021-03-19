@@ -68,7 +68,7 @@ class TqdmLoggingHandler(logging.Handler):
     def emit(self, record):
         try:
             msg = self.format(record)
-            logging.debug(msg)
+            tqdm.write(msg)
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -81,7 +81,9 @@ logs = logging.getLogger(__name__)
 logs.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
 fh = logging.FileHandler(f"{LOGPATH}{nowD().strftime('%Y-%m-%d_%H-%M-%S')}.log")
-ch = logging.StreamHandler()
+# fh.setLevel(logging.DEBUG)
+ch = TqdmLoggingHandler()  # (level=logging.INFO)  # logging.StreamHandler()
+# ch.setLevel(logging.INFO)
 
 formatter = logging.Formatter("%(asctime)s:%(levelname)s: %(message)s")
 

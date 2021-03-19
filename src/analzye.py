@@ -73,7 +73,49 @@ def plotPies(sym, values, labels):
         autopct="%1.1f%%",
     )
     plt.savefig(fname=f"{CHARTPATH}{sym.replace('/','-')}-distribution.png")
+    logs.debug(
+        f"Saved pie to '{CHARTPATH}detail/{sym.replace('/','-')}-distribution.png'"
+    )
     plt.close()
+
+
+def plotBars(since, top_50, show=False):
+
+    # plot
+    # create figure
+    fig = plt.figure()
+    fig.set_size_inches(16, 9)
+    pairs_axis = fig.add_subplot(111)
+
+    # plot top 50 symbols and profitable pairs per min
+    pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(150, 191, 232))
+
+    pairs_axis.bar((top_50.index), top_50.exchanges, color=rgb(125, 103, 166))
+    pairs_axis.set_xlabel("symbol")
+    pairs_axis.set_ylabel("profitable pairs per minute")
+    pairs_axis.set_xticklabels(list(top_50.index), rotation=80)
+    pairs_axis.set_yscale("linear")
+    pairs_axis.set_title(f"potential symbols to perform arbitrage on since {since}")
+
+    # smooth
+    # plot top 50 symbols and avg liquidity
+    liquid_axis = pairs_axis.twinx()
+    liquid_axis.set_yscale("log")
+    liquid_axis.set_ylabel("symbol liquidity (LOG)")
+    # liquid_axis.set_yticks(np.arange(0, top_50.liquidity.max(), 1))
+    liquid_axis.plot(
+        top_50.index, top_50.liquidity, color=rgb(237, 66, 47), linewidth=2
+    )
+
+    # add margin
+
+    plt.savefig(fname=f"{CHARTPATH}overview.png")
+    logs.debug(f"Saved bar graph to '{CHARTPATH}overview.png'")
+    if show:
+        try:
+            plt.show()
+        except:
+            logs.warn("Couldn't show graph")
 
 
 def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
@@ -130,41 +172,7 @@ def analyzeSpreads(table, imgname=nowD().strftime(FILE_TIME_FORMAT)):
     )
 
     top_50 = overview_frame.iloc[:50]  # get top 50
-    # plot
-    # create figure
-    fig = plt.figure()
-    fig.set_size_inches(16, 9)
-    pairs_axis = fig.add_subplot(111)
-
-    # plot top 50 symbols and profitable pairs per min
-    pairs_axis.bar((top_50.index), top_50.profitable_pairs, color=rgb(150, 191, 232))
-
-    pairs_axis.bar((top_50.index), top_50.exchanges, color=rgb(125, 103, 166))
-    pairs_axis.set_xlabel("symbol")
-    pairs_axis.set_ylabel("profitable pairs per minute")
-    pairs_axis.set_xticklabels(list(top_50.index), rotation=80)
-    pairs_axis.set_yscale("linear")
-    pairs_axis.set_title(
-        f"potential symbols to perform arbitrage on since {table.iloc[0]['batch']}"
-    )
-
-    # smooth
-    # plot top 50 symbols and avg liquidity
-    liquid_axis = pairs_axis.twinx()
-    liquid_axis.set_yscale("log")
-    liquid_axis.set_ylabel("symbol liquidity (LOG)")
-    # liquid_axis.set_yticks(np.arange(0, top_50.liquidity.max(), 1))
-    liquid_axis.plot(
-        top_50.index, top_50.liquidity, color=rgb(237, 66, 47), linewidth=2
-    )
-
-    # add margin
-
-    plt.savefig(fname=f"{CHARTPATH}overview.png")
-    try:
-        plt.show()
-    except:
-        pass
+    plotBars(table.iloc[0]["batch"], top_50)
 
 
 if __name__ == "__main__":
