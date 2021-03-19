@@ -36,14 +36,14 @@ def getMinutes(start, final):
     return total
 
 
-def dfFromTable(session, table, chunksize=10000) -> DataFrame:
+def dfFromTable(engine, session, table, chunksize=10000) -> DataFrame:
     """
     table_df = pd.read_sql_table(table, con=engine)
 
     return table_df
     """
     logs.debug(
-        f"Loading table samwise.{table} ({getTableSize(session, 'samwise',table)})... "
+        f"Loading table samwise.{table} with {engine} ({getTableSize(session, 'samwise',table)})... "
     )
 
     length = getTableLength(session, table)
@@ -129,11 +129,11 @@ def plotBars(since, df_to_plot, show=False):
             logs.warn("Couldn't show graph")
 
 
-def analyzeSpreads(session):
+def analyzeSpreads(engine, session):
     """
     Analyzes the spreads and saves them to the database for plotting.
     """
-    table = dfFromTable(session, "spreads")
+    table = dfFromTable(engine, session, "spreads")
     logs.debug("Created table.")
 
     logs.debug(f"Analyzing {len(table.index):,} rows ...")
@@ -194,14 +194,14 @@ def analyzeSpreads(session):
     logs.debug("Overwrote overview to 'analysis'")
 
 
-def analyzeIndefinitely(Session, waittime=30):
+def analyzeIndefinitely(engine, Session, waittime=30):
     """
     Analyze the spreads forever, with waittime in minutes. Takes a sessionmaker as an input
     """
     waittime = waittime * 60
     session = Session()
     while True:
-        analyzeSpreads(session)
+        analyzeSpreads(engine, session)
         time.sleep(waittime)
 
 

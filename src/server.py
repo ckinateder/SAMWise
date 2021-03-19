@@ -185,7 +185,11 @@ if __name__ == "__main__":
         target=dbmanager.saveIndefinitely, args=(Session, int(args.timer))
     )
     analyzeThread = threading.Thread(
-        target=analzye.analyzeIndefinitely, args=(Session,)
+        target=analzye.analyzeIndefinitely,
+        args=(
+            engine,
+            Session,
+        ),
     )
 
     # start threads
