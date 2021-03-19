@@ -50,6 +50,7 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
     chunks = pd.read_sql_table(table, con=engine, chunksize=chunksize)
 
     df = pd.DataFrame()
+    chunkcount = 0
     for chunk in tqdm(
         chunks,
         total=math.ceil(length / chunksize),
@@ -59,6 +60,10 @@ def dfFromTable(engine, table, chunksize=10000) -> DataFrame:
         dynamic_ncols=True,
     ):
         df = pd.concat([df, chunk])
+        chunkcount += 1
+        logs.debug(
+            f"Loaded chunk {chunkcount} of {math.ceil(length / chunksize)} ({int(chunkcount/math.ceil(length / chunksize)*100)}%)"
+        )
     return df
 
 
@@ -80,7 +85,9 @@ def plotPies(sym, values, labels):
 
 
 def plotBars(since, top_50, show=False):
-
+    """
+    Plot the given dataframe.
+    """
     # plot
     # create figure
     fig = plt.figure()
