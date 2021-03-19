@@ -77,7 +77,7 @@ def plotPies(sym, values, labels):
         labels=labels,
         autopct="%1.1f%%",
     )
-    plt.savefig(fname=f"{CHARTPATH}{sym.replace('/','-')}-distribution.png")
+    plt.savefig(fname=f"{CHARTPATH}detail/{sym.replace('/','-')}-distribution.png")
     logs.debug(
         f"Saved pie to '{CHARTPATH}detail/{sym.replace('/','-')}-distribution.png'"
     )
