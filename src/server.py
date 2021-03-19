@@ -218,8 +218,8 @@ if __name__ == "__main__":
     )
 
     # start threads
-    dataThread.start()
-    logs.debug("Started DATA thread ...")
+    # dataThread.start()
+    # logs.debug("Started DATA thread ...")
     apiThread.start()
     logs.debug("Started API thread ...")
     # analyzeThread.start()
