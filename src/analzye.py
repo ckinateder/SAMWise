@@ -43,7 +43,7 @@ def dfFromTable(session, table, chunksize=10000) -> DataFrame:
     return table_df
     """
     logs.debug(
-        f"Loading table samwise.{table} with {engine} ({getTableSize(session, 'samwise',table)})... "
+        f"Loading table samwise.{table} ({getTableSize(session, 'samwise',table)})... "
     )
 
     length = getTableLength(session, table)
