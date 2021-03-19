@@ -197,5 +197,5 @@ if __name__ == "__main__":
     logs.debug("Started DATA thread ...")
     apiThread.start()
     logs.debug("Started API thread ...")
-    analyzeThread.start()
-    logs.debug("Started ANALYZE thread ...")
+    # analyzeThread.start()
+    # logs.debug("Started ANALYZE thread ...")
