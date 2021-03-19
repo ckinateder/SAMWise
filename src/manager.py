@@ -120,6 +120,7 @@ class DatabaseManager:
         """
         latest = None
         batch = session.query(Results).order_by(Results.id.desc()).first().batch
+        print("*" * 80, batch)
         if symbol and not exchange:
             latest = Results.findBy(session, True, batch=batch, symbol=symbol)
         elif exchange and not symbol:
