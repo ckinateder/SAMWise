@@ -154,43 +154,46 @@ class DatabaseManager:
         """
         logs.debug(colorEh("Packaging props ..."))
         rows = []
-        total = countNestedDicts(props)
-        with tqdm(
-            disable=BARSDISABLED,
-            total=total,
-            leave=False,
-            unit="tic",
-            dynamic_ncols=True,
-            desc="cycle",
-        ) as bar:
-            for sym in props:
-                for exc in props[sym]:
-                    # create row object
-                    result = Results(
-                        symbol=props[sym][exc]["symbol"],
-                        exchange=props[sym][exc]["exchange"],
-                        timestamp=props[sym][exc]["timestamp"],
-                        ask=props[sym][exc]["ask"],
-                        askVolume=props[sym][exc]["askVolume"],
-                        average=props[sym][exc]["average"],
-                        baseVolume=props[sym][exc]["baseVolume"],
-                        bid=props[sym][exc]["bid"],
-                        close=props[sym][exc]["close"],
-                        datetime=props[sym][exc]["datetime"],
-                        batch=props[sym][exc]["batch"],
-                        dx=props[sym][exc]["dx"],
-                        high=props[sym][exc]["high"],
-                        last=props[sym][exc]["last"],
-                        low=props[sym][exc]["low"],
-                        open=props[sym][exc]["open"],
-                        percentage=props[sym][exc]["percentage"],
-                        previousClose=props[sym][exc]["previousClose"],
-                        quoteVolume=props[sym][exc]["quoteVolume"],
-                        vwap=props[sym][exc]["vwap"],
-                    )
-                    rows.append(result)
-                    bar.update(1)
-            return rows
+        try:
+            total = countNestedDicts(props)
+            with tqdm(
+                disable=BARSDISABLED,
+                total=total,
+                leave=False,
+                unit="tic",
+                dynamic_ncols=True,
+                desc="cycle",
+            ) as bar:
+                for sym in props:
+                    for exc in props[sym]:
+                        # create row object
+                        result = Results(
+                            symbol=props[sym][exc]["symbol"],
+                            exchange=props[sym][exc]["exchange"],
+                            timestamp=props[sym][exc]["timestamp"],
+                            ask=props[sym][exc]["ask"],
+                            askVolume=props[sym][exc]["askVolume"],
+                            average=props[sym][exc]["average"],
+                            baseVolume=props[sym][exc]["baseVolume"],
+                            bid=props[sym][exc]["bid"],
+                            close=props[sym][exc]["close"],
+                            datetime=props[sym][exc]["datetime"],
+                            batch=props[sym][exc]["batch"],
+                            dx=props[sym][exc]["dx"],
+                            high=props[sym][exc]["high"],
+                            last=props[sym][exc]["last"],
+                            low=props[sym][exc]["low"],
+                            open=props[sym][exc]["open"],
+                            percentage=props[sym][exc]["percentage"],
+                            previousClose=props[sym][exc]["previousClose"],
+                            quoteVolume=props[sym][exc]["quoteVolume"],
+                            vwap=props[sym][exc]["vwap"],
+                        )
+                        rows.append(result)
+                        bar.update(1)
+        except:
+            logs.warn("Couldn't convert props to ORM")
+        return rows
 
     def convertSpreadsToORM(self, spreads):
         """
@@ -199,63 +202,68 @@ class DatabaseManager:
         logs.debug(colorEh("Packaging spreads ..."))
         rows = []
         total = countNestedDicts(spreads)
-        with tqdm(
-            disable=BARSDISABLED,
-            total=total,
-            leave=False,
-            unit="tic",
-            dynamic_ncols=True,
-            desc="cycle",
-        ) as bar:
-            for sym in spreads:
-                for combo in spreads[sym]:
-                    # create row object
-                    result = Spread(
-                        symbol=combo["symbol"],
-                        buy=combo["buy"],
-                        sell=combo["sell"],
-                        time=combo["time"],
-                        batch=combo["batch"],
-                        timestamp=combo["timestamp"],
-                        buy_ask=combo["buy_ask"],
-                        buy_bid=combo["buy_bid"],
-                        buy_price=combo["buy_price"],
-                        sell_ask=combo["sell_ask"],
-                        sell_bid=combo["sell_bid"],
-                        sell_price=combo["sell_price"],
-                        fees=combo["fees"],
-                        no_fees=combo["no_fees"],
-                        spread_w_fees=combo["spread_w_fees"],
-                        liquidity=combo["liquidity"],
-                        quote_order_size=combo["quote_order_size"],
-                        speedup=combo["speedup"],
-                    )
-                    rows.append(result)
-                    bar.update(1)
-            return rows
+        try:
+            with tqdm(
+                disable=BARSDISABLED,
+                total=total,
+                leave=False,
+                unit="tic",
+                dynamic_ncols=True,
+                desc="cycle",
+            ) as bar:
+                for sym in spreads:
+                    for combo in spreads[sym]:
+                        # create row object
+                        result = Spread(
+                            symbol=combo["symbol"],
+                            buy=combo["buy"],
+                            sell=combo["sell"],
+                            time=combo["time"],
+                            batch=combo["batch"],
+                            timestamp=combo["timestamp"],
+                            buy_ask=combo["buy_ask"],
+                            buy_bid=combo["buy_bid"],
+                            buy_price=combo["buy_price"],
+                            sell_ask=combo["sell_ask"],
+                            sell_bid=combo["sell_bid"],
+                            sell_price=combo["sell_price"],
+                            fees=combo["fees"],
+                            no_fees=combo["no_fees"],
+                            spread_w_fees=combo["spread_w_fees"],
+                            liquidity=combo["liquidity"],
+                            quote_order_size=combo["quote_order_size"],
+                            speedup=combo["speedup"],
+                        )
+                        rows.append(result)
+                        bar.update(1)
+        except:
+            logs.warn("Couldn't convert spreads to ORM")
+        return rows
 
     def spreadsToSummary(self, spreads):
         """
         Takes a spreads nested dict and creates the summary table
         """
         rows = []
-        for symbol in spreads:
-            if spreads[symbol]:
-                numberof = len(spreads[symbol])
-                top = spreads[symbol][0]
-                if top["symbol"] != "BCH/USD":  # bch is broken rn
-                    row = Summary(
-                        batch=top["batch"],
-                        symbol=top["symbol"],
-                        spread_w_fees=top["spread_w_fees"],
-                        speedup=top["speedup"],
-                        profitable_pairs=numberof,
-                        buy=top["buy"],
-                        sell=top["sell"],
-                        liquidity=top["liquidity"],
-                    )
-                    rows.append(row)
-
+        try:
+            for symbol in spreads:
+                if spreads[symbol]:
+                    numberof = len(spreads[symbol])
+                    top = spreads[symbol][0]
+                    if top["symbol"] != "BCH/USD":  # bch is broken rn
+                        row = Summary(
+                            batch=top["batch"],
+                            symbol=top["symbol"],
+                            spread_w_fees=top["spread_w_fees"],
+                            speedup=top["speedup"],
+                            profitable_pairs=numberof,
+                            buy=top["buy"],
+                            sell=top["sell"],
+                            liquidity=top["liquidity"],
+                        )
+                        rows.append(row)
+        except:
+            logs.warn("Couldn't convert summary to ORM")
         return rows
 
     def saveProps(self, props, session):
