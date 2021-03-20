@@ -158,8 +158,9 @@ def searchDict(dictlist, **kwargs):
         for argument, value in kwargs.items():
             if not row[argument] == value:
                 keeptrack = False
-    if keeptrack:
-        returns.append(row)
+        if keeptrack:
+            returns.append(row)
+    return returns
 
 
 def rgb(r, g, b):

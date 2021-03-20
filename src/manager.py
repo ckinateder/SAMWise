@@ -122,18 +122,16 @@ class DatabaseManager:
         Get latest data from the price tickers.
         """
         latest = []
-        latest_batch = (
-            session.query(Results).order_by(Results.id.desc()).first().batch
-        )  # not needed rn
+        # latest_batch = (
+        #    session.query(Results).order_by(Results.id.desc()).first().batch
+        # )  # not needed rn
         latest_orm = self.latest_raw  # copy
-        latest = [row.serialize() for row in latest_orm]  # serialize
-        searchDict(
-            latest, symbol=symbol, exchange=exchange
-        )  # search for symbol and kwargs
+        latest = [
+            row.serialize() for row in latest_orm
+        ]  # serialize  # search for symbol and kwargs
         if symbol and exchange:
-            latest = Results.findBy(
-                session, True, batch=latest_batch, symbol=symbol, exchange=exchange
-            )
+            latest = searchDict(latest, symbol=symbol, exchange=exchange)
+
         # print(latest)
         return latest
 
