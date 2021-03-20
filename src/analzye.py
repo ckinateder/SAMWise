@@ -50,7 +50,7 @@ def dfFromTable(engine, session, table, chunksize=10000) -> DataFrame:
     chunks = pd.read_sql_table(table, con=engine, chunksize=chunksize)
 
     df = pd.DataFrame()
-    chunkcount = 0
+    # chunkcount = 0
     for chunk in tqdm(
         chunks,
         total=math.ceil(length / chunksize),
@@ -60,10 +60,10 @@ def dfFromTable(engine, session, table, chunksize=10000) -> DataFrame:
         dynamic_ncols=True,
     ):
         df = pd.concat([df, chunk])
-        chunkcount += 1
-        logs.debug(
-            f"Loaded chunk {chunkcount} of {math.ceil(length / chunksize)} ({int(chunkcount/math.ceil(length / chunksize)*100)}%)"
-        )
+        # chunkcount += 1
+        # logs.debug(
+        #    f"Loaded chunk {chunkcount} of {math.ceil(length / chunksize)} ({int(chunkcount/math.ceil(length / chunksize)*100)}%)"
+        # )
     return df
 
 
