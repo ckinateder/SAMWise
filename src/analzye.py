@@ -232,4 +232,4 @@ if __name__ == "__main__":
     # logs.debug(summary.info())
     Session = createSessionMaker(engine)
     session = Session()
-    analyzeSpreads(session)
+    analyzeSpreads(engine, session)
