@@ -183,6 +183,9 @@ if __name__ == "__main__":
         "-r", "--reset", help="reset the database", default=False, action="store_true"
     )
     args = parser.parse_args()
+    # intro
+    clear()
+    intro()
     # create engine
     engine = manager.buildEngine(
         connection="mysql",
