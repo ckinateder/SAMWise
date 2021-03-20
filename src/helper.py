@@ -148,6 +148,23 @@ def roundSignificant(x, sig=2):
     return round(x, sig - int(floor(log10(abs(x)))) - 1)
 
 
+def searchDict(dictlist, **kwargs):
+    """
+    Search an array dict for kwargs. similar to a where sql call
+    """
+    for argument, value in kwargs.items():
+        print(argument, value)
+    returns = []
+    print(kwargs)
+    for row in dictlist:
+        keeptrack = True
+        for argument, value in kwargs.items():
+            if not row[argument] == value:
+                keeptrack = False
+    if keeptrack:
+        returns.append(row)
+
+
 def rgb(r, g, b):
     # return a scaled tuple
     return (r / 255.0, g / 255.0, b / 255.0)

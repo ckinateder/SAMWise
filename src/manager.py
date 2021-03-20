@@ -1,3 +1,4 @@
+import json
 import tqdm, psutil, sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -96,6 +97,8 @@ class DatabaseManager:
         }
         self.db_size = getDBSize(default_session, "samwise")
         self.latest_summary = []
+        self.latest_raw = []
+        self.latest_spreads = []
 
     def findNearestBatchTo(self, session, cls, batch):
         # batch must be in datetime string format
@@ -118,23 +121,20 @@ class DatabaseManager:
         """
         Get latest data from the price tickers.
         """
-        latest = None
-        batch = session.query(Results).order_by(Results.id.desc()).first().batch
-        latest = Results.findBy(session, True, batch=batch)
-        print("*" * 80, latest)
-
-        if symbol and not exchange:
-            latest = Results.findBy(session, True, batch=batch, symbol=symbol)
-        elif exchange and not symbol:
-            latest = Results.findBy(session, True, batch=batch, exchange=exchange)
-        elif symbol and exchange:
+        latest = []
+        latest_batch = (
+            session.query(Results).order_by(Results.id.desc()).first().batch
+        )  # not needed rn
+        latest_orm = self.latest_raw  # copy
+        latest = [row.serialize() for row in latest_orm]  # serialize
+        searchDict(
+            latest, symbol=symbol, exchange=exchange
+        )  # search for symbol and kwargs
+        if symbol and exchange:
             latest = Results.findBy(
-                session, True, batch=batch, symbol=symbol, exchange=exchange
+                session, True, batch=latest_batch, symbol=symbol, exchange=exchange
             )
-        else:
-            latest = Results.findBy(session, True, batch=batch)
-
-        print("*" * 80, latest)
+        # print(latest)
         return latest
 
     def getSpreadsLatest(self, session):
@@ -274,6 +274,7 @@ class DatabaseManager:
                 f"Wrote {len(rows)} records to 'results' in {now()-start:.2f}s (now {getTableLength(session,'results'):,} records long)."
             )
         )
+        return rows
 
     def saveSpreads(self, spreads, session):
         """
@@ -289,6 +290,7 @@ class DatabaseManager:
                 f"Wrote {len(rows)} records to 'spreads' in {now()-start:.2f}s (now {getTableLength(session,'spreads'):,} records long)."
             )
         )
+        return rows
 
     def saveBoth(self, props, spreads, session):
         """
@@ -340,7 +342,8 @@ class DatabaseManager:
             )
 
             self.current = "saving props"
-            self.saveProps(props, session)
+            self.latest_raw = self.saveProps(props, session)
+
             # scan one cycle
             self.current = "solving"
             spreads = self.beehive.scanFull(props)
@@ -350,7 +353,7 @@ class DatabaseManager:
             self.beehive.bounce(spreads)
 
             self.current = "saving spreads"
-            self.saveSpreads(spreads, session)
+            self.latest_spreads = self.saveSpreads(spreads, session)
             # summarize one cycle
             self.current = "saving summary"
             self.latest_summary = self.saveSummary(spreads, session)

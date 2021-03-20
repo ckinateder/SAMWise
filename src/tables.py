@@ -1,6 +1,9 @@
 from numpy import double
 from sqlalchemy import Column, String, Integer, Date, Table, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+
+from sqlalchemy.ext.declarative import DeclarativeMeta
+import json
 from sqlalchemy.sql.elements import and_
 from sqlalchemy.sql.sqltypes import (
     BIGINT,
@@ -14,8 +17,9 @@ from sqlalchemy.sql.sqltypes import (
 
 import decimal
 from datetime import *
-
+from pprint import pprint
 from helper import *
+import ccxt
 
 Base = declarative_base()
 
@@ -77,6 +81,19 @@ class Results(Base):
         if serialize:
             q = serializeQuery(q)
         return q
+
+    def serialize(self):
+        """
+        Get rid of non serializeable types
+        """
+        dictobj = self.__dict__
+        if "_sa_instance_state" in dictobj:
+            del dictobj["_sa_instance_state"]
+        for key in dictobj:
+            if isinstance(dictobj[key], ccxt.Exchange):
+                dictobj[key] = dictobj[key].name
+        # print(dictobj)
+        return dictobj
 
     def __repr__(self):
         tostr = f"<RESULTS @ id={self.id}, symbol={self.symbol}, exchange={self.exchange}, ask={float(self.ask)}, bid={float(self.bid)}>"
