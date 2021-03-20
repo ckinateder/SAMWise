@@ -49,7 +49,6 @@ class Data(Resource):
             }, 200
 
         queried = dbmanager.getRawLatest(query_session, symbol, exchange)
-        print(queried)
         if queried:
             return {"data": queried}, 200
         else:

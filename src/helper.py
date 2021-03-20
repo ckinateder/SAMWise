@@ -152,10 +152,7 @@ def searchDict(dictlist, **kwargs):
     """
     Search an array dict for kwargs. similar to a where sql call
     """
-    for argument, value in kwargs.items():
-        print(argument, value)
     returns = []
-    print(kwargs)
     for row in dictlist:
         keeptrack = True
         for argument, value in kwargs.items():
