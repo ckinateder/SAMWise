@@ -63,7 +63,7 @@ class Data(Resource):
         query_session = Session()  # for querying
         symbol = request.args.get("symbol")
         exchange = request.args.get("exchange")
-        if not symbol or not exchange:
+        if not symbol and not exchange:
             # help
             """
             # stringitize dynamic_commons
@@ -74,6 +74,10 @@ class Data(Resource):
             return {"you need to provide an symbol": "","supported pairs": helps}, 200
             """
             return {"data": dbmanager.getRawLatest(query_session)}, 200  # return all
+        elif symbol and not exchange:
+            queried = dbmanager.getRawLatest(query_session, symbol=symbol)
+        elif not symbol and exchange:
+            queried = dbmanager.getRawLatest(query_session, exchange=exchange)
         queried = dbmanager.getRawLatest(query_session, symbol, exchange)
         if queried:
             return {"data": queried}, 200

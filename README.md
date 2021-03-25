@@ -32,24 +32,37 @@ The API is now partly functional. It can be accessed through port `5000` on the 
 
 ### Endpoints
 
-* `/api/raw/latest`
-* `/api/raw/flex`
-* `/api/speads/latest`
-* `/api/speads/flex`
+* `/api/v1/status`
+* `/api/v1/data`
 
-`/api/[spreads or raw]/flex` params:
+`/api/v1/status` will return system status and such. Sample response:
 
-
-
-| identifier | format and type | description                          |
-| ---------- | --------------- | ------------------------------------ |
-| closest_to | datetime*       | find batch closest to given datetime |
-| bottom     | datetime*       | bottom end of range, inclusive       |
-| top        | datetime*       | top end of range, inclusive          |
-
-
-
-*NOTE: format MUST be `YY-MM-DD HH:MM:SS` and timezone UTC.
+```json
+{
+    "data": {
+        "uptime": "00:01:29",
+        "lengths": {
+            "results": 152842813,
+            "spreads": 17712519,
+            "summary": 8627197
+        },
+        "current": "waiting 4s",
+        "dbsize": "18.41GB",
+        "num_profit": 126,
+        "sysInfo": "System Info: Linux - compute - 5.4.0-67-generic - #75-Ubuntu SMP Fri Feb 19 18:03:38 UTC 2021 - x86_64 - x86_64",
+        "exchanges": [
+            "Binance",
+            "Binance US",
+            "Bitfinex",
+            "Bitstamp",
+            "Huobi Pro",
+            "Kraken",
+            "OKCoin",
+            "Phemex"
+        ]
+    }
+}
+```
 
 ## Database - under construction
 
