@@ -61,24 +61,21 @@ class Data(Resource):
         Get by symbol and exchange
         """
         query_session = Session()  # for querying
-        symbol = request.args.get("symbol")
-        exchange = request.args.get("exchange")
-        if not symbol and not exchange:
-            # help
-            """
+
+        if request.args.get("help"):
             # stringitize dynamic_commons
             helps = {}
             for key, item in dbmanager.beehive.dynamic_commons.items():
                 helps[str(key)] = [str(i) for i in item]
 
-            return {"you need to provide an symbol": "","supported pairs": helps}, 200
-            """
+            return {"you need to provide an symbol": "", "supported pairs": helps}, 200
+
+        converted_args = convertMultiDict(request.args)  # do this to pass kwargs
+
+        if not converted_args:
             return {"data": dbmanager.getRawLatest(query_session)}, 200  # return all
-        elif symbol and not exchange:
-            queried = dbmanager.getRawLatest(query_session, symbol=symbol)
-        elif not symbol and exchange:
-            queried = dbmanager.getRawLatest(query_session, exchange=exchange)
-        queried = dbmanager.getRawLatest(query_session, symbol, exchange)
+
+        queried = dbmanager.getRawLatest(query_session, **converted_args)
         if queried:
             return {"data": queried}, 200
         else:

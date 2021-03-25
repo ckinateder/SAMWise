@@ -117,7 +117,7 @@ class DatabaseManager:
         betweens = cls.findBetweenDatetimes(session, True, start=start, end=end)
         return betweens
 
-    def getRawLatest(self, session, symbol=None, exchange=None):
+    def getRawLatest(self, session, **kwargs):
         """
         Get latest data from the price tickers.
         """
@@ -129,8 +129,9 @@ class DatabaseManager:
         latest = [
             row.serialize() for row in latest_orm
         ]  # serialize  # search for symbol and kwargs
-        if symbol and exchange:
-            latest = searchDict(latest, symbol=symbol, exchange=exchange)
+        # find for each case
+        if kwargs:
+            latest = searchDict(latest, **kwargs)
 
         # print(latest)
         return latest

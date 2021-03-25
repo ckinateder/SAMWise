@@ -131,8 +131,15 @@ def getIP():
     return IP
 
 
-def exchangeDumper(obj):
-    return str
+def convertMultiDict(inp):
+    """
+    Convert a multidict to a regular dict
+    """
+    converted = {}
+    for itempair in inp:
+        converted[itempair] = inp[itempair]
+
+    return converted
 
 
 def countNestedDicts(props):

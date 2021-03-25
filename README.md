@@ -64,6 +64,39 @@ The API is now partly functional. It can be accessed through port `5000` on the 
 }
 ```
 
+`/api/v1/data` takes any and all parameters that are in the price (results) schema listed below. If none are recieved, it will send back the whole list of latest data. You can also add `help` as an argument to get a list of all pairs.
+
+Sample response `curl localhost:5000/api/v1/data?symbol=BTC/USD&exchange=Binance US`:
+
+```json
+{
+    "data": [
+        {
+            "symbol": "BTC/USD",
+            "exchange": "Binance US",
+            "timestamp": 1616641346816,
+            "ask": 52389.09,
+            "askVolume": 0.01852,
+            "average": null,
+            "baseVolume": 1304.87421,
+            "bid": 52370.88,
+            "close": 52379.2,
+            "datetime": "2021-03-25 03:02:26",
+            "batch": "2021-03-25 03:02:26",
+            "dx": -1977.86,
+            "high": 57190.63,
+            "last": 52379.2,
+            "low": 51500.27,
+            "open": 54357.06,
+            "percentage": -3.639,
+            "previousClose": 54350.67,
+            "quoteVolume": 70898015.5753,
+            "vwap": 54333.2184
+        }
+    ]
+}
+```
+
 ## Database - under construction
 
 The API is run off of a database updated around every 10 seconds. There are three tables, `results`, `spreads`, and `summary`, all related to each other by the `batch` key. The `batch` key is a datetime marking what time the propagation cycle was executed. The timestamps for each symbol received may be slightly different due to the asynchronous design of the `Propagator` class, but the `batch` will be the same for each symbol in that cycle.
