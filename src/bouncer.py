@@ -64,27 +64,10 @@ class Bouncer(Scanner):
             loud=False,
             position=position,
         )
-        self.trades_filename = (
-            "logs/trades/"
-            + nowD().strftime("%m-%d-%Y_%H-%M")
-            + "_"
-            + self.base_coin
-            + "-"
-            + self.quote_coin
-            + "_trades.csv"
-        )
+
         exchanges_str = ""
         self.trading = True
-        # set up trades file
-        self.trades_headers = [
-            "Date",
-            "Symbol",
-            "Side",
-            "Price",
-            "Exchange",
-            "Net Gain (%)",
-        ]
-        self.trades = pd.DataFrame(columns=self.trades_headers)
+
         self.trade_count = 0
         for i in range(0, len(self.exchanges) - 1):
             exchanges_str += self.exchanges[i].name + ", "
@@ -119,6 +102,8 @@ class Bouncer(Scanner):
                 )
             )
             self.inititalizeBalances()
+
+        # get originals
         (
             self.start_total_base_amount,
             self.start_total_quote_amount,
@@ -245,7 +230,6 @@ class Bouncer(Scanner):
                         exchange.name,
                         self.net,
                     ]
-                    self.trades.loc[len(self.trades)] = new_row
                 except ccxt.ExchangeNotAvailable:
                     logs.debug("Market on {} offline.".format(exchange.name))
             else:
@@ -333,6 +317,11 @@ class Bouncer(Scanner):
         Places the arbitrage transactions simultaneously.
         """
         amt = self.quote_order_size / high
+        operations = {}  # operations taken
+
+        # recalculate
+        self.updateNet()
+
         try:
             # creating processes
             logs.debug(
@@ -342,17 +331,16 @@ class Bouncer(Scanner):
             )
             self.buying = buy_ex
             buy_ex.create_limit_buy_order(self.symbol, amt, low)
+
             self.trade_count += 1
-            new_row = [
-                nowD().strftime(TIME_FORMAT),
-                self.symbol,
-                "buy",
-                low,
-                buy_ex.name,
-                self.net,
-            ]
-            self.trades.loc[len(self.trades)] = new_row
-            self.trades.to_csv(path_or_buf=self.trades_filename)
+            operations["buy"] = {
+                "datetime": nowD().strftime(TIME_FORMAT),
+                "symbol": self.symbol,
+                "exchange": buy_ex.name,
+                "side": "buy",
+                "price": low,
+                "net": self.net,
+            }
 
             logs.debug(
                 "Creating sell order on {} for {:.6f} {} at ${}".format(
@@ -362,16 +350,14 @@ class Bouncer(Scanner):
             self.selling = sell_ex
             sell_ex.create_limit_sell_order(self.symbol, amt, high)
             self.trade_count += 1
-            new_row = [
-                nowD().strftime(TIME_FORMAT),
-                self.symbol,
-                "sell",
-                high,
-                sell_ex.name,
-                self.net,
-            ]
-            self.trades.loc[len(self.trades)] = new_row
-            self.trades.to_csv(path_or_buf=self.trades_filename)
+            operations["sell"] = {
+                "datetime": nowD().strftime(TIME_FORMAT),
+                "symbol": self.symbol,
+                "exchange": sell_ex.name,
+                "side": "sell",
+                "price": high,
+                "net": self.net,
+            }
 
             # self.blockTrades(5)
             logs.debug(
@@ -387,7 +373,7 @@ class Bouncer(Scanner):
         # logs.debug('Balances fetched')
         self.updateBalances(loud=False)
 
-        return "Done"
+        return operations  # to be logged
 
     def arbitrate(self):
         """

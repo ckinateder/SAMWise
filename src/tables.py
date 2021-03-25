@@ -215,3 +215,33 @@ class Analysis(Base):
     def __repr__(self):
         tostr = f"<ANALYSIS @ symbol={self.symbol}, profitable pairs={self.profitable_pairs}/min, exchanges={self.exchanges}>"
         return tostr
+
+
+class Trade(Base):
+    __tablename__ = "trades"
+    """
+
+                "datetime": nowD().strftime(TIME_FORMAT),
+                "symbol": self.symbol,
+                "exchange": sell_ex.name,
+                "side": "sell",
+                "price": high,
+                "net": self.net,"""
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    symbol = Column(VARCHAR(20))
+    exchange = Column(VARCHAR(40))
+    side = Column(VARCHAR(4))
+    price = Column(Float)
+    net = Column(Float)
+
+    @classmethod
+    def findBy(cls, session, serialize, **kwargs):
+        q = session.query(cls).filter_by(**kwargs).all()
+        if serialize:
+            q = serializeQuery(q)
+        return q
+
+    def __repr__(self):
+        tostr = f"<TRADE @ symbol={self.symbol}, price={self.price}, side={self.side}, exchange={self.exchange}>"
+        return tostr

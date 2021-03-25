@@ -22,19 +22,44 @@ flask_log.setLevel(logging.ERROR)
 
 class Status(Resource):
     # methods go here
+
     def get(self):
+        supporteds = list(dbmanager.beehive.supported_idynamics.keys())
+        for i in range(len(supporteds)):
+            supporteds[i] = supporteds[i].name
+
+        if dataThread.is_alive():
+            current = dbmanager.current
+            summary = dbmanager.latest_summary
+        else:
+            current = "dead"
+            summary = []
         return {
             "data": {
-                "status": "unknown (probably running)",
-                "lengths": dbmanager.lengths,
-                "size": dbmanager.db_size,
                 "uptime": dbmanager.updateUptime(),
+                "lengths": dbmanager.lengths,
+                "current": current,
+                "dbsize": dbmanager.db_size,
+                "summary": [  # serialize
+                    {
+                        "symbol": s.symbol,
+                        "net spread": s.spread_w_fees,
+                        "batch": s.batch,
+                    }
+                    for s in summary
+                ],
+                "num_profit": len(summary),
+                "sysInfo": getInfo(),
+                "exchanges": sorted(supporteds),
             }
         }, 200  # return data and 200 OK code
 
 
 class Data(Resource):
     def get(self):
+        """
+        Get by symbol and exchange
+        """
         query_session = Session()  # for querying
         symbol = request.args.get("symbol")
         exchange = request.args.get("exchange")
@@ -44,8 +69,7 @@ class Data(Resource):
             for i in list(dbmanager.beehive.idynamics.keys()):
                 exchanges.append(i.name)
             return {
-                "supported symbols": list(dbmanager.beehive.dynamic_commons.keys()),
-                "supported exchanges": exchanges,
+                "supported pairs": dbmanager.beehive.dynamic_commons.keys(),
             }, 200
 
         queried = dbmanager.getRawLatest(query_session, symbol, exchange)
@@ -150,13 +174,8 @@ def addBouncer():
     return "Done"
 
 
-api.add_resource(Data, "/api/v1/data")  # '/raw/flex' is our entry point
-api.add_resource(RawFlex, "/api/raw/flex")  # '/raw/flex' is our entry point
-api.add_resource(RawLatest, "/api/raw/latest")  # '/raw/latest' is our entry point
-api.add_resource(SpreadsFlex, "/api/spreads/flex")  # '/spreads/flex' is our entry point
-api.add_resource(
-    SpreadsLatest, "/api/spreads/latest"
-)  # '/spreads/latest' is our entry point
+api.add_resource(Status, "/api/v1/status")
+api.add_resource(Data, "/api/v1/data")
 
 
 def openBrowser():
@@ -184,7 +203,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     # intro
-    clear()
+    # clear()
     intro()
     # create engine
     engine = manager.buildEngine(
