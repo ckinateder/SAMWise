@@ -65,13 +65,15 @@ class Data(Resource):
         exchange = request.args.get("exchange")
         if not symbol or not exchange:
             # help
-            exchanges = []
-            for i in list(dbmanager.beehive.idynamics.keys()):
-                exchanges.append(i.name)
-            return {
-                "supported pairs": dbmanager.beehive.dynamic_commons,
-            }, 200
+            """
+            # stringitize dynamic_commons
+            helps = {}
+            for key, item in dbmanager.beehive.dynamic_commons.items():
+                helps[str(key)] = [str(i) for i in item]
 
+            return {"you need to provide an symbol": "","supported pairs": helps}, 200
+            """
+            return {"data": dbmanager.getRawLatest(query_session)}, 200  # return all
         queried = dbmanager.getRawLatest(query_session, symbol, exchange)
         if queried:
             return {"data": queried}, 200

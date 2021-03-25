@@ -131,6 +131,10 @@ def getIP():
     return IP
 
 
+def exchangeDumper(obj):
+    return str
+
+
 def countNestedDicts(props):
     """
     Count the entries in a dict of dicts.
