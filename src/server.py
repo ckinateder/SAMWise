@@ -69,7 +69,7 @@ class Data(Resource):
             for i in list(dbmanager.beehive.idynamics.keys()):
                 exchanges.append(i.name)
             return {
-                "supported pairs": dbmanager.beehive.dynamic_commons.keys(),
+                "supported pairs": dbmanager.beehive.dynamic_commons,
             }, 200
 
         queried = dbmanager.getRawLatest(query_session, symbol, exchange)
