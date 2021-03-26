@@ -151,6 +151,19 @@ class Spread(Base):
         uniques = [row.batch for row in query.all()]
         return uniques
 
+    def serialize(self):
+        """
+        Get rid of non serializeable types
+        """
+        dictobj = self.__dict__
+        if "_sa_instance_state" in dictobj:
+            del dictobj["_sa_instance_state"]
+        for key in dictobj:
+            if isinstance(dictobj[key], ccxt.Exchange):
+                dictobj[key] = dictobj[key].name
+        # print(dictobj)
+        return dictobj
+
     def __repr__(self):
         tostr = f"<SPREAD @ id={self.id}, symbol={self.symbol}, buy={self.buy}, sell={self.sell}, net spread={float(self.spread_w_fees)}>"
         return tostr
@@ -191,6 +204,19 @@ class Summary(Base):
         uniques = [row.batch for row in query.all()]
         return uniques
 
+    def serialize(self):
+        """
+        Get rid of non serializeable types
+        """
+        dictobj = self.__dict__
+        if "_sa_instance_state" in dictobj:
+            del dictobj["_sa_instance_state"]
+        for key in dictobj:
+            if isinstance(dictobj[key], ccxt.Exchange):
+                dictobj[key] = dictobj[key].name
+        # print(dictobj)
+        return dictobj
+
     def __repr__(self):
         tostr = f"<SUMMARY @ batch={self.batch}, symbol={self.symbol}, net spread={float(self.spread_w_fees)}>"
         return tostr
@@ -211,6 +237,19 @@ class Analysis(Base):
         if serialize:
             q = serializeQuery(q)
         return q
+
+    def serialize(self):
+        """
+        Get rid of non serializeable types
+        """
+        dictobj = self.__dict__
+        if "_sa_instance_state" in dictobj:
+            del dictobj["_sa_instance_state"]
+        for key in dictobj:
+            if isinstance(dictobj[key], ccxt.Exchange):
+                dictobj[key] = dictobj[key].name
+        # print(dictobj)
+        return dictobj
 
     def __repr__(self):
         tostr = f"<ANALYSIS @ symbol={self.symbol}, profitable pairs={self.profitable_pairs}/min, exchanges={self.exchanges}>"
@@ -241,6 +280,19 @@ class Trade(Base):
         if serialize:
             q = serializeQuery(q)
         return q
+
+    def serialize(self):
+        """
+        Get rid of non serializeable types
+        """
+        dictobj = self.__dict__
+        if "_sa_instance_state" in dictobj:
+            del dictobj["_sa_instance_state"]
+        for key in dictobj:
+            if isinstance(dictobj[key], ccxt.Exchange):
+                dictobj[key] = dictobj[key].name
+        # print(dictobj)
+        return dictobj
 
     def __repr__(self):
         tostr = f"<TRADE @ symbol={self.symbol}, price={self.price}, side={self.side}, exchange={self.exchange}>"

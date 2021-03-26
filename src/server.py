@@ -82,48 +82,38 @@ class Data(Resource):
             return {"data": None, "msg": "no records matching those specs"}, 200
 
 
-class RawFlex(Resource):
-    # methods go heredef
+class BackendSummary(Resource):
     def get(self):
         """
-        Calls
-        GET 127.0.0.1:5000/api/flex?bottom=2021-02-23 21:00:00&top=2021-02-24 11:34:07.495980&sortby=datetime
+        Get latest summary
         """
-        query_session = Session()  # for querying
-        bottom = request.args.get("bottom")
-        top = request.args.get("top")
-        closest_to = request.args.get("closest_to")  # optional
+        data = [
+            row.serialize() for row in dbmanager.latest_summary
+        ]  # serialize each row
 
-        if closest_to:
-            closest_record = dbmanager.getNearestBatchTo(
-                query_session, Results, closest_to
-            )
-            return {"data": closest_record}, 200  # return data with 200 OK
-        else:
-            rows = dbmanager.getBatchesInRange(query_session, Results, bottom, top)
-            return {"data": rows}, 200  # return data with 200 OK
+        return {"data": data}, 200
 
 
-class RawLatest(Resource):
-    # methods go here
+class BackendResults(Resource):
     def get(self):
-        query_session = Session()  # for querying
-        row = dbmanager.getRawLatest(query_session)
-        return {"data": row}, 200  # return data with 200 OK
+        """
+        Get latest results
+        """
+        data = [row.serialize() for row in dbmanager.latest_raw]  # serialize each row
+
+        return {"data": data}, 200
 
 
-class SpreadsFlex(Resource):
-    # methods go here
+class BackendSpreads(Resource):
     def get(self):
-        return {"data": "OK (spreads)"}, 200  # return data and 200 OK code
+        """
+        Get latest results
+        """
+        data = [
+            row.serialize() for row in dbmanager.latest_spreads
+        ]  # serialize each row
 
-
-class SpreadsLatest(Resource):
-    # methods go here
-    def get(self):
-        query_session = Session()  # for querying
-        row = dbmanager.getSpreadsLatest(query_session)
-        return {"data": row}, 200  # return data and 200 OK code
+        return {"data": data}, 200
 
 
 # static pages
@@ -177,8 +167,14 @@ def addBouncer():
     return "Done"
 
 
+# serving api for clients
 api.add_resource(Status, "/api/v1/status")
 api.add_resource(Data, "/api/v1/data")
+
+# backend api for react
+api.add_resource(BackendSummary, "/backend/summary")
+api.add_resource(BackendResults, "/backend/results")
+api.add_resource(BackendSpreads, "/backend/spreads")
 
 
 def openBrowser():
