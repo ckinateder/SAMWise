@@ -6,7 +6,8 @@ from flask import Flask, request, render_template
 from flask_restful import Api, Resource
 import faulthandler
 
-faulthandler.enable(file="ETRACE")
+fault_out = open("ETRACE", "w+")
+faulthandler.enable(file=fault_out)
 
 import manager
 import analzye
