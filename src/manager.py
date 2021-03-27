@@ -82,10 +82,11 @@ def getTableLength(session, table):
 
 # class
 class DatabaseManager:
-    def __init__(self, default_session):
+    def __init__(self, default_session, interval=5):
         self.current = "starting"  # current process
         self.start_time = nowD()
         self.uptime = 0
+        self.interval = interval
 
         # create propagator
         self.beehive = hive.Hive(minnum=2)
@@ -96,6 +97,8 @@ class DatabaseManager:
             "summary": getTableLength(default_session, "summary"),
         }
         self.db_size = getDBSize(default_session, "samwise")
+
+        # to avoid querying, and these will be in ORM format
         self.latest_summary = []
         self.latest_raw = []
         self.latest_spreads = []
@@ -336,9 +339,9 @@ class DatabaseManager:
         self.uptime = strfdelta(nowD() - self.start_time)
         return self.uptime
 
-    def saveIndefinitely(self, Session, interval=5):
+    def saveIndefinitely(self, Session):
         """
-        Takes a sessionmaker object, create session, and save every interval seconds
+        Takes a sessionmaker object, create session, and save every self.interval seconds
         """
         session = Session()
         while True:
@@ -380,12 +383,12 @@ class DatabaseManager:
             # update on screen
             for t in trange(
                 0,
-                interval,
+                self.interval,
                 disable=BARSDISABLED,
                 leave=False,
                 desc="timer",
                 dynamic_ncols=True,
                 position=1,
             ):
-                self.current = f"waiting {interval-t}s"
+                self.current = f"waiting {self.interval-t}s"
                 time.sleep(1)

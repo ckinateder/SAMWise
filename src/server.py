@@ -4,6 +4,9 @@ import logging
 
 from flask import Flask, request, render_template
 from flask_restful import Api, Resource
+import faulthandler
+
+faulthandler.enable()
 
 import manager
 import analzye
@@ -116,6 +119,42 @@ class BackendSpreads(Resource):
         return {"data": data}, 200
 
 
+class BackendInfo(Resource):
+    def get(self):
+        if dataThread.is_alive():
+            current = dbmanager.current
+        else:
+            current = "dead"
+        supporteds = list(dbmanager.beehive.supported_idynamics.keys())
+        for i in range(len(supporteds)):
+            supporteds[i] = supporteds[i].name
+
+        mem_usage = getMemUsage()
+        data = {
+            "uptime": dbmanager.updateUptime(),
+            "current": current,
+            "footer": getInfo(),
+            "db_size": dbmanager.db_size,
+            "supported_exchanges": sorted(supporteds),
+            "lengths": dbmanager.lengths,
+            "mem_usage": mem_usage,
+        }
+        return {"data": data}, 200
+
+
+class BackendInterval(Resource):
+    def get(self):
+        return {"data": {"interval": dbmanager.interval}}, 200
+
+    def post(self):
+        interval = int(request.headers.get("interval"))  # convert to int
+        if interval >= 0:
+            dbmanager.interval = interval
+            return {"msg": "success"}, 200
+        else:
+            return {"msg": "interval can't be less than 0"}, 406
+
+
 # static pages
 @app.route("/")
 def dynamicStatus():
@@ -175,6 +214,8 @@ api.add_resource(Data, "/api/v1/data")
 api.add_resource(BackendSummary, "/backend/summary")
 api.add_resource(BackendResults, "/backend/results")
 api.add_resource(BackendSpreads, "/backend/spreads")
+api.add_resource(BackendInfo, "/backend/info")
+api.add_resource(BackendInterval, "/backend/interval")
 
 
 def openBrowser():
@@ -222,13 +263,11 @@ if __name__ == "__main__":
     # create session maker and session
     Session = manager.createSessionMaker(engine)  # for saving
     dbmanager_sess = Session()
-    dbmanager = manager.DatabaseManager(dbmanager_sess)
+    dbmanager = manager.DatabaseManager(dbmanager_sess, interval=int(args.timer))
 
     # create threads
     apiThread = threading.Thread(target=serveIndefinitely)
-    dataThread = threading.Thread(
-        target=dbmanager.saveIndefinitely, args=(Session, int(args.timer))
-    )
+    dataThread = threading.Thread(target=dbmanager.saveIndefinitely, args=(Session,))
     analyzeThread = threading.Thread(
         target=analzye.analyzeIndefinitely,
         args=(
