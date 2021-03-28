@@ -1,13 +1,12 @@
 import threading
 import webbrowser
 import logging
+import os
+
+from decouple import config
 
 from flask import Flask, request, render_template
 from flask_restful import Api, Resource
-import faulthandler
-
-fault_out = open("ETRACE", "w+")
-faulthandler.enable(file=fault_out)
 
 import manager
 import analzye
@@ -282,5 +281,6 @@ if __name__ == "__main__":
     logs.debug("Started DATA thread ...")
     apiThread.start()
     logs.debug("Started API thread ...")
+
     # analyzeThread.start()
     # logs.debug("Started ANALYZE thread ...")

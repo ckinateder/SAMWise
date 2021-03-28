@@ -15,6 +15,10 @@ from string import Template
 import psutil
 from termcolor import colored
 from tqdm import tqdm, trange
+import yagmail
+import faulthandler
+
+from decouple import config
 
 try:
     import pync
@@ -27,6 +31,11 @@ except:
 def updateSize():
     return [int(i) for i in subprocess.check_output(["stty", "size"]).decode().split()]
 
+
+os.environ["PYTHONFAULTHANDLER"] = config("PYTHONFAULTHANDLER")  # set envs
+
+fault_out = open("ETRACE", "w+")
+faulthandler.enable(file=fault_out)
 
 HEIGHT, WIDTH = updateSize()
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
