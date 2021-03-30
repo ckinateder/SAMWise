@@ -9,3 +9,12 @@
   padding: 10px;
   max-width: 50em;
 }
+.foot {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  line-height: 40px;
+}
+.rundown {
+  padding: 10px;
+}
