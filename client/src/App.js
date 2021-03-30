@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import React, { useState, useEffect } from 'react';
 import Dash from "./components/dash.component";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import DashDataService from "./services/dash.service"
 import './App.css';

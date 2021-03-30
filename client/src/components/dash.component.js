@@ -24,25 +24,11 @@ class Dash extends Component {
     return arr;
    }
   componentDidMount() {
-    /*
-      need to make the initial call to getData() to populate
-     data right away
-    */
     this.getData();
-
-    /*
-      Now we need to make it run at a specified interval,
-      bind the getData() call to `this`, and keep a reference
-      to the invterval so we can clear it later.
-    */
     this.intervalID = setInterval(this.getData.bind(this), 1000);
   }
 
   componentWillUnmount() {
-    /*
-      stop getData() from continuing to run even
-      after unmounting this component
-    */
     clearInterval(this.intervalID);
   }
 
@@ -75,15 +61,44 @@ class Dash extends Component {
       this.setState({lengths: cplengths});
     });
   }
-  renderRows(tbl) {
-    console.log(tbl)
-    return tbl.map(function(o,i) {
-      {console.log(o)}
-      return <tr key={i}>
-              <td>{o.batch}</td>
-              <td>{o.symbol}</td>
-            </tr>
-    });
+  
+
+  renderSummary() {
+    return <table className="table table-bordered table-sm table-hover">
+            <thead>
+              <th scope="col">
+                Symbol
+              </th>
+              <th scope="col">
+                Spread
+              </th>
+              <th scope="col">
+                Speedup
+              </th>
+              <th scope="col">
+                Buy
+              </th>
+              <th scope="col">
+                Sell
+              </th>
+              <th scope="col">
+                Liquidity
+              </th>
+            </thead>
+            <tbody>
+              {this.state.latestSummary.map(function(o,i) {
+                {console.log(o)}
+                return <tr key={i} scope="row">
+                        <td>{o.symbol}</td>
+                        <td>${o.spread_w_fees}</td>
+                        <td>{o.speedup}%</td>
+                        <td>{o.buy}</td>
+                        <td>{o.sell}</td>
+                        <td>{o.liquidity}</td>
+                      </tr>
+              })}
+            </tbody>
+          </table>
   }
 
   getData = () => {
@@ -114,12 +129,8 @@ class Dash extends Component {
         <div className="sys-info">
           {this.state.info.footer}
         </div>
-        <div className="summary">   
-        <table>
-          <tbody>
-            {this.renderRows(this.state.latestSummary)}
-          </tbody>
-        </table>
+        <div className="summary-table-div table-responsive">          
+          {this.renderSummary()}
         </div>
       </div>
     );
