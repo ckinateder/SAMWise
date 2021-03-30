@@ -1,3 +1,4 @@
+
 import http from "../http-common";
 
 class DashDataService {
@@ -28,7 +29,10 @@ class DashDataService {
   setInterval(data) {
     return http.put("/interval", data);
   }
-  
+  // for config
+  setBaseURL(url) {
+    http.defaults.baseURL = url+(process.env.REACT_APP_DEFAULT_HOST_ROUTE || "/backend/v1");
+  }
   /** 
   get(id) {
     console.log(`trying to get ${id}`);

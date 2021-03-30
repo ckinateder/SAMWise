@@ -12,6 +12,7 @@ class Dash extends Component {
     super(props);
     this.intervalID = 0;
     this.state = {
+      interval: 0,
       info: {},
       lengths:{},
       latestSummary:[],
@@ -21,7 +22,10 @@ class Dash extends Component {
 
   }
   componentDidMount() {
+    //console.log('serg');
+
     this.getData();
+    //console.log('sergds');
     this.intervalID = setInterval(this.getData.bind(this), 1000);
   }
 
@@ -56,6 +60,11 @@ class Dash extends Component {
     DashDataService.getLengths().then(res => res.data).then(data => {
       let cplengths = { ...data};
       this.setState({lengths: cplengths});
+    });
+  }
+  updateInterval(){
+    DashDataService.getInterval().then(res => res.data).then(data => {
+      this.setState({interval: data});
     });
   }
   
@@ -104,6 +113,7 @@ class Dash extends Component {
     this.updateResults();
     this.updateSpreads();
     this.updateLengths();
+    this.updateInterval();
   }
 
   render() {
@@ -111,19 +121,22 @@ class Dash extends Component {
       <div>
         <div className="rundown">
           <div className="uptime">
-            Uptime: {this.state.info.uptime}
+            <strong>Uptime: </strong>{this.state.info.uptime}
           </div>
           <div className="current">
-            Current task: {this.state.info.current}
+            <strong>Current task: </strong>{this.state.info.current}
           </div>
           <div className="row-counts">
-            Results: {commaFormat(this.state.lengths.results)} <br></br>
-            Spreads: {commaFormat(this.state.lengths.spreads)} <br></br>
-            Summary: {commaFormat(this.state.lengths.summary)} <br></br>
-            Total: {commaFormat(this.state.lengths.results+this.state.lengths.spreads+this.state.lengths.summary)} ({this.state.info.db_size}) <br></br>
-          </div>     
-          
+            <strong>Results: </strong>{commaFormat(this.state.lengths.results)} <br></br>
+            <strong>Spreads: </strong>{commaFormat(this.state.lengths.spreads)} <br></br>
+            <strong>Summary: </strong>{commaFormat(this.state.lengths.summary)} <br></br>
+            <strong>Total: </strong>{commaFormat(this.state.lengths.results+this.state.lengths.spreads+this.state.lengths.summary)} ({this.state.info.db_size}) <br></br>
+          </div>    
+          <div className="current">
+            <strong>Interval: </strong>{this.state.interval}s
+          </div>  
         </div>
+
         <div className="summary-table-div table-responsive">          
           {this.renderSummary()}
         </div>

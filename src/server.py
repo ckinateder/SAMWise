@@ -153,7 +153,7 @@ class BackendLengths(Resource):
 
 class BackendInterval(Resource):
     def get(self):
-        return {"data": {"interval": dbmanager.interval}}, 200
+        return dbmanager.interval, 200
 
     def put(self):
         # set the pause interval in manager

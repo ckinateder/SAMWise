@@ -1,8 +1,10 @@
 import axios from "axios";
-require('dotenv').config();
+
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') }); // load env
 
 export default axios.create({
-  baseURL: (process.env.BACKEND_URL || "http://localhost:5000")+"/backend/v1",
+  baseURL: (process.env.REACT_APP_DEFAULT_HOST || "http://localhost:5000")+(process.env.REACT_APP_DEFAULT_HOST_ROUTE || "/backend/v1"),
   headers: {
     "Content-type": "application/json"
   }

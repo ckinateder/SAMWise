@@ -8,6 +8,12 @@
 .summary-table-div {
   padding: 10px;
   max-width: 50em;
+  margin-bottom: 40px;
+}
+.results-table-div {
+  padding: 10px;
+  max-width: 60em;
+  margin-bottom: 40px;
 }
 .foot {
   position: fixed;
@@ -17,4 +23,27 @@
 }
 .rundown {
   padding: 10px;
+}
+.list {
+  text-align: left;
+  margin: auto;
+}
+.submit-form {
+  max-width: 300px;
+  margin: auto;
+}
+
+.edit-form {
+  max-width: 300px;
+  margin: auto;
+}
+.bg-purple {
+  background-color: #5c52b6;
+}
+.configure-form {
+  padding: 10px;
+}
+.routing-to {
+  color: white;
+  margin-right: 15px;
 }
