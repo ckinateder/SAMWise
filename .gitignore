@@ -146,3 +146,4 @@ cont
 chart
 node_modules
 ETRACE
+client/package-lock.json

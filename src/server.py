@@ -7,6 +7,7 @@ from decouple import config
 
 from flask import Flask, request, render_template
 from flask_restful import Api, Resource
+from flask_cors import CORS, cross_origin
 
 import manager
 import analzye
@@ -17,6 +18,8 @@ from pprint import pprint
 
 app = Flask(__name__)
 api = Api(app)
+cors = CORS(app)
+app.config["CORS_HEADERS"] = "Content-Type"  # configure cors
 
 # turn off page gets
 flask_log = logging.getLogger("werkzeug")
@@ -94,7 +97,7 @@ class BackendSummary(Resource):
             row.serialize() for row in dbmanager.latest_summary
         ]  # serialize each row
 
-        return {"data": data}, 200
+        return data, 200
 
 
 class BackendResults(Resource):
@@ -104,7 +107,7 @@ class BackendResults(Resource):
         """
         data = [row.serialize() for row in dbmanager.latest_raw]  # serialize each row
 
-        return {"data": data}, 200
+        return data, 200
 
 
 class BackendSpreads(Resource):
@@ -116,7 +119,7 @@ class BackendSpreads(Resource):
             row.serialize() for row in dbmanager.latest_spreads
         ]  # serialize each row
 
-        return {"data": data}, 200
+        return data, 200
 
 
 class BackendInfo(Resource):
@@ -136,17 +139,24 @@ class BackendInfo(Resource):
             "footer": getInfo(),
             "db_size": dbmanager.db_size,
             "supported_exchanges": sorted(supporteds),
-            "lengths": dbmanager.lengths,
+            # "lengths": dbmanager.lengths,
             "mem_usage": mem_usage,
         }
-        return {"data": data}, 200
+        return data, 200
+
+
+class BackendLengths(Resource):
+    def get(self):
+        data = dbmanager.lengths
+        return data, 200
 
 
 class BackendInterval(Resource):
     def get(self):
         return {"data": {"interval": dbmanager.interval}}, 200
 
-    def post(self):
+    def put(self):
+        # set the pause interval in manager
         interval = int(request.headers.get("interval"))  # convert to int
         if interval >= 0:
             dbmanager.interval = interval
@@ -211,11 +221,12 @@ api.add_resource(Status, "/api/v1/status")
 api.add_resource(Data, "/api/v1/data")
 
 # backend api for react
-api.add_resource(BackendSummary, "/backend/summary")
-api.add_resource(BackendResults, "/backend/results")
-api.add_resource(BackendSpreads, "/backend/spreads")
-api.add_resource(BackendInfo, "/backend/info")
-api.add_resource(BackendInterval, "/backend/interval")
+api.add_resource(BackendSummary, "/backend/v1/summary")
+api.add_resource(BackendResults, "/backend/v1/results")
+api.add_resource(BackendSpreads, "/backend/v1/spreads")
+api.add_resource(BackendInfo, "/backend/v1/info")
+api.add_resource(BackendInterval, "/backend/v1/interval")
+api.add_resource(BackendLengths, "/backend/v1/lengths")
 
 
 def openBrowser():
