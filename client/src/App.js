@@ -77,7 +77,7 @@ class App extends Component {
             </li>
           </div>
           <div className="text-white">
-          {this.state.info.current} | Routing requests to <a className="text-white" href={this.state.baseUrl}> {(localStorage.getItem("baseURL"))}</a>
+          {this.state.info.current || "DISCONNECTED"} | Routing requests to <a className="text-white" href={this.state.baseUrl}> {(localStorage.getItem("baseURL") || process.env.REACT_APP_DEFAULT_HOST)}</a>
           </div>
         </nav>
         <div className="">

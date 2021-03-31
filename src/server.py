@@ -240,14 +240,11 @@ def serveIndefinitely():
 
 if __name__ == "__main__":
     # Create the parser
+    loadEnvironmentVars()
     parser = argparse.ArgumentParser(
         description="Handle database connections for SAMWise"
     )
-    parser.add_argument("-u", "--user", help="username", default="test")
-    parser.add_argument("-p", "--pwd", help="password", default="test")
-    parser.add_argument("-H", "--host", help="host", default="localhost")
-    parser.add_argument("-P", "--port", help="port", default="3306")
-    parser.add_argument("-d", "--database", help="database", default="samwise")
+
     parser.add_argument("-t", "--timer", help="timer", default=5)
     parser.add_argument(
         "-r", "--reset", help="reset the database", default=False, action="store_true"
@@ -257,14 +254,16 @@ if __name__ == "__main__":
     # clear()
     intro()
     # create engine
+
     engine = manager.buildEngine(
         connection="mysql",
-        username=args.user,
-        password=args.pwd,
-        host=args.host,
-        port=args.port,
-        database=args.database,
+        username=os.environ["DB_USER"],
+        password=os.environ["DB_PASS"],
+        host=os.environ["DB_HOST"],
+        port="3306",
+        database="samwise",
     )
+    print("Connected to database")
     # commandline args
     if args.reset:
         confirm = input("Are you sure you want to reset the DB? (Y/n) ").lower()

@@ -31,7 +31,7 @@ class DashDataService {
   }
   // for config
   setBaseURL(url) {
-    http.defaults.baseURL = url+(process.env.REACT_APP_DEFAULT_HOST_ROUTE || "/backend/v1");
+    http.defaults.baseURL = url;
   }
   /** 
   get(id) {

@@ -14,15 +14,15 @@ class Configure extends Component {
     this.intervalID = 0;
     
     this.state = {
-      url: http.defaults.baseURL.replace(process.env.REACT_APP_DEFAULT_HOST_ROUTE,""), // remove end slug
+      url: http.defaults.baseURL, // remove end slug
       interval: 0
     }
     
-    this.handleChange = this.handleChange.bind(this);
+    this.handleChangeURL = this.handleChangeURL.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
 
   }
-  handleChange(event) {
+  handleChangeURL(event) {
     this.setState({url: event.target.value});
   }
 
@@ -64,7 +64,8 @@ class Configure extends Component {
             <label>
               Server URL:
             </label>
-            <input type="text" className="form-control" value={this.state.url} onChange={this.handleChange} />
+            <input type="text" className="form-control" value={this.state.url} onChange={this.handleChangeURL} />
+            
           <div>
             <input type="submit" className="btn btn-primary" value="Apply" />
           </div>

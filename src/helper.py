@@ -32,7 +32,12 @@ def updateSize():
     return [int(i) for i in subprocess.check_output(["stty", "size"]).decode().split()]
 
 
-os.environ["PYTHONFAULTHANDLER"] = config("PYTHONFAULTHANDLER")  # set envs
+def loadEnvironmentVars():
+    os.environ["PYTHONFAULTHANDLER"] = config("PYTHONFAULTHANDLER")  # set envs
+    os.environ["DB_HOST"] = config("DB_HOST")  # set envs
+    os.environ["DB_USER"] = config("DB_USER")  # set envs
+    os.environ["DB_PASS"] = config("DB_PASS")  # set envs
+
 
 fault_out = open("ETRACE", "w+")
 faulthandler.enable(file=fault_out)
