@@ -13,6 +13,40 @@ import './App.css';
 import Configure from './components/configure.component';
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    this.intervalID = 0;
+    this.state = {
+      info: {},
+      baseUrl: localStorage.getItem("baseURL")
+    }
+
+  }
+  componentDidMount() {
+    this.getData();
+    this.intervalID = setInterval(this.getData.bind(this), 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalID);
+  }
+
+  updateInfo(){
+    DashDataService.getInfo().then(res => res.data).then(data => {
+      this.setState({info: data});
+    });
+  }
+
+  updateURL(){
+      this.setState({baseUrl: localStorage.getItem("baseURL")});
+  }
+
+  getData = () => {
+    // do something to fetch data from a remote API.
+    this.updateInfo();
+    this.updateURL();
+  }
+
   render() {
     return (
       <div>
@@ -43,11 +77,10 @@ class App extends Component {
             </li>
           </div>
           <div className="text-white">
-          Routing requests to {http.defaults.baseURL} | Built by
-            <a className="text-white" href="https://ckinateder.github.io/"> Calvin Kinateder</a>
+          {this.state.info.current} | Routing requests to <a className="text-white" href={this.state.baseUrl}> {(localStorage.getItem("baseURL"))}</a>
           </div>
         </nav>
-        <div>
+        <div className="">
           <Switch>
             <Route exact path={["/", "/dashboard"]} component={Dash} />
             <Route exact path="/results" component={Results} />

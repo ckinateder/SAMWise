@@ -17,7 +17,7 @@ class Configure extends Component {
       url: http.defaults.baseURL.replace(process.env.REACT_APP_DEFAULT_HOST_ROUTE,""), // remove end slug
       interval: 0
     }
-    DashDataService.setBaseURL(this.state.url);    
+    
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
 
@@ -28,8 +28,9 @@ class Configure extends Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    DashDataService.setBaseURL(this.state.url);    
-    console.log(this.state.url);
+    DashDataService.setBaseURL(this.state.url);
+    localStorage.setItem("baseURL", this.state.url);
+    console.log(localStorage.getItem("baseURL"));
   }
   
   updateInterval(){
