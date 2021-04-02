@@ -13,7 +13,6 @@ class Dash extends Component {
     this.intervalID = 0;
     this.state = {
       info: {},
-      latestResults:[],
     }
 
   }
@@ -40,40 +39,49 @@ class Dash extends Component {
   }  
 
   renderResults() {
-    return <table className="table table-bordered table-sm table-hover">
-            <thead>
-              <th scope="col">
-                Symbol
-              </th>
-              <th scope="col">
-                Exchange
-              </th>
-              <th scope="col">
-                Ask
-              </th>
-              <th scope="col">
-                Bid
-              </th>
-              <th scope="col">
-                Base Volume
-              </th>
-              <th scope="col">
-                Quote Volume
-              </th>
-            </thead>
-            <tbody>
-              {this.state.latestResults.map(function(o,i) {
-                return <tr key={i} scope="row">
-                        <td>{o.symbol}</td>
-                        <td>{o.exchange}</td>
-                        <td>${o.ask}</td>
-                        <td>${o.bid}</td>
-                        <td>{(o.baseVolume)? o.baseVolume: "--"}</td>
-                        <td>{(o.quoteVolume)? o.quoteVolume: "--"}</td>
-                      </tr>
-              })}
-            </tbody>
-          </table>
+    try {
+      return <table className="table table-bordered table-sm table-hover">
+              <thead>
+                <th scope="col">
+                  Symbol
+                </th>
+                <th scope="col">
+                  Exchange
+                </th>
+                <th scope="col">
+                  Ask
+                </th>
+                <th scope="col">
+                  Bid
+                </th>
+                <th scope="col">
+                  Base Volume
+                </th>
+                <th scope="col">
+                  Quote Volume
+                </th>
+                <th scope="col">
+                  Batch
+                </th>
+              </thead>
+              <tbody>
+                {this.state.latestResults.map(function(o,i) {
+                  return <tr key={i} scope="row">
+                          <td>{o.symbol}</td>
+                          <td>{o.exchange}</td>
+                          <td>${o.ask}</td>
+                          <td>${o.bid}</td>
+                          <td>{(o.baseVolume)? o.baseVolume: "--"}</td>
+                          <td>{(o.quoteVolume)? o.quoteVolume: "--"}</td>
+                          <td>{o.batch}</td>
+                        </tr>
+                })}
+              </tbody>
+            </table>
+      }
+    catch {
+      return "Fetching results..."
+    }
   }
 
   getData = () => {

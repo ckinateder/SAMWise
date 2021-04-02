@@ -58,7 +58,7 @@ class Configure extends Component {
 
   render() {
     return (
-      <div className="configure-form col-3">
+      <div className="configure-form">
         <div className="form-group">
           <form onSubmit={this.handleSubmit}>
             <label>

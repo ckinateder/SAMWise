@@ -15,7 +15,6 @@ class Spreads extends Component {
     
     this.state = {
       info: {},
-      latestSpreads:[],
     }
 
   }
@@ -41,6 +40,7 @@ class Spreads extends Component {
     });
   }
   renderSpreads() {
+    try {   
     return <table className="table table-bordered table-sm table-hover">
             <thead>
               <th scope="col">
@@ -67,6 +67,9 @@ class Spreads extends Component {
               <th scope="col">
                 Liquidity
               </th>
+              <th scope="col">
+                Batch
+              </th>
             </thead>
             <tbody>
               {this.state.latestSpreads.map(function(o,i) {
@@ -79,10 +82,15 @@ class Spreads extends Component {
                         <td>${o.spread_w_fees}</td>
                         <td>{o.speedup}%</td>
                         <td>{commaFormat(o.liquidity)}</td>
+                        <td>{o.batch}</td>
                       </tr>
               })}
             </tbody>
           </table>
+    }
+    catch{
+      return "Loading spreads ..."
+    }
   }
 
   getData = () => {

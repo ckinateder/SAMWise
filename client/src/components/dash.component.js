@@ -15,7 +15,6 @@ class Dash extends Component {
       interval: 0,
       info: {},
       lengths:{},
-      latestSummary:[],
       latestResults:[],
       latestSpreads:[],
     }
@@ -70,6 +69,7 @@ class Dash extends Component {
   
 
   renderSummary() {
+    try {
     return <table className="table table-bordered table-sm table-hover">
             <thead>
               <th scope="col">
@@ -104,6 +104,10 @@ class Dash extends Component {
               })}
             </tbody>
           </table>
+    }
+    catch {
+      return "Loading dashboard data..."
+    }
   }
 
   getData = () => {

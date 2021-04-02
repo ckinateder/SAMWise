@@ -15,7 +15,6 @@ from string import Template
 import psutil
 from termcolor import colored
 from tqdm import tqdm, trange
-import yagmail
 import faulthandler
 
 from decouple import config

@@ -219,6 +219,17 @@ $ cd SAMWise
 (SAMWise)$ pip3 install -r requirements.txt
 ```
 
+You will also need to set up your environment variables in a file called `.env` in the root directory. This is where the database connections are set up.
+
+```
+PYTHONFAULTHANDLER=1
+DB_USER = test
+DB_PASS = test
+DB_HOST = localhost
+DB_PORT = 3306
+DB_NAME = samwise
+```
+
 **Unfortunately, due to the highly profitable nature of this application, I cannot release the code, so it's currently not available for public use. It will be in the future.**
 
 ## Usage
