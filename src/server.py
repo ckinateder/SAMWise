@@ -165,6 +165,19 @@ class BackendInterval(Resource):
             return {"msg": "interval can't be less than 0"}, 406
 
 
+class BackendBouncers(Resource):
+    def get(self):
+        data = dbmanager.beehive.bouncers
+        return data, 200
+
+    def post(self):
+        dbmanager.beehive.addBouncer(
+            request.headers.get("symbol"),
+            request.headers.get("amount"),
+        )
+        return {"msg": "success"}, 200
+
+
 # static pages
 @app.route("/")
 def dynamicStatus():

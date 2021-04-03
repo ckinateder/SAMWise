@@ -52,6 +52,10 @@ COLORING = False
 # change this to turn of progress bars
 BARSDISABLED = False
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 def color(text, color, on_color=None):
     if COLORING:

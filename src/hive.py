@@ -235,12 +235,6 @@ class Hive:
                         f"Symbol {scan.symbol} not found in props! This is probably not an issue, but beware."
                     )
                 )
-                # procs.append(
-                #     Thread(
-                #        target=scan.wrapGetSpreadToResults,
-                #         args=(responses),
-                #     )
-                # )
         # start
         for proc in tqdm(
             procs,
@@ -258,11 +252,13 @@ class Hive:
         solve_time = nowD() - solve_time
         return responses
 
-    def bounce(self, props):
+    def bounce(self, spreads):
         """
         Bounce once
         """
-        pass
+        for binstance in self.bouncers:
+            slic = spreads[binstance.symbol]
+            binstance.arbitrate(slic)
 
     def scanNTimes(self, n=1):
         """

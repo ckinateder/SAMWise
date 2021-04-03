@@ -270,14 +270,29 @@ class DatabaseManager:
             logs.warn("Couldn't convert summary to ORM")
         return rows
 
-    def saveProps(self, props, session):
+    def saveProps(self, props, session, bulk=False):
         """
         Save props to database
         """
         start = now()
         rows = self.convertPropsToORM(props)
-        session.bulk_save_objects(rows)
-        session.commit()
+        if bulk:
+            session.bulk_save_objects(rows)
+            session.commit()
+        else:
+            chunks_rows = chunks(rows, 10)
+            for chunk in tqdm(
+                chunks_rows,
+                leave=False,
+                unit="row",
+                desc="save",
+                total=len(list(chunks_rows)),
+                dynamic_ncols=True,
+            ):
+                pprint(chunk)
+                session.bulk_save_objects(chunk)
+                session.commit()
+
         self.lengths["results"] = getTableLength(session, "results")
         logs.debug(
             colorGood(

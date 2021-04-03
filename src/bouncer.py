@@ -375,13 +375,11 @@ class Bouncer(Scanner):
 
         return operations  # to be logged
 
-    def arbitrate(self):
+    def arbitrate(self, spreads, error=False):
         """
         Calculate spread and buy on low and sell on high, with checking for low balances and whatnot.
         """
         try:
-            spreads, error, flip_flop = self.getSpread()
-
             # add and subtract from mock balances here
 
             if spreads and self.trading and not error and not self.anyOpen():
