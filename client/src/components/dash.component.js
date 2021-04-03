@@ -137,7 +137,7 @@ class Dash extends Component {
             <strong>Total: </strong>{commaFormat(this.state.lengths.results+this.state.lengths.spreads+this.state.lengths.summary)} ({this.state.info.db_size}) <br></br>
           </div>    
           <div className="current">
-            <strong>Interval: </strong>{this.state.interval}s
+            <strong>Memory usage: </strong>{this.state.info.mem_usage}
           </div>  
         </div>
 
